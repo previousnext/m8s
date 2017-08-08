@@ -9,7 +9,7 @@ import (
 	"k8s.io/kubernetes/pkg/api/v1"
 )
 
-// Helper function to convert a Docker Compose file into a Kubernetes Deployment object.
+// Pod converts a Docker Compose file into a Kubernetes Deployment object.
 func Pod(namespace string, in *pb.BuildRequest) (*v1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/

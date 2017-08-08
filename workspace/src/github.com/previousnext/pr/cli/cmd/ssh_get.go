@@ -10,6 +10,7 @@ func (cmd *cmdSSHGet) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
+// SSHGet declares the "ssh-get" sub command.
 func SSHGet(app *kingpin.Application) {
 	c := new(cmdSSHGet)
 

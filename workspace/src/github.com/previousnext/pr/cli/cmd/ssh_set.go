@@ -10,6 +10,7 @@ func (cmd *cmdSSHSet) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
+// SSHSet declares the "ssh-set" sub command.
 func SSHSet(app *kingpin.Application) {
 	c := new(cmdSSHSet)
 
