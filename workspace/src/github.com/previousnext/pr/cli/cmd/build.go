@@ -92,7 +92,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Repository: cmd.GitRepository,
 			Revision:   cmd.GitRevision,
 		},
-		Compose: dc.Proto(),
+		Compose: dc.GRPC(),
 		Exec: &pb.Exec{
 			Container: cmd.ExecInside,
 			Steps:     steps,
@@ -117,6 +117,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
+// Build declares the "build" sub command.
 func Build(app *kingpin.Application) {
 	c := new(cmdBuild)
 

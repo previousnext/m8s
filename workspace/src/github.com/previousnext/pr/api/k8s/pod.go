@@ -9,7 +9,7 @@ import (
 	"k8s.io/kubernetes/pkg/api/v1"
 )
 
-// Helper function to convert a Docker Compose file into a Kubernetes Deployment object.
+// Pod converts a Docker Compose file into a Kubernetes Deployment object.
 func Pod(namespace string, in *pb.BuildRequest) (*v1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/
@@ -79,6 +79,7 @@ func Pod(namespace string, in *pb.BuildRequest) (*v1.Pod, error) {
 
 			// Mount the code where the user has provided "." as the "source".
 			// Anything else the user has provided cannot be supported.
+			// @todo, Handle other mounts.
 			if sl[0] == "." {
 				container.VolumeMounts = append(container.VolumeMounts, v1.VolumeMount{
 					Name:      "code",

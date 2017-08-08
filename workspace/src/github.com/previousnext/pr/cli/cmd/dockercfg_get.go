@@ -10,6 +10,7 @@ func (cmd *cmdDockerCfgGet) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
+// DockerCfgGet declares the "dockercfg-get" sub command.
 func DockerCfgGet(app *kingpin.Application) {
 	c := new(cmdDockerCfgGet)
 

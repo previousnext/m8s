@@ -6,7 +6,7 @@ import (
 	"k8s.io/kubernetes/pkg/api/v1"
 )
 
-// Helper function to convert a Docker Compose file into a Kubernetes Service object.
+// Service converts a Docker Compose file into a Kubernetes Service object.
 func Service(namespace string, in *pb.BuildRequest) (*v1.Service, error) {
 	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{

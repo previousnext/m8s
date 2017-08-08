@@ -7,7 +7,7 @@ import (
 	extensions "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
 )
 
-// Helper function to convert a Docker Compose file into a Kubernetes Ingress object.
+// Ingress converts a Docker Compose file into a Kubernetes Ingress object.
 func Ingress(namespace string, in *pb.BuildRequest) (*extensions.Ingress, error) {
 	ingress := &extensions.Ingress{
 		ObjectMeta: metav1.ObjectMeta{

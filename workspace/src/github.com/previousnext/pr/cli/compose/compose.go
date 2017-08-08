@@ -7,10 +7,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// DockerCompose is an object which encapsulates a Docker Compose file.
 type DockerCompose struct {
 	Services map[string]DockerComposeService
 }
 
+// DockerComposeService a service declared in a Docker Compose file.
 type DockerComposeService struct {
 	Image       string   `yaml:"image"`
 	Build       string   `yaml:"build"`
@@ -19,7 +21,8 @@ type DockerComposeService struct {
 	Environment []string `yaml:"environment"`
 }
 
-func (dc DockerCompose) Proto() *pb.Compose {
+// GRPC is used for marshalling a Docker Compose file into a PR GRPC object.
+func (dc DockerCompose) GRPC() *pb.Compose {
 	resp := new(pb.Compose)
 
 	for name, service := range dc.Services {
@@ -35,7 +38,7 @@ func (dc DockerCompose) Proto() *pb.Compose {
 	return resp
 }
 
-// Helper function to load the Docker Compose file.
+// Load the Docker Compose file.
 func Load(path string) (DockerCompose, error) {
 	var dc DockerCompose
 
