@@ -25,6 +25,9 @@ func TestIngress(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "pr1",
+			Annotations: map[string]string{
+				"kubernetes.io/ingress.class": "traefik",
+			},
 		},
 		Spec: extensions.IngressSpec{
 			Rules: []extensions.IngressRule{
