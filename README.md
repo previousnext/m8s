@@ -5,7 +5,7 @@ Pull Request (PR)
 
 **Maintainer**: Nick Schuch
 
-CLI and API toolkit for building Pull Request environments.
+CLI and API for building Pull Request environments.
 
 ![Diagram](/docs/diagram.png "Diagram")
 
