@@ -79,6 +79,7 @@ func Pod(namespace string, in *pb.BuildRequest) (*v1.Pod, error) {
 
 			// Mount the code where the user has provided "." as the "source".
 			// Anything else the user has provided cannot be supported.
+			// @todo, Handle other mounts.
 			if sl[0] == "." {
 				container.VolumeMounts = append(container.VolumeMounts, v1.VolumeMount{
 					Name:      "code",
