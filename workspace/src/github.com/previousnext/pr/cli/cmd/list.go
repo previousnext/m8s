@@ -48,7 +48,7 @@ func (cmd *cmdList) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
-// SSHGet declares the "ssh-get" sub command.
+// List declares the "list" sub command.
 func List(app *kingpin.Application) {
 	c := new(cmdList)
 
