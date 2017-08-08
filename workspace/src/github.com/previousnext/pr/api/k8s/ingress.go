@@ -13,6 +13,9 @@ func Ingress(namespace string, in *pb.BuildRequest) (*extensions.Ingress, error)
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      in.Metadata.Name,
+			Annotations: map[string]string{
+				"kubernetes.io/ingress.class": "traefik",
+			},
 		},
 	}
 
