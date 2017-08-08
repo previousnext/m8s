@@ -4,6 +4,8 @@ package pr;
 
 service PR {
     rpc Build (BuildRequest) returns (stream BuildResponse) {}
+    rpc Describe (DescribeRequest) returns (DescribeResponse) {}
+    rpc List (ListRequest) returns (ListResponse) {}
 
     // Used for setting and getting SSH credentials.
     rpc SSHSet (SSHSetRequest) returns (SSHSetResponse) {}
@@ -14,6 +16,7 @@ service PR {
     rpc DockerCfgGet (DockerCfgGetRequest) returns (DockerCfgGetResponse) {}
 }
 
+// Credentials is used for authenicating with the PR service.
 message Credentials {
     string Token = 1;
 }
@@ -67,6 +70,42 @@ message BuildResponse {
   string Message = 1;
 }
 
+// Container shows a container which is deployed in an Environment.
+message Container {
+    string Name = 1;
+    string Image = 2;
+}
+
+// Environment shows a group of containers which have been deployed.
+message Environment {
+    string Namespace = 1;
+    string Name = 2;
+    repeated string Domains = 3;
+    repeated Container Containers = 4;
+}
+
+// DescribeRequest asks for an Environment which has already been deployed.
+message DescribeRequest {
+    Credentials Credentials = 1;
+    string Name = 2;
+}
+
+// DescribeResponse responds with an Environment.
+message DescribeResponse {
+    Environment Environment = 1;
+}
+
+// DescribeRequest asks for all the Environments.
+message ListRequest {
+    Credentials Credentials = 1;
+}
+
+// ListResponse returns a list of Environments.
+message ListResponse {
+    repeated Environment Environments = 1;
+}
+
+// SSH containers secrets for performing SSH commands on private endpoints.
 message SSH {
     bytes KnownHosts = 1;
     bytes PrivateKey = 2;

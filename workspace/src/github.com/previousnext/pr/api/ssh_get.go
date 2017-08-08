@@ -12,7 +12,7 @@ import (
 func (srv server) SSHGet(ctx context.Context, in *pb.SSHGetRequest) (*pb.SSHGetResponse, error) {
 	resp := new(pb.SSHGetResponse)
 
-	if in.Credentials.Token == *cliToken {
+	if in.Credentials.Token != *cliToken {
 		return resp, fmt.Errorf("token is incorrect")
 	}
 
