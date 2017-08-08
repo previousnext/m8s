@@ -13,7 +13,7 @@ import (
 func (srv server) DockerCfgGet(ctx context.Context, in *pb.DockerCfgGetRequest) (*pb.DockerCfgGetResponse, error) {
 	resp := new(pb.DockerCfgGetResponse)
 
-	if in.Credentials.Token == *cliToken {
+	if in.Credentials.Token != *cliToken {
 		return resp, fmt.Errorf("token is incorrect")
 	}
 

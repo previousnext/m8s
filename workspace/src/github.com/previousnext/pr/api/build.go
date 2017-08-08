@@ -20,7 +20,7 @@ import (
 )
 
 func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
-	if in.Credentials.Token == *cliToken {
+	if in.Credentials.Token != *cliToken {
 		return fmt.Errorf("token is incorrect")
 	}
 

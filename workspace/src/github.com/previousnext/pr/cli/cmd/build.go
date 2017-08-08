@@ -55,7 +55,11 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	client := pb.NewPRClient(conn)
 
 	// Query the API for the Docker configuration.
-	dockercfg, err := client.DockerCfgGet(context.Background(), &pb.DockerCfgGetRequest{})
+	dockercfg, err := client.DockerCfgGet(context.Background(), &pb.DockerCfgGetRequest{
+		Credentials: &pb.Credentials{
+			Token: cmd.Token,
+		},
+	})
 	if err != nil {
 		return fmt.Errorf("failed to request Docker configuration to pushing built images: %s", err)
 	}
@@ -122,7 +126,7 @@ func Build(app *kingpin.Application) {
 	c := new(cmdBuild)
 
 	cmd := app.Command("build", "Build the environment").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default("pr.ci.pnx.com.au").StringVar(&c.API)
+	cmd.Flag("api", "API endpoint which accepts our build requests").Default("pr.ci.pnx.com.au:433").StringVar(&c.API)
 	cmd.Flag("token", "Token used for authenticating with the API service").Required().StringVar(&c.Token)
 	cmd.Flag("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)
