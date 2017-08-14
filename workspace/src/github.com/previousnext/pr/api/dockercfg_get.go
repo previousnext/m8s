@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/previousnext/pr/api/k8s"
+	"github.com/previousnext/pr/api/k8s/env"
 	pb "github.com/previousnext/pr/pb"
 	context "golang.org/x/net/context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +17,7 @@ func (srv server) DockerCfgGet(ctx context.Context, in *pb.DockerCfgGetRequest) 
 		return resp, fmt.Errorf("token is incorrect")
 	}
 
-	secret, err := srv.client.Secrets(*cliNamespace).Get(k8s.SecretDockerCfg, metav1.GetOptions{})
+	secret, err := srv.client.Secrets(*cliNamespace).Get(env.SecretDockerCfg, metav1.GetOptions{})
 	if err != nil {
 		return resp, err
 	}

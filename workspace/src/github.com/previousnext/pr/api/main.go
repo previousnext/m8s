@@ -15,21 +15,24 @@ import (
 
 var (
 	cliPort      = kingpin.Flag("port", "Port to run this service on").Default("80").OverrideDefaultFromEnvar("PORT").Int32()
-	cliCert      = kingpin.Flag("cert", "Certificate for TLS connection").OverrideDefaultFromEnvar("TLS_CERT").Default("cert.pem").String()
-	cliKey       = kingpin.Flag("key", "Private key for TLS connection").OverrideDefaultFromEnvar("TLS_KEY").Default("key.pem").String()
-	cliToken     = kingpin.Flag("token", "Token to authenticate against the API.").Default("").String()
-	cliNamespace = kingpin.Flag("namespace", "Namespace to build environments.").Default("default").String()
+	cliCert      = kingpin.Flag("cert", "Certificate for TLS connection").Default("cert.pem").OverrideDefaultFromEnvar("TLS_CERT").String()
+	cliKey       = kingpin.Flag("key", "Private key for TLS connection").Default("key.pem").OverrideDefaultFromEnvar("TLS_KEY").String()
+	cliToken     = kingpin.Flag("token", "Token to authenticate against the API.").Default("").OverrideDefaultFromEnvar("AUTH_TOKEN").String()
+	cliNamespace = kingpin.Flag("namespace", "Namespace to build environments.").Default("default").OverrideDefaultFromEnvar("NAMESPACE").String()
 
 	// Black Death.
-	cliBlackDeathVersion = kingpin.Flag("black-death-version", "Version of Black Death to deploy").Default("0.0.1").String()
+	cliBlackDeathImage   = kingpin.Flag("black-death-image", "Black Death image to deploy").Default("previousnext/k8s-black-death").OverrideDefaultFromEnvar("BLACK_DEATH_IMAGE").String()
+	cliBlackDeathVersion = kingpin.Flag("black-death-version", "Version of Black Death to deploy").Default("0.0.1").OverrideDefaultFromEnvar("BLACK_DEATH_VERSION").String()
 
 	// Traefik.
-	cliTraefikVersion = kingpin.Flag("traefik-version", "Version of Traefik to deploy").Default("1.3").String()
-	cliTraefikPort    = kingpin.Flag("traefik-port", "Assign this port to each node on the cluster for Traefik ingress").Default("80").Int32()
+	cliTraefikImage   = kingpin.Flag("traefik-image", "Traefik image to deploy").Default("traefik").OverrideDefaultFromEnvar("TRAEFIK_IMAGE").String()
+	cliTraefikVersion = kingpin.Flag("traefik-version", "Version of Traefik to deploy").Default("1.3").OverrideDefaultFromEnvar("TRAEFIK_VERSION").String()
+	cliTraefikPort    = kingpin.Flag("traefik-port", "Assign this port to each node on the cluster for Traefik ingress").Default("80").OverrideDefaultFromEnvar("TRAEFIK_PORT").Int32()
 
 	// SSH Server.
-	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("0.0.5").String()
-	cliSSHPort    = kingpin.Flag("ssh-port", "Assign this port to each node on the cluster for SSH ingress").Default("2222").Int32()
+	cliSSHImage   = kingpin.Flag("ssh-image", "SSH server image to deploy").Default("previousnext/k8s-ssh-server").OverrideDefaultFromEnvar("SSH_IMAGE").String()
+	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("0.0.5").OverrideDefaultFromEnvar("SSH_VERSION").String()
+	cliSSHPort    = kingpin.Flag("ssh-port", "Assign this port to each node on the cluster for SSH ingress").Default("2222").OverrideDefaultFromEnvar("SSH_PORT").Int32()
 )
 
 func main() {
@@ -53,21 +56,21 @@ func main() {
 
 	fmt.Println("Installing addon: traefik")
 
-	err = addons.CreateTraefik(client, *cliNamespace, *cliTraefikVersion, *cliTraefikPort)
+	err = addons.CreateTraefik(client, *cliNamespace, *cliTraefikImage, *cliTraefikVersion, *cliTraefikPort)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Installing addon: ssh-server")
 
-	err = addons.CreateSSHServer(client, *cliNamespace, *cliSSHVersion, *cliSSHPort)
+	err = addons.CreateSSHServer(client, *cliNamespace, *cliSSHImage, *cliSSHVersion, *cliSSHPort)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Installing addon: black-death")
 
-	err = addons.CreateBlackDeath(client, *cliNamespace, *cliBlackDeathVersion)
+	err = addons.CreateBlackDeath(client, *cliNamespace, *cliBlackDeathImage, *cliBlackDeathVersion)
 	if err != nil {
 		panic(err)
 	}

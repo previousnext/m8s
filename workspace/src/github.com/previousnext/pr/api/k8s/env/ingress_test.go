@@ -3,7 +3,6 @@ package env
 import (
 	"testing"
 
-	pb "github.com/previousnext/pr/pb"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -11,22 +10,13 @@ import (
 )
 
 func TestIngress(t *testing.T) {
-	obj := &pb.BuildRequest{
-		Metadata: &pb.Metadata{
-			Name: "pr1",
-			Domains: []string{
-				"pr1.example.com",
-				"pr1.example2.com",
-			},
-		},
-	}
-
 	want := &extensions.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "pr1",
 			Annotations: map[string]string{
 				"kubernetes.io/ingress.class": "traefik",
+				"skipper.io/black-death":      "123456789",
 			},
 		},
 		Spec: extensions.IngressSpec{
@@ -67,7 +57,7 @@ func TestIngress(t *testing.T) {
 		},
 	}
 
-	have, err := Ingress("test", obj)
+	have, err := Ingress(123456789, "test", "pr1", []string{"pr1.example.com", "pr1.example2.com"})
 	assert.Nil(t, err)
 	assert.Equal(t, want, have)
 }

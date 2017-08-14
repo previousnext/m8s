@@ -10,51 +10,6 @@ import (
 )
 
 func TestPod(t *testing.T) {
-	obj := &pb.BuildRequest{
-		Metadata: &pb.Metadata{
-			Name: "pr1",
-			Domains: []string{
-				"pr1.example.com",
-				"pr1.example2.com",
-			},
-		},
-		Compose: &pb.Compose{
-			Services: []*pb.ComposeService{
-				{
-					Name:  "app",
-					Image: "foo/bar",
-					Volumes: []string{
-						".:/data",
-					},
-					Ports: []string{
-						"80:80",
-					},
-					Environment: []string{
-						"FOO=bar",
-					},
-				},
-				{
-					Name:  "mysql",
-					Image: "mariadb",
-					Environment: []string{
-						"MYSQL_ROOT_PASSWORD=root",
-						"MYSQL_DATABASE=local",
-						"MYSQL_USER=drupal",
-						"MYSQL_PASSWORD=drupal",
-					},
-				},
-				{
-					Name:  "solr",
-					Image: "previousnext/solr:5.x",
-				},
-			},
-		},
-		GitCheckout: &pb.GitCheckout{
-			Repository: "git@github.com:foo/bar.git",
-			Revision:   "123456789",
-		},
-	}
-
 	perm := int32(256)
 
 	want := &v1.Pod{
@@ -63,6 +18,9 @@ func TestPod(t *testing.T) {
 			Name:      "pr1",
 			Labels: map[string]string{
 				"env": "pr1",
+			},
+			Annotations: map[string]string{
+				"skipper.io/black-death": "123456789",
 			},
 		},
 		Spec: v1.PodSpec{
@@ -166,7 +124,35 @@ func TestPod(t *testing.T) {
 		},
 	}
 
-	have, err := Pod("test", obj)
+	have, err := Pod(123456789, "test", "pr1", "git@github.com:foo/bar.git", "123456789", []*pb.ComposeService{
+		{
+			Name:  "app",
+			Image: "foo/bar",
+			Volumes: []string{
+				".:/data",
+			},
+			Ports: []string{
+				"80:80",
+			},
+			Environment: []string{
+				"FOO=bar",
+			},
+		},
+		{
+			Name:  "mysql",
+			Image: "mariadb",
+			Environment: []string{
+				"MYSQL_ROOT_PASSWORD=root",
+				"MYSQL_DATABASE=local",
+				"MYSQL_USER=drupal",
+				"MYSQL_PASSWORD=drupal",
+			},
+		},
+		{
+			Name:  "solr",
+			Image: "previousnext/solr:5.x",
+		},
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, want.ObjectMeta, have.ObjectMeta)
 	assert.Equal(t, want.Spec.Containers, have.Spec.Containers)

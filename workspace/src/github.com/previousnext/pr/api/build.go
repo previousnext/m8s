@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/previousnext/pr/api/k8s/env"
 	pb "github.com/previousnext/pr/pb"
@@ -20,15 +21,25 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return fmt.Errorf("token is incorrect")
 	}
 
+	// @todo, Verification.
+
+	keep, err := time.ParseDuration(in.Keep)
+	if err != nil {
+		return fmt.Errorf("failed marshall field 'keep': %s", err)
+	}
+
+	// Create a unix timestamp to be used for "Black Death".
+	timeout := time.Now().Unix() + keep.Nanoseconds()
+
 	// Step 1 - Create Kubernetes Service object.
-	err := stream.Send(&pb.BuildResponse{
+	err = stream.Send(&pb.BuildResponse{
 		Message: "Creating K8s Service",
 	})
 	if err != nil {
 		return err
 	}
 
-	err = env.CreateService(srv.client, *cliNamespace, in.Metadata.Name)
+	err = env.CreateService(srv.client, timeout, *cliNamespace, in.Metadata.Name)
 	if err != nil {
 		return fmt.Errorf("failed create service: %s", err)
 	}
@@ -41,7 +52,7 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return err
 	}
 
-	err = env.CreateIngress(srv.client, *cliNamespace, in.Metadata.Name, in.Metadata.Domains)
+	err = env.CreateIngress(srv.client, timeout, *cliNamespace, in.Metadata.Name, in.Metadata.Domains)
 	if err != nil {
 		return fmt.Errorf("failed create ingress: %s", err)
 	}
@@ -54,7 +65,7 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return err
 	}
 
-	pod, err := env.CreatePod(srv.client, *cliNamespace, in.Metadata.Name, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services)
+	pod, err := env.CreatePod(srv.client, timeout, *cliNamespace, in.Metadata.Name, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services)
 	if err != nil {
 		return fmt.Errorf("failed create pod: %s", err)
 	}

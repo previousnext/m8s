@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"fmt"
 	pb "github.com/previousnext/pr/pb"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,9 +13,9 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-// Helper function for spinning up a new pod.
-func CreatePod(client *client.Clientset, namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
-	pod, err := Pod(namespace, name, repository, revision, services)
+// CreatePod is used for creating our Pod instance.
+func CreatePod(client *client.Clientset, timeout int64, namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
+	pod, err := Pod(timeout, namespace, name, repository, revision, services)
 	if err != nil {
 		return pod, err
 	}
@@ -61,7 +62,7 @@ func CreatePod(client *client.Clientset, namespace, name, repository, revision s
 }
 
 // Pod converts a Docker Compose file into a Kubernetes Deployment object.
-func Pod(namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
+func Pod(timeout int64, namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/
 	perm := int32(256)
@@ -73,6 +74,9 @@ func Pod(namespace, name, repository, revision string, services []*pb.ComposeSer
 			// This allows us to Link our Service to this Pod.
 			Labels: map[string]string{
 				"env": name,
+			},
+			Annotations: map[string]string{
+				"skipper.io/black-death": fmt.Sprintf("%v", timeout),
 			},
 		},
 		Spec: v1.PodSpec{

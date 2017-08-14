@@ -1,6 +1,8 @@
 package env
 
 import (
+	"fmt"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -8,8 +10,9 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-func CreateIngress(client *client.Clientset, namespace, name string, domains []string) error {
-	ing, err := Ingress(namespace, name, domains)
+// CreateIngress is used for creating the Ingress object.
+func CreateIngress(client *client.Clientset, timeout int64, namespace, name string, domains []string) error {
+	ing, err := Ingress(timeout, namespace, name, domains)
 	if err != nil {
 		return err
 	}
@@ -28,13 +31,14 @@ func CreateIngress(client *client.Clientset, namespace, name string, domains []s
 }
 
 // Ingress converts a Docker Compose file into a Kubernetes Ingress object.
-func Ingress(namespace, name string, domains []string) (*extensions.Ingress, error) {
+func Ingress(timeout int64, namespace, name string, domains []string) (*extensions.Ingress, error) {
 	ingress := &extensions.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
 			Annotations: map[string]string{
 				"kubernetes.io/ingress.class": "traefik",
+				"skipper.io/black-death":      fmt.Sprintf("%v", timeout),
 			},
 		},
 	}

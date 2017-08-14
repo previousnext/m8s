@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/previousnext/pr/api/k8s"
+	"github.com/previousnext/pr/api/k8s/env"
 	pb "github.com/previousnext/pr/pb"
 	context "golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -29,7 +29,7 @@ func (srv server) SSHSet(ctx context.Context, in *pb.SSHSetRequest) (*pb.SSHSetR
 	obj := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: *cliNamespace,
-			Name:      k8s.SecretDockerCfg,
+			Name:      env.SecretDockerCfg,
 		},
 		Data: map[string][]byte{
 			keyPrivateKey: in.SSH.PrivateKey,

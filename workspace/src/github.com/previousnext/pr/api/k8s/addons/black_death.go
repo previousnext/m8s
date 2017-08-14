@@ -9,18 +9,19 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-func CreateBlackDeath(client *client.Clientset, namespace, version string) error {
+const bdName = "black-death"
+
+// CreateBlackDeath is used for creating the "Black Death" addon.
+func CreateBlackDeath(client *client.Clientset, namespace, image, version string) error {
 	var (
 		id       = "addon"
-		name     = "black-death"
-		image    = "previousnext/k8s-black-death"
 		history  = int32(1)
 		replicas = int32(1)
 	)
 
 	dply := &v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", id, name),
+			Name:      fmt.Sprintf("%s-%s", id, bdName),
 			Namespace: namespace,
 		},
 		Spec: v1beta1.DeploymentSpec{
@@ -28,21 +29,21 @@ func CreateBlackDeath(client *client.Clientset, namespace, version string) error
 			RevisionHistoryLimit: &history,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					id: name,
+					id: bdName,
 				},
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: fmt.Sprintf("%s-%s", id, name),
+					Name: fmt.Sprintf("%s-%s", id, bdName),
 					Labels: map[string]string{
-						id: name,
+						id: bdName,
 					},
 					Namespace: namespace,
 				},
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
 						{
-							Name:  name,
+							Name:  bdName,
 							Image: fmt.Sprintf("%s:%s", image, version),
 							Env: []v1.EnvVar{
 								{

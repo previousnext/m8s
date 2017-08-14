@@ -30,6 +30,7 @@ type cmdBuild struct {
 	ExecFile         string
 	ExecStep         string
 	ExecInside       string
+	Keep             string
 }
 
 func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
@@ -101,6 +102,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Container: cmd.ExecInside,
 			Steps:     steps,
 		},
+		Keep: cmd.Keep,
 	})
 	if err != nil {
 		return fmt.Errorf("the build has failed: %s", err)
@@ -137,6 +139,7 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("exec-file", "Configuration file which contains execution steps").Required().StringVar(&c.ExecFile)
 	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Required().StringVar(&c.ExecStep)
 	cmd.Flag("exec-inside", "Docker repository to push built images").Required().StringVar(&c.ExecInside)
+	cmd.Flag("Keep", "How many days before an environment can be deleted").Default("5d").StringVar(&c.Keep)
 }
 
 // A helper function to building and pushing an image to a Docker registry.

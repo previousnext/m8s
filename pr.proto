@@ -28,6 +28,7 @@ message BuildRequest {
     Compose Compose = 3;
     GitCheckout GitCheckout = 4;
     Exec Exec = 5;
+    string Keep = 6;
 }
 
 // Metadata is high level information about the build.
