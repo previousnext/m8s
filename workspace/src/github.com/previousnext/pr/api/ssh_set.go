@@ -14,7 +14,7 @@ import (
 func (srv server) SSHSet(ctx context.Context, in *pb.SSHSetRequest) (*pb.SSHSetResponse, error) {
 	resp := new(pb.SSHSetResponse)
 
-	if in.Credentials.Token == *cliToken {
+	if in.Credentials.Token != *cliToken {
 		return resp, fmt.Errorf("token is incorrect")
 	}
 

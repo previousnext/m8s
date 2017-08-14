@@ -33,6 +33,9 @@ func Ingress(namespace, name string, domains []string) (*extensions.Ingress, err
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
+			Annotations: map[string]string{
+				"kubernetes.io/ingress.class": "traefik",
+			},
 		},
 	}
 

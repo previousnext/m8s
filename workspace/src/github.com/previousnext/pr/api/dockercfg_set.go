@@ -15,7 +15,7 @@ import (
 func (srv server) DockerCfgSet(ctx context.Context, in *pb.DockerCfgSetRequest) (*pb.DockerCfgSetResponse, error) {
 	resp := new(pb.DockerCfgSetResponse)
 
-	if in.Credentials.Token == *cliToken {
+	if in.Credentials.Token != *cliToken {
 		return resp, fmt.Errorf("token is incorrect")
 	}
 
