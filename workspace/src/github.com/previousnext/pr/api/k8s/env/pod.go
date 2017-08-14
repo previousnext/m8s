@@ -1,16 +1,67 @@
-package k8s
+package env
 
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	pb "github.com/previousnext/pr/pb"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/api/v1"
+	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
+// Helper function for spinning up a new pod.
+func CreatePod(client *client.Clientset, namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
+	pod, err := Pod(namespace, name, repository, revision, services)
+	if err != nil {
+		return pod, err
+	}
+
+	_, err = client.Pods(namespace).Create(pod)
+	if errors.IsAlreadyExists(err) {
+		// This will tell Kubernetes that we want this pod to be deleted immediately.
+		now := int64(0)
+
+		// Delete the Pod.
+		err = client.Pods(namespace).Delete(name, &metav1.DeleteOptions{
+			GracePeriodSeconds: &now,
+		})
+		if err != nil {
+			return pod, err
+		}
+
+		// Create the new pod.
+		_, err = client.Pods(namespace).Create(pod)
+		if err != nil {
+			return pod, err
+		}
+	} else if err != nil {
+		return pod, err
+	}
+
+	// Wait for the pod to become available.
+	limiter := time.Tick(time.Second / 10)
+
+	for {
+		pod, err = client.Pods(namespace).Get(name, metav1.GetOptions{})
+		if err != nil {
+			return pod, err
+		}
+
+		if pod.Status.Phase == v1.PodRunning {
+			break
+		}
+
+		<-limiter
+	}
+
+	return pod, err
+}
+
 // Pod converts a Docker Compose file into a Kubernetes Deployment object.
-func Pod(namespace string, in *pb.BuildRequest) (*v1.Pod, error) {
+func Pod(namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/
 	perm := int32(256)
@@ -18,10 +69,10 @@ func Pod(namespace string, in *pb.BuildRequest) (*v1.Pod, error) {
 	pod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      in.Metadata.Name,
+			Name:      name,
 			// This allows us to Link our Service to this Pod.
 			Labels: map[string]string{
-				"env": in.Metadata.Name,
+				"env": name,
 			},
 		},
 		Spec: v1.PodSpec{
@@ -39,8 +90,8 @@ func Pod(namespace string, in *pb.BuildRequest) (*v1.Pod, error) {
 					Name: "code",
 					VolumeSource: v1.VolumeSource{
 						GitRepo: &v1.GitRepoVolumeSource{
-							Repository: in.GitCheckout.Repository,
-							Revision:   in.GitCheckout.Revision,
+							Repository: repository,
+							Revision:   revision,
 							Directory:  ".",
 						},
 					},
@@ -54,7 +105,7 @@ func Pod(namespace string, in *pb.BuildRequest) (*v1.Pod, error) {
 		},
 	}
 
-	for _, service := range in.Compose.Services {
+	for _, service := range services {
 		container := v1.Container{
 			Name:            service.Name,
 			Image:           service.Image,

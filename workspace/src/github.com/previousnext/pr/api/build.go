@@ -4,16 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"time"
 
-	"github.com/previousnext/pr/api/k8s"
+	"github.com/previousnext/pr/api/k8s/env"
 	pb "github.com/previousnext/pr/pb"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/v1"
-	extensions "k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	"k8s.io/kubernetes/pkg/client/unversioned/remotecommand"
 	remotecommandserver "k8s.io/kubernetes/pkg/kubelet/server/remotecommand"
@@ -24,37 +20,15 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return fmt.Errorf("token is incorrect")
 	}
 
-	err := stream.Send(&pb.BuildResponse{
-		Message: "Mashalling request into K8s objects",
-	})
-	if err != nil {
-		return err
-	}
-
-	service, err := k8s.Service(*cliNamespace, in)
-	if err != nil {
-		return fmt.Errorf("failed to build K8s Service object: %s", err)
-	}
-
-	ingress, err := k8s.Ingress(*cliNamespace, in)
-	if err != nil {
-		return fmt.Errorf("failed to build K8s Ingress object: %s", err)
-	}
-
-	pod, err := k8s.Pod(*cliNamespace, in)
-	if err != nil {
-		return fmt.Errorf("failed to build K8s Pod object: %s", err)
-	}
-
 	// Step 1 - Create Kubernetes Service object.
-	err = stream.Send(&pb.BuildResponse{
+	err := stream.Send(&pb.BuildResponse{
 		Message: "Creating K8s Service",
 	})
 	if err != nil {
 		return err
 	}
 
-	err = createService(srv.client, service)
+	err = env.CreateService(srv.client, *cliNamespace, in.Metadata.Name)
 	if err != nil {
 		return fmt.Errorf("failed create service: %s", err)
 	}
@@ -67,7 +41,7 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return err
 	}
 
-	err = createIngress(srv.client, ingress)
+	err = env.CreateIngress(srv.client, *cliNamespace, in.Metadata.Name, in.Metadata.Domains)
 	if err != nil {
 		return fmt.Errorf("failed create ingress: %s", err)
 	}
@@ -80,7 +54,7 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return err
 	}
 
-	err = createPod(srv.client, pod)
+	pod, err := env.CreatePod(srv.client, *cliNamespace, in.Metadata.Name, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services)
 	if err != nil {
 		return fmt.Errorf("failed create pod: %s", err)
 	}
@@ -120,74 +94,6 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		if err != nil {
 			return fmt.Errorf("ftep failed: %s", err)
 		}
-	}
-
-	return nil
-}
-
-// Helper function for spinning up a new service.
-func createService(client *client.Clientset, service *v1.Service) error {
-	_, err := client.Services(service.ObjectMeta.Namespace).Create(service)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
-
-	return nil
-}
-
-// Helper function for spinning up a new ingress.
-func createIngress(client *client.Clientset, ingress *extensions.Ingress) error {
-	_, err := client.Extensions().Ingresses(ingress.ObjectMeta.Namespace).Create(ingress)
-	if errors.IsAlreadyExists(err) {
-		_, err = client.Extensions().Ingresses(ingress.ObjectMeta.Namespace).Update(ingress)
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Helper function for spinning up a new pod.
-func createPod(client *client.Clientset, pod *v1.Pod) error {
-	_, err := client.Pods(pod.ObjectMeta.Namespace).Create(pod)
-	if errors.IsAlreadyExists(err) {
-		// This will tell Kubernetes that we want this pod to be deleted immediately.
-		now := int64(0)
-
-		// Delete the Pod.
-		err = client.Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{
-			GracePeriodSeconds: &now,
-		})
-		if err != nil {
-			return err
-		}
-
-		// Create the new pod.
-		_, err = client.Pods(pod.ObjectMeta.Namespace).Create(pod)
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
-	}
-
-	// Wait for the pod to become available.
-	limiter := time.Tick(time.Second / 10)
-
-	for {
-		pod, err = client.Pods(pod.ObjectMeta.Namespace).Get(pod.ObjectMeta.Name, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-
-		if pod.Status.Phase == v1.PodRunning {
-			break
-		}
-
-		<-limiter
 	}
 
 	return nil
