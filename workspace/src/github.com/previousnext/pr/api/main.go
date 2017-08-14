@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	cliPort      = kingpin.Flag("port", "Port to run this service on").Default("80").OverrideDefaultFromEnvar("PORT").Int32()
+	cliPort      = kingpin.Flag("port", "Port to run this service on").Default("443").OverrideDefaultFromEnvar("PORT").Int32()
 	cliCert      = kingpin.Flag("cert", "Certificate for TLS connection").Default("cert.pem").OverrideDefaultFromEnvar("TLS_CERT").String()
 	cliKey       = kingpin.Flag("key", "Private key for TLS connection").Default("key.pem").OverrideDefaultFromEnvar("TLS_KEY").String()
 	cliToken     = kingpin.Flag("token", "Token to authenticate against the API.").Default("").OverrideDefaultFromEnvar("AUTH_TOKEN").String()

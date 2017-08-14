@@ -1,10 +1,11 @@
 #!/usr/bin/make -f
 
 VERSION=$(shell git describe --tags --always)
+IMAGE=previousnext/pr
 
 release:
-	docker build -f dockerfiles/api/Dockerfile -t previousnext/pr-api:${VERSION} .
-	docker build -f dockerfiles/cli/Dockerfile -t previousnext/pr-cli:${VERSION} .
+	docker build -f dockerfiles/api/Dockerfile -t ${IMAGE}:${VERSION} .
+	docker push ${IMAGE}:${VERSION}
 
 GRPC_GO_IMAGE="nickschuch/skipper-grpc-go:latest"
 GRPC_GO_TARGET="workspace/src/github.com/previousnext/pr/pb"
