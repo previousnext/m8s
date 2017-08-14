@@ -35,7 +35,6 @@ func (srv server) SSHSet(ctx context.Context, in *pb.SSHSetRequest) (*pb.SSHSetR
 			keyPrivateKey: in.SSH.PrivateKey,
 			keyKnownHosts: in.SSH.KnownHosts,
 		},
-		Type: v1.SecretTypeDockercfg,
 	}
 
 	_, err := srv.client.Secrets(*cliNamespace).Create(obj)
