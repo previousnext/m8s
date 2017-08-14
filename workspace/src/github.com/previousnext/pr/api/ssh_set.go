@@ -29,7 +29,7 @@ func (srv server) SSHSet(ctx context.Context, in *pb.SSHSetRequest) (*pb.SSHSetR
 	obj := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: *cliNamespace,
-			Name:      env.SecretDockerCfg,
+			Name:      env.SecretSSH,
 		},
 		Data: map[string][]byte{
 			keyPrivateKey: in.SSH.PrivateKey,

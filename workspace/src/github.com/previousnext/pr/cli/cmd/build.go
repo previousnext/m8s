@@ -13,8 +13,6 @@ import (
 	pb "github.com/previousnext/pr/pb"
 	"github.com/smallfish/simpleyaml"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -48,12 +46,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		return fmt.Errorf("failed to load steps: %s", err)
 	}
 
-	conn, err := grpc.Dial(cmd.API, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
+	client, err := buildClient(cmd.API)
 	if err != nil {
-		return fmt.Errorf("failed to connect to CI API: %s", err)
+		return fmt.Errorf("failed to connect: %s", err)
 	}
-
-	client := pb.NewPRClient(conn)
 
 	// Query the API for the Docker configuration.
 	dockercfg, err := client.DockerCfgGet(context.Background(), &pb.DockerCfgGetRequest{

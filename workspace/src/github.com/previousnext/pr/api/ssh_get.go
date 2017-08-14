@@ -16,7 +16,7 @@ func (srv server) SSHGet(ctx context.Context, in *pb.SSHGetRequest) (*pb.SSHGetR
 		return resp, fmt.Errorf("token is incorrect")
 	}
 
-	secret, err := srv.client.Secrets(*cliNamespace).Get(env.SecretDockerCfg, metav1.GetOptions{})
+	secret, err := srv.client.Secrets(*cliNamespace).Get(env.SecretSSH, metav1.GetOptions{})
 	if err != nil {
 		return resp, err
 	}
