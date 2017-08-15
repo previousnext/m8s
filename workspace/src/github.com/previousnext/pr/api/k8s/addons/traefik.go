@@ -9,7 +9,7 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-const traefikName = "black-death"
+const traefikName = "traefik"
 
 // CreateTraefik will create our Traefik ingress router.
 // @todo, Look at using a DaemonSet.
