@@ -9,6 +9,7 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/gosexy/to"
+	"github.com/previousnext/pr/cli/cmd/environ"
 	"github.com/previousnext/pr/cli/compose"
 	pb "github.com/previousnext/pr/pb"
 	"github.com/smallfish/simpleyaml"
@@ -61,8 +62,16 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		return fmt.Errorf("failed to request Docker configuration to pushing built images: %s", err)
 	}
 
-	// Build new images if the Docker Compose file is using the "build" option for a service.
+	// These are additional environment variables that have been provided outside of this build, with the intent
+	// for them to be injected into our running containers.
+	//   eg. PR_ENV_FOO=bar, will inject FOO=bar into the containers.
+	extraEnvs := environ.Get()
+
 	for name, service := range dc.Services {
+		// Attach our addition environment variables to the service.
+		service.Environment = append(service.Environment, extraEnvs...)
+
+		// Build new images if the Docker Compose file is using the "build" option for a service.
 		if service.Build != "" {
 			fmt.Println("Detected Docker Compose file is using 'build' option. Packaging service:", name)
 
@@ -75,9 +84,9 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 
 			// Pass this on so our API uses this image for the build.
 			service.Image = fmt.Sprintf("%s:%s", cmd.DockerRepository, tag)
-
-			dc.Services[name] = service
 		}
+
+		dc.Services[name] = service
 	}
 
 	// Start the build.
@@ -124,18 +133,18 @@ func Build(app *kingpin.Application) {
 	c := new(cmdBuild)
 
 	cmd := app.Command("build", "Build the environment").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default("pr.ci.pnx.com.au:433").StringVar(&c.API)
-	cmd.Flag("token", "Token used for authenticating with the API service").Required().StringVar(&c.Token)
+	cmd.Flag("api", "API endpoint which accepts our build requests").Default("pr.ci.pnx.com.au:433").OverrideDefaultFromEnvar("PR_API").StringVar(&c.API)
+	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("PR_TOKEN").StringVar(&c.Token)
 	cmd.Flag("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)
-	cmd.Flag("git-repository", "Git repository to clone from").Required().StringVar(&c.GitRepository)
+	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("PR_GIT_REPO").StringVar(&c.GitRepository)
 	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
-	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").StringVar(&c.DockerCompose)
-	cmd.Flag("docker-repository", "Docker repository to push built images").Required().StringVar(&c.DockerRepository)
-	cmd.Flag("exec-file", "Configuration file which contains execution steps").Required().StringVar(&c.ExecFile)
-	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Required().StringVar(&c.ExecStep)
-	cmd.Flag("exec-inside", "Docker repository to push built images").Required().StringVar(&c.ExecInside)
-	cmd.Flag("Keep", "How many days before an environment can be deleted").Default("5d").StringVar(&c.Keep)
+	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("PR_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
+	cmd.Flag("docker-repository", "Docker repository to push built images").Default("").OverrideDefaultFromEnvar("PR_DOCKER_REPOSITORY").StringVar(&c.DockerRepository)
+	cmd.Flag("exec-file", "Configuration file which contains execution steps").Default("pr.yml").OverrideDefaultFromEnvar("PR_EXEC_FILE").StringVar(&c.ExecFile)
+	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Default("build").OverrideDefaultFromEnvar("PR_EXEC_STEP").StringVar(&c.ExecStep)
+	cmd.Flag("exec-inside", "Docker repository to push built images").Default("php").OverrideDefaultFromEnvar("PR_EXEC_INSIDE").StringVar(&c.ExecInside)
+	cmd.Flag("keep", "How many days before an environment can be deleted").Default("120h").OverrideDefaultFromEnvar("PR_KEEP").StringVar(&c.Keep)
 }
 
 // A helper function to building and pushing an image to a Docker registry.

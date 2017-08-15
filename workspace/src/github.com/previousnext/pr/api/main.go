@@ -22,7 +22,7 @@ var (
 
 	// Black Death.
 	cliBlackDeathImage   = kingpin.Flag("black-death-image", "Black Death image to deploy").Default("previousnext/k8s-black-death").OverrideDefaultFromEnvar("BLACK_DEATH_IMAGE").String()
-	cliBlackDeathVersion = kingpin.Flag("black-death-version", "Version of Black Death to deploy").Default("0.0.1").OverrideDefaultFromEnvar("BLACK_DEATH_VERSION").String()
+	cliBlackDeathVersion = kingpin.Flag("black-death-version", "Version of Black Death to deploy").Default("0.0.2").OverrideDefaultFromEnvar("BLACK_DEATH_VERSION").String()
 
 	// Traefik.
 	cliTraefikImage   = kingpin.Flag("traefik-image", "Traefik image to deploy").Default("traefik").OverrideDefaultFromEnvar("TRAEFIK_IMAGE").String()
