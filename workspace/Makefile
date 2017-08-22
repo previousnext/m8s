@@ -4,6 +4,7 @@
 # Ensuring that we are all building with the same dependencies.
 GOPATH := $(shell pwd):$(shell pwd)/vendor
 export GOPATH
+export CGO_ENABLED=0
 
 NAME=pr
 PACKAGE=github.com/previousnext/$(NAME)

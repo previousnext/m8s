@@ -3,7 +3,9 @@ package addons
 import (
 	"fmt"
 
+	"github.com/previousnext/pr/api/k8s/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
@@ -62,5 +64,31 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 		},
 	}
 
-	return createDeployment(client, dply)
+	err := utils.CreateDeployment(client, dply)
+	if err != nil {
+		return err
+	}
+
+	svc := &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      fmt.Sprintf("%s-%s", id, traefikName),
+		},
+		Spec: v1.ServiceSpec{
+			Type: v1.ServiceTypeLoadBalancer,
+			Ports: []v1.ServicePort{
+				{
+					Name:       "http",
+					Port:       80,
+					TargetPort: intstr.FromInt(80),
+				},
+			},
+			// This allows us to link this Service to the Pod.
+			Selector: map[string]string{
+				id: traefikName,
+			},
+		},
+	}
+
+	return utils.CreateService(client, svc)
 }

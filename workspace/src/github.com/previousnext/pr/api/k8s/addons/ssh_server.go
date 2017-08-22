@@ -9,7 +9,7 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-const sshName = "black-death"
+const sshName = "ssh-server"
 
 // CreateSSHServer will create our ssh-server ingress router.
 // @todo, Look at using a DaemonSet.

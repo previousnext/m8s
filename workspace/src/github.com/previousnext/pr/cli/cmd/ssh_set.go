@@ -55,7 +55,7 @@ func SSHSet(app *kingpin.Application) {
 	c := new(cmdSSHSet)
 
 	cmd := app.Command("ssh-set", "Updates the SSH secret configuration").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default("pr.ci.pnx.com.au:433").StringVar(&c.API)
+	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).StringVar(&c.API)
 	cmd.Flag("token", "Token used for authenticating with the API service").Required().StringVar(&c.Token)
 	cmd.Flag("known-hosts", "Path to the known_hosts file").Required().StringVar(&c.KnownHosts)
 	cmd.Flag("private-key", "Path to the private key file").Required().StringVar(&c.PrivateKey)

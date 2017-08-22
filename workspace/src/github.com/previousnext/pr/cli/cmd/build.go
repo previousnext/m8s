@@ -133,7 +133,7 @@ func Build(app *kingpin.Application) {
 	c := new(cmdBuild)
 
 	cmd := app.Command("build", "Build the environment").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default("pr.ci.pnx.com.au:433").OverrideDefaultFromEnvar("PR_API").StringVar(&c.API)
+	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("PR_API").StringVar(&c.API)
 	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("PR_TOKEN").StringVar(&c.Token)
 	cmd.Flag("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)

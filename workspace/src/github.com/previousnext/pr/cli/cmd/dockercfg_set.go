@@ -48,7 +48,7 @@ func DockerCfgSet(app *kingpin.Application) {
 	c := new(cmdDockerCfgSet)
 
 	cmd := app.Command("dockercfg-set", "Updates the Docker secret configuration").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default("pr.ci.pnx.com.au:433").StringVar(&c.API)
+	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).StringVar(&c.API)
 	cmd.Flag("token", "Token used for authenticating with the API service").Required().StringVar(&c.Token)
 	cmd.Flag("registry", "The registry to store Docker images").Default("https://index.docker.io/v1/").StringVar(&c.Registry)
 	cmd.Flag("username", "Username credential to use for the registry").Required().StringVar(&c.Username)
