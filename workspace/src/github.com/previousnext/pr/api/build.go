@@ -52,7 +52,12 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return err
 	}
 
-	err = env.CreateIngress(srv.client, timeout, *cliNamespace, in.Metadata.Name, in.Metadata.Domains)
+	// Step 2.1 - Create Basic Auth if required.
+	if in.Metadata.BasicAuth.User != "" && in.Metadata.BasicAuth.Pass != "" {
+
+	}
+
+	err = env.CreateIngress(srv.client, timeout, *cliNamespace, in.Metadata.Name, in.Metadata.BasicAuth.User, in.Metadata.BasicAuth.Pass, in.Metadata.Domains)
 	if err != nil {
 		return fmt.Errorf("failed create ingress: %s", err)
 	}

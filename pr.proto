@@ -35,6 +35,12 @@ message BuildRequest {
 message Metadata {
   string Name = 2;
   repeated string Domains = 3;
+  BasicAuth BasicAuth = 4;
+}
+
+message BasicAuth {
+    string User = 1;
+    string Pass = 2;
 }
 
 // GitCheckout is the details required to checkout the codebase.

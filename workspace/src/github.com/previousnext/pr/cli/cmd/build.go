@@ -22,6 +22,8 @@ type cmdBuild struct {
 	Token            string
 	Name             string
 	Domains          string
+	BasicAuthUser    string
+	BasicAuthPass    string
 	GitRepository    string
 	GitRevision      string
 	DockerCompose    string
@@ -137,6 +139,8 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("PR_TOKEN").StringVar(&c.Token)
 	cmd.Flag("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)
+	cmd.Flag("basic-auth-user", "Basic auth user to assign to this environment").Default("pnx").OverrideDefaultFromEnvar("BASIC_AUTH_USER").StringVar(&c.BasicAuthUser)
+	cmd.Flag("basic-auth-pass", "Basic auth user to assign to this environment").Default("pnx!@#").OverrideDefaultFromEnvar("BASIC_AUTH_PASS").StringVar(&c.BasicAuthPass)
 	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("PR_GIT_REPO").StringVar(&c.GitRepository)
 	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
 	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("PR_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
