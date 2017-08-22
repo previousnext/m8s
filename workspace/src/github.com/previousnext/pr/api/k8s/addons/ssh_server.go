@@ -3,6 +3,7 @@ package addons
 import (
 	"fmt"
 
+	"github.com/previousnext/pr/api/k8s/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
@@ -62,5 +63,5 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version string,
 		},
 	}
 
-	return createDeployment(client, dply)
+	return utils.CreateDeployment(client, dply)
 }

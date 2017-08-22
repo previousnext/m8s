@@ -14,7 +14,6 @@ import (
 const traefikName = "traefik"
 
 // CreateTraefik will create our Traefik ingress router.
-// @todo, Look at using a DaemonSet.
 func CreateTraefik(client *client.Clientset, namespace, image, version string, port int32) error {
 	var (
 		id      = "addon"
@@ -50,6 +49,10 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 						{
 							Name:  traefikName,
 							Image: fmt.Sprintf("%s:%s", image, version),
+							Args: []string{
+								"--web",
+								"--kubernetes",
+							},
 							Ports: []v1.ContainerPort{
 								{
 									Name:          "http",
@@ -69,6 +72,7 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 		return err
 	}
 
+	// This automatically deploys a load balancer for this service.
 	svc := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
