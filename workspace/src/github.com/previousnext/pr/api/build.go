@@ -17,11 +17,6 @@ import (
 )
 
 func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
-	var (
-		authUser string
-		authPass string
-	)
-
 	if in.Credentials.Token != *cliToken {
 		return fmt.Errorf("token is incorrect")
 	}
@@ -58,11 +53,7 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 	}
 
 	// Step 2.1 - Create Basic Auth if required.
-	if in.Metadata.BasicAuth != nil && in.Metadata.BasicAuth.User != "" && in.Metadata.BasicAuth.Pass != "" {
-		authUser = in.Metadata.BasicAuth.User
-		authPass = in.Metadata.BasicAuth.Pass
-	}
-
+	authUser, authPass := extractBasicAuth(in.Metadata.BasicAuth)
 	err = env.CreateIngress(srv.client, timeout, *cliNamespace, in.Metadata.Name, authUser, authPass, in.Metadata.Domains)
 	if err != nil {
 		return fmt.Errorf("failed create ingress: %s", err)
@@ -149,4 +140,17 @@ func runStep(client *client.Clientset, config *rest.Config, w io.Writer, pod *v1
 	}
 
 	return exec.Stream(opts)
+}
+
+// Helper to extra basic auth credentials.
+func extractBasicAuth(auth *pb.BasicAuth) (string, string) {
+	if auth == nil {
+		return "", ""
+	}
+
+	if auth.User != "" && auth.Pass != "" {
+		return auth.User, auth.Pass
+	}
+
+	return "", ""
 }

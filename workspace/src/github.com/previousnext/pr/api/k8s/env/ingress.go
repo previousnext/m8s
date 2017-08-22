@@ -20,7 +20,9 @@ func CreateIngress(client *client.Clientset, timeout int64, namespace, name, use
 	}
 
 	if user != "" && pass != "" {
-		secret, err := SecretBasicAuth(timeout, namespace, name, user, pass)
+		secretName := fmt.Sprintf("%s-auth", name)
+
+		secret, err := SecretBasicAuth(timeout, namespace, secretName, user, pass)
 		if err != nil {
 			return err
 		}
@@ -32,7 +34,7 @@ func CreateIngress(client *client.Clientset, timeout int64, namespace, name, use
 
 		// Add basic auth for Traefik.
 		ing.ObjectMeta.Annotations["ingress.kubernetes.io/auth-type"] = "basic"
-		ing.ObjectMeta.Annotations["ingress.kubernetes.io/auth-secret"] = "tfnsw-corp-pr100-auth"
+		ing.ObjectMeta.Annotations["ingress.kubernetes.io/auth-secret"] = secretName
 	}
 
 	err = utils.CreateIngress(client, ing)

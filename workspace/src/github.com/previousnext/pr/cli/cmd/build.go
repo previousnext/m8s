@@ -99,6 +99,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		Metadata: &pb.Metadata{
 			Name:    cmd.Name,
 			Domains: strings.Split(cmd.Domains, ","),
+			BasicAuth: &pb.BasicAuth{
+				User: cmd.BasicAuthUser,
+				Pass: cmd.BasicAuthPass,
+			},
 		},
 		GitCheckout: &pb.GitCheckout{
 			Repository: cmd.GitRepository,
