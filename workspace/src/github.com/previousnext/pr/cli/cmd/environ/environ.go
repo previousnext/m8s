@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Prefix is used for identifying if an external environment variable is required inside the environment.
 const Prefix = "PR_ENV_"
 
 // Get returns a list of environment variables, with their prefix stripped.
