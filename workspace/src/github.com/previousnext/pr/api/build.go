@@ -31,7 +31,32 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 	// Create a unix timestamp to be used for "Black Death".
 	timeout := time.Now().Unix() + keep.Nanoseconds()
 
-	// Step 1 - Create Kubernetes Service object.
+	// Create caches (PersistentVolumeClaims)
+	err = stream.Send(&pb.BuildResponse{
+		Message: "Creating K8s PersistentVolumeClaim: Composer",
+	})
+	if err != nil {
+		return err
+	}
+
+	err = env.CreatePersistentVolumeClaim(srv.client, *cliNamespace, env.CacheComposer, *cliCacheSize)
+	if err != nil {
+		return err
+	}
+
+	err = stream.Send(&pb.BuildResponse{
+		Message: "Creating K8s PersistentVolumeClaim: Yarn",
+	})
+	if err != nil {
+		return err
+	}
+
+	err = env.CreatePersistentVolumeClaim(srv.client, *cliNamespace, env.CacheYarn, *cliCacheSize)
+	if err != nil {
+		return err
+	}
+
+	// Create Kubernetes Service object.
 	err = stream.Send(&pb.BuildResponse{
 		Message: "Creating K8s Service",
 	})
@@ -44,7 +69,7 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return fmt.Errorf("failed create service: %s", err)
 	}
 
-	// Step 2 - Create Kubernetes Ingress object.
+	// Create Kubernetes Ingress object.
 	err = stream.Send(&pb.BuildResponse{
 		Message: "Creating K8s Ingress",
 	})
@@ -52,14 +77,14 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		return err
 	}
 
-	// Step 2.1 - Create Basic Auth if required.
+	// Create Basic Auth if required.
 	authUser, authPass := extractBasicAuth(in.Metadata.BasicAuth)
 	err = env.CreateIngress(srv.client, timeout, *cliNamespace, in.Metadata.Name, authUser, authPass, in.Metadata.Domains)
 	if err != nil {
 		return fmt.Errorf("failed create ingress: %s", err)
 	}
 
-	// Step 3 - Create Kubernetes Pod object.
+	// Create Kubernetes Pod object.
 	err = stream.Send(&pb.BuildResponse{
 		Message: "Creating K8s Pod",
 	})
@@ -87,7 +112,7 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.PR_BuildServer) error {
 		}
 	}(r, stream)
 
-	// Step 4 - Run the commands inside the pod.
+	// Run the commands inside the pod.
 	err = stream.Send(&pb.BuildResponse{
 		Message: "Running build steps against K8s Pod",
 	})

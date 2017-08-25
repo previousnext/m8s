@@ -9,6 +9,15 @@ CLI and API for building Pull Request environments.
 
 ![Diagram](/docs/diagram.png "Diagram")
 
+## How this works
+
+### Caches
+
+We can the following directories by default:
+
+* **Composer** - /root/.composer
+* **Yarn** - /usr/local/share/.cache/yarn
+
 ## Development
 
 ### Principles

@@ -24,6 +24,8 @@ var (
 	cliToken     = kingpin.Flag("token", "Token to authenticate against the API.").Default("").OverrideDefaultFromEnvar("AUTH_TOKEN").String()
 	cliNamespace = kingpin.Flag("namespace", "Namespace to build environments.").Default("default").OverrideDefaultFromEnvar("NAMESPACE").String()
 
+	cliCacheSize = kingpin.Flag("cache-size", "Size of the shared cache used between builds").Default("100Gi").OverrideDefaultFromEnvar("CACHE_SIZE").String()
+
 	// Lets Encrypt.
 	cliLetsEncryptEmail  = kingpin.Flag("lets-encrypt-email", "Email address to register with Lets Encrypt certificate").Default("admin@previousnext.com.au").OverrideDefaultFromEnvar("LETS_ENCRYPT_EMAIL").String()
 	cliLetsEncryptDomain = kingpin.Flag("lets-encrypt-domain", "Domain to use for Lets Encrypt certificate").Default("").OverrideDefaultFromEnvar("LETS_ENCRYPT_DOMAIN").String()

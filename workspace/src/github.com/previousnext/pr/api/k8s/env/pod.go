@@ -1,11 +1,11 @@
 package env
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"fmt"
 	pb "github.com/previousnext/pr/pb"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,6 +100,22 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 						},
 					},
 				},
+				{
+					Name: CacheComposer,
+					VolumeSource: v1.VolumeSource{
+						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+							ClaimName: CacheComposer,
+						},
+					},
+				},
+				{
+					Name: CacheYarn,
+					VolumeSource: v1.VolumeSource{
+						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+							ClaimName: CacheYarn,
+						},
+					},
+				},
 			},
 			ImagePullSecrets: []v1.LocalObjectReference{
 				{
@@ -119,6 +135,14 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 					Name:      SecretSSH,
 					ReadOnly:  true,
 					MountPath: "/root/.ssh",
+				},
+				{
+					Name:      CacheComposer,
+					MountPath: "/root/.composer",
+				},
+				{
+					Name:      CacheYarn,
+					MountPath: "/usr/local/share/.cache/yarn",
 				},
 			},
 		}
