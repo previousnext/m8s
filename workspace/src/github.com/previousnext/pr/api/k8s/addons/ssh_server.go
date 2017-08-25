@@ -63,5 +63,10 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version string,
 		},
 	}
 
-	return utils.CreateDeployment(client, dply)
+	_, err := utils.DeploymentCreate(client, dply)
+	if err != nil {
+		return fmt.Errorf("failed deploy ssh server: %s", err)
+	}
+
+	return nil
 }

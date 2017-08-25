@@ -4,62 +4,11 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	pb "github.com/previousnext/pr/pb"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/api/v1"
-	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
-
-// CreatePod is used for creating our Pod instance.
-func CreatePod(client *client.Clientset, timeout int64, namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
-	pod, err := Pod(timeout, namespace, name, repository, revision, services)
-	if err != nil {
-		return pod, err
-	}
-
-	_, err = client.Pods(namespace).Create(pod)
-	if errors.IsAlreadyExists(err) {
-		// This will tell Kubernetes that we want this pod to be deleted immediately.
-		now := int64(0)
-
-		// Delete the Pod.
-		err = client.Pods(namespace).Delete(name, &metav1.DeleteOptions{
-			GracePeriodSeconds: &now,
-		})
-		if err != nil {
-			return pod, err
-		}
-
-		// Create the new pod.
-		_, err = client.Pods(namespace).Create(pod)
-		if err != nil {
-			return pod, err
-		}
-	} else if err != nil {
-		return pod, err
-	}
-
-	// Wait for the pod to become available.
-	limiter := time.Tick(time.Second / 10)
-
-	for {
-		pod, err = client.Pods(namespace).Get(name, metav1.GetOptions{})
-		if err != nil {
-			return pod, err
-		}
-
-		if pod.Status.Phase == v1.PodRunning {
-			break
-		}
-
-		<-limiter
-	}
-
-	return pod, err
-}
 
 // Pod converts a Docker Compose file into a Kubernetes Deployment object.
 func Pod(timeout int64, namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {

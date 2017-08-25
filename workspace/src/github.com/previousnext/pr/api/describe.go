@@ -16,7 +16,7 @@ func (srv server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 	}
 
 	if in.Name == "" {
-		return resp, fmt.Errorf("token is incorrect")
+		return resp, fmt.Errorf("name is incorrect")
 	}
 
 	pod, err := srv.client.Pods(*cliNamespace).Get(in.Name, metav1.GetOptions{})

@@ -2,29 +2,12 @@ package env
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/api/v1"
-	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-// CreateService is used for creating a new Service object.
-func CreateService(client *client.Clientset, timeout int64, namespace, name string) error {
-	svc, err := Service(timeout, namespace, name)
-	if err != nil {
-		return err
-	}
-
-	_, err = client.Services(namespace).Create(svc)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
-
-	return nil
-}
-
 // Service converts a Docker Compose file into a Kubernetes Service object.
-func Service(timeout int64, namespace, name string) (*v1.Service, error) {
+func Service(timeout int64, namespace, name string) *v1.Service {
 	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -45,5 +28,5 @@ func Service(timeout int64, namespace, name string) (*v1.Service, error) {
 				"env": name,
 			},
 		},
-	}, nil
+	}
 }

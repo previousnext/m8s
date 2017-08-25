@@ -30,7 +30,5 @@ func TestService(t *testing.T) {
 		},
 	}
 
-	have, err := Service(123456789, "test", "pr1")
-	assert.Nil(t, err)
-	assert.Equal(t, want, have)
+	assert.Equal(t, want, Service(123456789, "test", "pr1"))
 }

@@ -1,16 +1,14 @@
 package env
 
 import (
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/api/v1"
-	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
 // CreatePersistentVolumeClaim is used for creating a new PersistentVolumeClaim object.
-func CreatePersistentVolumeClaim(client *client.Clientset, namespace, name, storage string) error {
-	pvc := &v1.PersistentVolumeClaim{
+func PersistentVolumeClaim(namespace, name, storage string) *v1.PersistentVolumeClaim {
+	return &v1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
@@ -31,11 +29,4 @@ func CreatePersistentVolumeClaim(client *client.Clientset, namespace, name, stor
 			},
 		},
 	}
-
-	_, err := client.PersistentVolumeClaims(namespace).Create(pvc)
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return err
-	}
-
-	return nil
 }

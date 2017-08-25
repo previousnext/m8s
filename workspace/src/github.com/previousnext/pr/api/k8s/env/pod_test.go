@@ -39,6 +39,14 @@ func TestPod(t *testing.T) {
 							Name:      "code",
 							MountPath: "/data",
 						},
+						{
+							Name:      CacheComposer,
+							MountPath: "/root/.composer",
+						},
+						{
+							Name:      CacheYarn,
+							MountPath: "/usr/local/share/.cache/yarn",
+						},
 					},
 					Ports: []v1.ContainerPort{
 						{
@@ -61,6 +69,14 @@ func TestPod(t *testing.T) {
 							Name:      SecretSSH,
 							ReadOnly:  true,
 							MountPath: "/root/.ssh",
+						},
+						{
+							Name:      CacheComposer,
+							MountPath: "/root/.composer",
+						},
+						{
+							Name:      CacheYarn,
+							MountPath: "/usr/local/share/.cache/yarn",
 						},
 					},
 					Env: []v1.EnvVar{
@@ -92,6 +108,14 @@ func TestPod(t *testing.T) {
 							ReadOnly:  true,
 							MountPath: "/root/.ssh",
 						},
+						{
+							Name:      CacheComposer,
+							MountPath: "/root/.composer",
+						},
+						{
+							Name:      CacheYarn,
+							MountPath: "/usr/local/share/.cache/yarn",
+						},
 					},
 				},
 			},
@@ -112,6 +136,22 @@ func TestPod(t *testing.T) {
 							Repository: "git@github.com:foo/bar.git",
 							Revision:   "123456789",
 							Directory:  ".",
+						},
+					},
+				},
+				{
+					Name: CacheComposer,
+					VolumeSource: v1.VolumeSource{
+						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+							ClaimName: CacheComposer,
+						},
+					},
+				},
+				{
+					Name: CacheYarn,
+					VolumeSource: v1.VolumeSource{
+						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+							ClaimName: CacheYarn,
 						},
 					},
 				},

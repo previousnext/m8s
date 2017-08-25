@@ -67,10 +67,12 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 		},
 	}
 
-	err := utils.CreateDeployment(client, dply)
+	_, err := utils.DeploymentCreate(client, dply)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed deploy traefik: %s", err)
 	}
+
+	return nil
 
 	// This automatically deploys a load balancer for this service.
 	svc := &v1.Service{
@@ -94,5 +96,10 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 		},
 	}
 
-	return utils.CreateService(client, svc)
+	_, err = utils.ServiceCreate(client, svc)
+	if err != nil {
+		return fmt.Errorf("failed deploy traefik: %s", err)
+	}
+
+	return nil
 }

@@ -3,6 +3,7 @@ package env
 import (
 	"testing"
 
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -15,8 +16,10 @@ func TestIngress(t *testing.T) {
 			Namespace: "test",
 			Name:      "pr1",
 			Annotations: map[string]string{
-				"kubernetes.io/ingress.class": "traefik",
-				"skipper.io/black-death":      "123456789",
+				"kubernetes.io/ingress.class":       "traefik",
+				"ingress.kubernetes.io/auth-type":   "basic",
+				"ingress.kubernetes.io/auth-secret": "foo",
+				"skipper.io/black-death":            "123456789",
 			},
 		},
 		Spec: extensions.IngressSpec{
@@ -57,7 +60,7 @@ func TestIngress(t *testing.T) {
 		},
 	}
 
-	have, err := Ingress(123456789, "test", "pr1", []string{"pr1.example.com", "pr1.example2.com"})
+	have, err := Ingress(123456789, "test", "foo", "pr1", []string{"pr1.example.com", "pr1.example2.com"})
 	assert.Nil(t, err)
 	assert.Equal(t, want, have)
 }
