@@ -1,11 +1,11 @@
-Pull Request (PR)
-=================
+Mates (m8s)
+===========
 
-[![CircleCI](https://circleci.com/gh/previousnext/pr.svg?style=svg&circle-token=cd74c538bea3d8ae9d0de9b008fedf35b7f00ad8)](https://circleci.com/gh/previousnext/pr)
+[![CircleCI](https://circleci.com/gh/previousnext/m8s.svg?style=svg&circle-token=cd74c538bea3d8ae9d0de9b008fedf35b7f00ad8)](https://circleci.com/gh/previousnext/m8s)
 
 **Maintainer**: Nick Schuch
 
-CLI and API for building Pull Request environments.
+CLI and API for building temporary environments.
 
 ![Diagram](/docs/diagram.png "Diagram")
 
