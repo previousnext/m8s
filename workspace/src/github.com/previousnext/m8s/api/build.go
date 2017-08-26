@@ -145,7 +145,7 @@ func stepService(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_Bu
 // A step to create a secret which contains http auth details.
 func stepSecret(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_BuildServer, blackDeath int64, name string) error {
 	err := stream.Send(&pb.BuildResponse{
-		Message: "Creating K8s Secret: auth",
+		Message: "Creating K8s Secret: Basic Authentication",
 	})
 	if err != nil {
 		return err
