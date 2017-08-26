@@ -21,7 +21,16 @@ func Service(timeout int64, namespace, name string) *v1.Service {
 			ClusterIP: "None", // We defer this logic to the load balancer.
 			Ports: []v1.ServicePort{
 				{
+					Name: "http",
 					Port: 80,
+				},
+				{
+					Name: "mailhog",
+					Port: 8025,
+				},
+				{
+					Name: "solr",
+					Port: 8983,
 				},
 			},
 			// This allows us to Link tihs Service to the Pod.

@@ -36,6 +36,20 @@ func Ingress(timeout int64, namespace, name, secret string, domains []string) (*
 								ServicePort: intstr.FromInt(80),
 							},
 						},
+						{
+							Path: "/mailhog",
+							Backend: extensions.IngressBackend{
+								ServiceName: name,
+								ServicePort: intstr.FromInt(8025),
+							},
+						},
+						{
+							Path: "/solr",
+							Backend: extensions.IngressBackend{
+								ServiceName: name,
+								ServicePort: intstr.FromInt(8983),
+							},
+						},
 					},
 				},
 			},
