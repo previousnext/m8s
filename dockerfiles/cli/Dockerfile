@@ -5,5 +5,5 @@ RUN make build
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
-COPY --from=0 /go/bin/pr-cli_linux_amd64 /usr/local/bin/pr
+COPY --from=0 /go/bin/m8s-cli_linux_amd64 /usr/local/bin/pr
 CMD ["pr"]

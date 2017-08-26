@@ -5,5 +5,5 @@ RUN make build
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
-COPY --from=0 /go/bin/pr-api_linux_amd64 /usr/local/bin/api
+COPY --from=0 /go/bin/m8s-api_linux_amd64 /usr/local/bin/api
 CMD ["api"]
