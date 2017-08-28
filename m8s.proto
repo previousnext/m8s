@@ -64,6 +64,7 @@ message ComposeService {
   repeated string Volumes = 3;
   repeated string Ports = 4;
   repeated string Environment = 5;
+  repeated string Tmpfs = 6;
 }
 
 // Exec has the steps we require to build an environment and in which container.

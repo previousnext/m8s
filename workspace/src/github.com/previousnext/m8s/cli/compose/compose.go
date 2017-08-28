@@ -19,6 +19,7 @@ type DockerComposeService struct {
 	Volumes     []string `yaml:"volumes"`
 	Ports       []string `yaml:"ports"`
 	Environment []string `yaml:"environment"`
+	Tmpfs       []string `yaml:"tmpfs"`
 }
 
 // GRPC is used for marshalling a Docker Compose file into a PR GRPC object.
@@ -32,6 +33,7 @@ func (dc DockerCompose) GRPC() *pb.Compose {
 			Volumes:     service.Volumes,
 			Ports:       service.Ports,
 			Environment: service.Environment,
+			Tmpfs:       service.Tmpfs,
 		})
 	}
 

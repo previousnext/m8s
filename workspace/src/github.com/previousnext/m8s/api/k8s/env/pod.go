@@ -96,62 +96,123 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 			},
 		}
 
-		// Adds the Docker Compose volumes to our Pod object.
-		for _, volume := range service.Volumes {
-			sl := strings.Split(volume, ":")
-
-			// Ensure we have an volume in the format "/home/nick:/data".
-			if len(sl) < 2 {
-				continue
-			}
-
-			// Mount the code where the user has provided "." as the "source".
-			// Anything else the user has provided cannot be supported.
-			// @todo, Handle other mounts.
-			if sl[0] == "." {
-				container.VolumeMounts = append(container.VolumeMounts, v1.VolumeMount{
-					Name:      "code",
-					MountPath: sl[1],
-				})
-			}
+		mounts, volumes, err := podVolumes(service.Volumes, service.Tmpfs)
+		if err != nil {
+			return pod, err
 		}
 
-		// Adds the Docker Compose ports to our Pod object.
-		for _, port := range service.Ports {
-			sl := strings.Split(port, ":")
-
-			// Ensure we have an environment variable in the format "FOO=bar".
-			if len(sl) < 1 {
-				continue
-			}
-
-			val, err := strconv.ParseInt(sl[0], 10, 32)
-			if err != nil {
-				continue
-			}
-
-			container.Ports = append(container.Ports, v1.ContainerPort{
-				ContainerPort: int32(val),
-			})
+		ports, err := podPorts(service.Ports)
+		if err != nil {
+			return pod, err
 		}
 
-		// Adds the Docker Compose environment variables to our Pod object.
-		for _, env := range service.Environment {
-			sl := strings.Split(env, "=")
-
-			// Ensure we have an environment variable in the format "FOO=bar".
-			if len(sl) != 2 {
-				continue
-			}
-
-			container.Env = append(container.Env, v1.EnvVar{
-				Name:  sl[0],
-				Value: sl[1],
-			})
+		envs, err := podEnvs(service.Environment)
+		if err != nil {
+			return pod, err
 		}
 
+		container.VolumeMounts = append(container.VolumeMounts, mounts...)
+		container.Ports = append(container.Ports, ports...)
+		container.Env = append(container.Env, envs...)
+
+		// Add volumes and containers to the pod definition.
+		pod.Spec.Volumes = append(pod.Spec.Volumes, volumes...)
 		pod.Spec.Containers = append(pod.Spec.Containers, container)
 	}
 
 	return pod, nil
+}
+
+// Helper function to extract volumes from a service definition.
+func podVolumes(serviceVolumes []string, tmps []string) ([]v1.VolumeMount, []v1.Volume, error) {
+	var (
+		mounts  []v1.VolumeMount
+		volumes []v1.Volume
+	)
+
+	// Adds the Docker Compose volumes to our Pod object.
+	for _, serviceVolume := range serviceVolumes {
+		sl := strings.Split(serviceVolume, ":")
+
+		// Ensure we have an volume in the format "/home/nick:/data".
+		if len(sl) < 2 {
+			continue
+		}
+
+		// Mount the code where the user has provided "." as the "source".
+		// Anything else the user has provided cannot be supported.
+		// @todo, Handle other mounts.
+		if sl[0] == "." {
+			mounts = append(mounts, v1.VolumeMount{
+				Name:      "code",
+				MountPath: sl[1],
+			})
+		}
+	}
+
+	for _, tmp := range tmps {
+		name := machine(tmp)
+
+		volumes = append(volumes, v1.Volume{
+			Name: name,
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{
+					Medium: v1.StorageMediumMemory,
+				},
+			},
+		})
+
+		mounts = append(mounts, v1.VolumeMount{
+			Name:      name,
+			MountPath: tmp,
+		})
+	}
+
+	return mounts, volumes, nil
+}
+
+// Helper function to extract ports from a service definition.
+func podPorts(list []string) ([]v1.ContainerPort, error) {
+	var ports []v1.ContainerPort
+
+	for _, item := range list {
+		sl := strings.Split(item, ":")
+
+		// Ensure we have an environment variable in the format "FOO=bar".
+		if len(sl) < 1 {
+			continue
+		}
+
+		val, err := strconv.ParseInt(sl[0], 10, 32)
+		if err != nil {
+			continue
+		}
+
+		ports = append(ports, v1.ContainerPort{
+			ContainerPort: int32(val),
+		})
+	}
+
+	return ports, nil
+}
+
+// Helper function to extract environment variables from a service definition.
+func podEnvs(list []string) ([]v1.EnvVar, error) {
+	var envs []v1.EnvVar
+
+	for _, item := range list {
+		sl := strings.Split(item, "=")
+
+		// Ensure we have an environment variable in the format "FOO=bar".
+		if len(sl) != 2 {
+			continue
+		}
+
+		envs = append(envs, v1.EnvVar{
+			Name:  sl[0],
+			Value: sl[1],
+		})
+	}
+
+	return envs, nil
 }
