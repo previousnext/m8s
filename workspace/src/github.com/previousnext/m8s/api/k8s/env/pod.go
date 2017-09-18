@@ -136,27 +136,36 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 func podResources(cpu, memory string) (v1.ResourceRequirements, error) {
 	var resources v1.ResourceRequirements
 
+	var (
+		quantityCPU resource.Quantity
+		quantityMem resource.Quantity
+		err         error
+	)
+
 	if cpu != "" {
-		quantity, err := resource.ParseQuantity(cpu)
+		quantityCPU, err = resource.ParseQuantity(cpu)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse cpu limit: %s", err)
 		}
-
-		resources.Requests[v1.ResourceCPU] = quantity
-		resources.Limits[v1.ResourceCPU] = quantity
 	}
 
 	if memory != "" {
-		quantity, err := resource.ParseQuantity(memory)
+		quantityMem, err = resource.ParseQuantity(memory)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse memory limit: %s", err)
 		}
-
-		resources.Requests[v1.ResourceMemory] = quantity
-		resources.Limits[v1.ResourceMemory] = quantity
 	}
 
-	return resources, nil
+	return v1.ResourceRequirements{
+		Requests: v1.ResourceList{
+			v1.ResourceName(v1.ResourceCPU):    quantityCPU,
+			v1.ResourceName(v1.ResourceMemory): quantityMem,
+		},
+		Limits: v1.ResourceList{
+			v1.ResourceName(v1.ResourceCPU):    quantityCPU,
+			v1.ResourceName(v1.ResourceMemory): quantityMem,
+		},
+	}, nil
 }
 
 // Helper function to extract volumes from a service definition.
