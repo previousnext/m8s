@@ -21,12 +21,14 @@ func PodExec(client *client.Clientset, config *rest.Config, w io.Writer, namespa
 			"-c",
 			step,
 		},
+		TTY: true,
 	}
 
 	opts := remotecommand.StreamOptions{
 		SupportedProtocols: remotecommandserver.SupportedStreamingProtocols,
 		Stdout:             w,
 		Stderr:             w,
+		Tty:                true,
 	}
 
 	// Use the Kubernetes inbuilt client to build a URL endpoint for running our exec command.
