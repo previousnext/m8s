@@ -52,7 +52,7 @@ func (dc DockerCompose) GRPC() *pb.Compose {
 			Environment: service.Environment,
 			Tmpfs:       service.Tmpfs,
 			CPU:         service.Deploy.Resources.Limits.CPUs,
-			Memory:      service.Deploy.Resources.Limits.CPUs,
+			Memory:      service.Deploy.Resources.Limits.Memory,
 		})
 	}
 

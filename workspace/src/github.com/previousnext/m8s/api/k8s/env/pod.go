@@ -136,36 +136,27 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 func podResources(cpu, memory string) (v1.ResourceRequirements, error) {
 	var resources v1.ResourceRequirements
 
-	var (
-		quantityCPU resource.Quantity
-		quantityMem resource.Quantity
-		err         error
-	)
-
 	if cpu != "" {
-		quantityCPU, err = resource.ParseQuantity(cpu)
+		quantity, err := strconv.ParseInt(cpu, 10, 64)
 		if err != nil {
-			return resources, fmt.Errorf("failed to parse cpu limit: %s", err)
+			return resources, fmt.Errorf("failed to parse cpu: %s", err)
 		}
+
+		resources.Limits.Cpu().Set(quantity)
+		resources.Requests.Cpu().Set(quantity)
 	}
 
 	if memory != "" {
-		quantityMem, err = resource.ParseQuantity(memory)
+		quantity, err := strconv.ParseInt(memory, 10, 64)
 		if err != nil {
-			return resources, fmt.Errorf("failed to parse memory limit: %s", err)
+			return resources, fmt.Errorf("failed to parse memory: %s", err)
 		}
+
+		resources.Limits.Memory().Set(quantity)
+		resources.Requests.Memory().Set(quantity)
 	}
 
-	return v1.ResourceRequirements{
-		Requests: v1.ResourceList{
-			v1.ResourceName(v1.ResourceCPU):    quantityCPU,
-			v1.ResourceName(v1.ResourceMemory): quantityMem,
-		},
-		Limits: v1.ResourceList{
-			v1.ResourceName(v1.ResourceCPU):    quantityCPU,
-			v1.ResourceName(v1.ResourceMemory): quantityMem,
-		},
-	}, nil
+	return resources, nil
 }
 
 // Helper function to extract volumes from a service definition.
