@@ -3,6 +3,7 @@ package compose
 import (
 	"io/ioutil"
 
+	"fmt"
 	pb "github.com/previousnext/m8s/pb"
 	"gopkg.in/yaml.v2"
 )
