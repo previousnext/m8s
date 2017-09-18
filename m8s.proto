@@ -3,7 +3,8 @@ syntax = "proto3";
 package m8s;
 
 service m8s {
-    rpc Build (BuildRequest) returns (stream BuildResponse) {}
+    rpc Create (CreateRequest) returns (stream CreateResponse) {}
+    rpc Exec (ExecRequest) returns (stream ExecResponse) {}
     rpc Describe (DescribeRequest) returns (DescribeResponse) {}
     rpc List (ListRequest) returns (ListResponse) {}
 
@@ -22,12 +23,11 @@ message Credentials {
 }
 
 // BuildRequest is used for submitting a new build.
-message BuildRequest {
+message CreateRequest {
     Credentials Credentials = 1;
     Metadata Metadata = 2;
     Compose Compose = 3;
     GitCheckout GitCheckout = 4;
-    Exec Exec = 5;
     string Keep = 6;
 }
 
@@ -59,23 +59,32 @@ message Compose {
 
 // ComposeService is a container defintion, which we will use to build a pod.
 message ComposeService {
-  string Name = 1;
-  string Image = 2;
-  repeated string Volumes = 3;
-  repeated string Ports = 4;
-  repeated string Environment = 5;
-  repeated string Tmpfs = 6;
-}
-
-// Exec has the steps we require to build an environment and in which container.
-message Exec {
-  string Container = 1;
-  repeated string Steps = 5;
+    string Name = 1;
+    string Image = 2;
+    string CPU = 3;
+    string Memory = 4;
+    repeated string Volumes = 5;
+    repeated string Ports = 6;
+    repeated string Environment = 7;
+    repeated string Tmpfs = 8;
 }
 
 // BuildResponse is a streamed response used for printing build output and status.
-message BuildResponse {
+message CreateResponse {
   string Message = 1;
+}
+
+// ExecRequest is our command being send to the remote environment.
+message ExecRequest {
+    Credentials Credentials = 1;
+    string Name = 2;
+    string Container = 3;
+    string Command = 4;
+}
+
+// ExecResponse is a streamed response used to return output from the commands on the remove environment.
+message ExecResponse {
+    string Message = 1;
 }
 
 // Container shows a container which is deployed in an Environment.

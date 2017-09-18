@@ -92,7 +92,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	}
 
 	// Start the build.
-	stream, err := client.Build(context.Background(), &pb.BuildRequest{
+	stream, err := client.Create(context.Background(), &pb.CreateRequest{
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
@@ -109,11 +109,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Revision:   cmd.GitRevision,
 		},
 		Compose: dc.GRPC(),
-		Exec: &pb.Exec{
-			Container: cmd.ExecInside,
-			Steps:     steps,
-		},
-		Keep: cmd.Keep,
+		Keep:    cmd.Keep,
 	})
 	if err != nil {
 		return fmt.Errorf("the build has failed: %s", err)
@@ -129,6 +125,32 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		}
 
 		fmt.Println(string(resp.Message))
+	}
+
+	for _, step := range steps {
+		stream, err := client.Exec(context.Background(), &pb.ExecRequest{
+			Credentials: &pb.Credentials{
+				Token: cmd.Token,
+			},
+			Name:      cmd.Name,
+			Container: cmd.ExecInside,
+			Command:   step,
+		})
+		if err != nil {
+			return fmt.Errorf("the exec command has failed: %s", err)
+		}
+
+		for {
+			resp, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return fmt.Errorf("failed to read stream: %s", err)
+			}
+
+			fmt.Println(string(resp.Message))
+		}
 	}
 
 	return nil
@@ -149,7 +171,7 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
 	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("PR_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
 	cmd.Flag("docker-repository", "Docker repository to push built images").Default("").OverrideDefaultFromEnvar("PR_DOCKER_REPOSITORY").StringVar(&c.DockerRepository)
-	cmd.Flag("exec-file", "Configuration file which contains execution steps").Default("pr.yml").OverrideDefaultFromEnvar("PR_EXEC_FILE").StringVar(&c.ExecFile)
+	cmd.Flag("exec-file", "Configuration file which contains execution steps").Default("m8s.yml").OverrideDefaultFromEnvar("PR_EXEC_FILE").StringVar(&c.ExecFile)
 	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Default("build").OverrideDefaultFromEnvar("PR_EXEC_STEP").StringVar(&c.ExecStep)
 	cmd.Flag("exec-inside", "Docker repository to push built images").Default("php").OverrideDefaultFromEnvar("PR_EXEC_INSIDE").StringVar(&c.ExecInside)
 	cmd.Flag("keep", "How many days before an environment can be deleted").Default("120h").OverrideDefaultFromEnvar("PR_KEEP").StringVar(&c.Keep)

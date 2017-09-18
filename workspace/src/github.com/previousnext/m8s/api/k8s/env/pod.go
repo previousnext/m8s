@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	pb "github.com/previousnext/m8s/pb"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/api/v1"
 )
@@ -15,6 +16,8 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/
 	perm := int32(256)
+
+	// Set the pod sizing.
 
 	pod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -96,6 +99,11 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 			},
 		}
 
+		resources, err := podResources(service.CPU, service.Memory)
+		if err != nil {
+			return pod, err
+		}
+
 		mounts, volumes, err := podVolumes(service.Volumes, service.Tmpfs)
 		if err != nil {
 			return pod, err
@@ -111,6 +119,7 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 			return pod, err
 		}
 
+		container.Resources = resources
 		container.VolumeMounts = append(container.VolumeMounts, mounts...)
 		container.Ports = append(container.Ports, ports...)
 		container.Env = append(container.Env, envs...)
@@ -121,6 +130,33 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 	}
 
 	return pod, nil
+}
+
+// Helper function to extract resource limits from a service definition.
+func podResources(cpu, memory string) (v1.ResourceRequirements, error) {
+	var resources v1.ResourceRequirements
+
+	if cpu != "" {
+		quantity, err := resource.ParseQuantity(cpu)
+		if err != nil {
+			return resources, fmt.Errorf("failed to parse cpu limit: %s", err)
+		}
+
+		resources.Requests[v1.ResourceCPU] = quantity
+		resources.Limits[v1.ResourceCPU] = quantity
+	}
+
+	if memory != "" {
+		quantity, err := resource.ParseQuantity(memory)
+		if err != nil {
+			return resources, fmt.Errorf("failed to parse memory limit: %s", err)
+		}
+
+		resources.Requests[v1.ResourceMemory] = quantity
+		resources.Limits[v1.ResourceMemory] = quantity
+	}
+
+	return resources, nil
 }
 
 // Helper function to extract volumes from a service definition.

@@ -8,14 +8,10 @@ import (
 )
 
 func main() {
-	app := kingpin.New("PR Environment", "PreviousNext Pull Request environments")
+	app := kingpin.New("M8s", "PreviousNext short lived environments")
 
 	// Setup all the subcommands.
 	cmd.Build(app)
-	cmd.DockerCfgGet(app)
-	cmd.DockerCfgSet(app)
-	cmd.SSHGet(app)
-	cmd.SSHSet(app)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }

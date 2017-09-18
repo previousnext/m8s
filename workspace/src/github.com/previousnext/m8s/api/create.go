@@ -1,19 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/previousnext/m8s/api/k8s/env"
 	"github.com/previousnext/m8s/api/k8s/utils"
 	pb "github.com/previousnext/m8s/pb"
-	"k8s.io/client-go/rest"
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-func (srv server) Build(in *pb.BuildRequest, stream pb.M8S_BuildServer) error {
+func (srv server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error {
 	if in.Credentials.Token != *cliToken {
 		return fmt.Errorf("token is incorrect")
 	}
@@ -44,14 +41,6 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.M8S_BuildServer) error {
 
 	if in.GitCheckout.Repository == "" {
 		return fmt.Errorf("git repository was not provided")
-	}
-
-	if in.Exec.Container == "" {
-		return fmt.Errorf("exec container was not provided")
-	}
-
-	if len(in.Exec.Steps) < 1 {
-		return fmt.Errorf("exec steps were not provided")
 	}
 
 	if in.Keep == "" {
@@ -88,17 +77,12 @@ func (srv server) Build(in *pb.BuildRequest, stream pb.M8S_BuildServer) error {
 		return err
 	}
 
-	err = stepPod(srv.client, in, stream, blackDeath)
-	if err != nil {
-		return err
-	}
-
-	return stepCommands(srv.client, in, stream, srv.config, *cliNamespace)
+	return stepPod(srv.client, in, stream, blackDeath)
 }
 
 // A step for provisioning caching storage.
-func stepClaims(client *client.Clientset, stream pb.M8S_BuildServer) error {
-	err := stream.Send(&pb.BuildResponse{
+func stepClaims(client *client.Clientset, stream pb.M8S_CreateServer) error {
+	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s PersistentVolumeClaim: Composer",
 	})
 	if err != nil {
@@ -110,7 +94,7 @@ func stepClaims(client *client.Clientset, stream pb.M8S_BuildServer) error {
 		return fmt.Errorf("failed to provision composer cache: %s", err)
 	}
 
-	err = stream.Send(&pb.BuildResponse{
+	err = stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s PersistentVolumeClaim: Yarn",
 	})
 	if err != nil {
@@ -126,8 +110,8 @@ func stepClaims(client *client.Clientset, stream pb.M8S_BuildServer) error {
 }
 
 // A step to provision a Kubernetes service.
-func stepService(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_BuildServer, blackDeath int64) error {
-	err := stream.Send(&pb.BuildResponse{
+func stepService(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, blackDeath int64) error {
+	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Service",
 	})
 	if err != nil {
@@ -143,8 +127,8 @@ func stepService(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_Bu
 }
 
 // A step to create a secret which contains http auth details.
-func stepSecret(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_BuildServer, blackDeath int64, name string) error {
-	err := stream.Send(&pb.BuildResponse{
+func stepSecret(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, blackDeath int64, name string) error {
+	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Secret: Basic Authentication",
 	})
 	if err != nil {
@@ -165,8 +149,8 @@ func stepSecret(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_Bui
 }
 
 // A step to create an ingress for incoming traffic.
-func stepIngress(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_BuildServer, blackDeath int64, secret string) error {
-	err := stream.Send(&pb.BuildResponse{
+func stepIngress(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, blackDeath int64, secret string) error {
+	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Ingress",
 	})
 	if err != nil {
@@ -188,8 +172,8 @@ func stepIngress(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_Bu
 }
 
 // A step for creating a pod (our Docker Compose environment).
-func stepPod(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_BuildServer, blackDeath int64) error {
-	err := stream.Send(&pb.BuildResponse{
+func stepPod(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, blackDeath int64) error {
+	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Pod",
 	})
 	if err != nil {
@@ -207,46 +191,4 @@ func stepPod(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_BuildS
 	}
 
 	return err
-}
-
-// A step for running all our build steps in a single container.
-func stepCommands(client *client.Clientset, in *pb.BuildRequest, stream pb.M8S_BuildServer, config *rest.Config, namespace string) error {
-	// This is what we will use to communicate back to the CLI client.
-	r, w := io.Pipe()
-
-	go func(reader io.Reader, stream pb.M8S_BuildServer) {
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			err := stream.Send(&pb.BuildResponse{
-				Message: scanner.Text(),
-			})
-			if err != nil {
-				fmt.Println("failed to send response:", err)
-			}
-		}
-	}(r, stream)
-
-	// Run the commands inside the pod.
-	err := stream.Send(&pb.BuildResponse{
-		Message: "Running build steps against K8s Pod",
-	})
-	if err != nil {
-		return err
-	}
-
-	for _, step := range in.Exec.Steps {
-		err = stream.Send(&pb.BuildResponse{
-			Message: fmt.Sprintf("Running command: %s", step),
-		})
-		if err != nil {
-			return err
-		}
-
-		err = utils.PodExec(client, config, w, namespace, in.Metadata.Name, in.Exec.Container, step)
-		if err != nil {
-			return fmt.Errorf("ftep failed: %s", err)
-		}
-	}
-
-	return nil
 }

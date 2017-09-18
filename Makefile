@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 VERSION=$(shell git describe --tags --always)
-IMAGE=previousnext/pr
+IMAGE=previousnext/m8s
 
 release:
 	docker build -f dockerfiles/api/Dockerfile -t ${IMAGE}:${VERSION} .
