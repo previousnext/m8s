@@ -140,6 +140,8 @@ func podResources(cpu, memory string) (v1.ResourceRequirements, error) {
 	}
 
 	if cpu != "" {
+		fmt.Println("cpu:", cpu)
+
 		quantity, err := resource.ParseQuantity(cpu)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse cpu: %s", err)
@@ -150,6 +152,8 @@ func podResources(cpu, memory string) (v1.ResourceRequirements, error) {
 	}
 
 	if memory != "" {
+		fmt.Println("memory:", memory)
+
 		quantity, err := resource.ParseQuantity(memory)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse memory: %s", err)
