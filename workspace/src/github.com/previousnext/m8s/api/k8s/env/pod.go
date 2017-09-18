@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	pb "github.com/previousnext/m8s/pb"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/api/v1"
 )
@@ -133,26 +134,29 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 
 // Helper function to extract resource limits from a service definition.
 func podResources(cpu, memory string) (v1.ResourceRequirements, error) {
-	var resources v1.ResourceRequirements
+	resources := v1.ResourceRequirements{
+		Limits:   make(map[v1.ResourceName]resource.Quantity),
+		Requests: make(map[v1.ResourceName]resource.Quantity),
+	}
 
 	if cpu != "" {
-		quantity, err := strconv.ParseInt(cpu, 10, 64)
+		quantity, err := resource.ParseQuantity(cpu)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse cpu: %s", err)
 		}
 
-		resources.Limits.Cpu().Set(quantity)
-		resources.Requests.Cpu().Set(quantity)
+		resources.Limits[v1.ResourceCPU] = quantity
+		resources.Requests[v1.ResourceCPU] = quantity
 	}
 
 	if memory != "" {
-		quantity, err := strconv.ParseInt(memory, 10, 64)
+		quantity, err := resource.ParseQuantity(memory)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse memory: %s", err)
 		}
 
-		resources.Limits.Memory().Set(quantity)
-		resources.Requests.Memory().Set(quantity)
+		resources.Limits[v1.ResourceMemory] = quantity
+		resources.Requests[v1.ResourceMemory] = quantity
 	}
 
 	return resources, nil
