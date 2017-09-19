@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/gosexy/to"
@@ -31,7 +32,7 @@ type cmdBuild struct {
 	ExecFile         string
 	ExecStep         string
 	ExecInside       string
-	Keep             string
+	Timeout          time.Duration
 }
 
 func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
@@ -54,8 +55,11 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		return fmt.Errorf("failed to connect: %s", err)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
+	defer cancel()
+
 	// Query the API for the Docker configuration.
-	dockercfg, err := client.DockerCfgGet(context.Background(), &pb.DockerCfgGetRequest{
+	dockercfg, err := client.DockerCfg(ctx, &pb.DockerCfgRequest{
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
@@ -79,7 +83,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 
 			tag := fmt.Sprintf("%s-%s", cmd.Name, name)
 
-			err := buildAndPush(service.Build, cmd.DockerRepository, tag, dockercfg.DockerCfg)
+			err := buildAndPush(service.Build, cmd.DockerRepository, tag, dockercfg)
 			if err != nil {
 				return fmt.Errorf("failed to build image: %s", err)
 			}
@@ -91,8 +95,11 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		dc.Services[name] = service
 	}
 
+	ctx, cancel = context.WithTimeout(context.Background(), cmd.Timeout)
+	defer cancel()
+
 	// Start the build.
-	stream, err := client.Create(context.Background(), &pb.CreateRequest{
+	stream, err := client.Create(ctx, &pb.CreateRequest{
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
@@ -109,7 +116,6 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Revision:   cmd.GitRevision,
 		},
 		Compose: dc.GRPC(),
-		Keep:    cmd.Keep,
 	})
 	if err != nil {
 		return fmt.Errorf("the build has failed: %s", err)
@@ -128,7 +134,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	}
 
 	for _, step := range steps {
-		stream, err := client.Exec(context.Background(), &pb.ExecRequest{
+		ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
+		defer cancel()
+
+		stream, err := client.Exec(ctx, &pb.ExecRequest{
 			Credentials: &pb.Credentials{
 				Token: cmd.Token,
 			},
@@ -161,24 +170,24 @@ func Build(app *kingpin.Application) {
 	c := new(cmdBuild)
 
 	cmd := app.Command("build", "Build the environment").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("PR_API").StringVar(&c.API)
-	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("PR_TOKEN").StringVar(&c.Token)
+	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("M8S_API").StringVar(&c.API)
+	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)
-	cmd.Flag("basic-auth-user", "Basic auth user to assign to this environment").Default("pnx").OverrideDefaultFromEnvar("BASIC_AUTH_USER").StringVar(&c.BasicAuthUser)
-	cmd.Flag("basic-auth-pass", "Basic auth user to assign to this environment").Default("pnx!@#").OverrideDefaultFromEnvar("BASIC_AUTH_PASS").StringVar(&c.BasicAuthPass)
-	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("PR_GIT_REPO").StringVar(&c.GitRepository)
+	cmd.Flag("basic-auth-user", "Basic auth user to assign to this environment").Default("pnx").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_USER").StringVar(&c.BasicAuthUser)
+	cmd.Flag("basic-auth-pass", "Basic auth user to assign to this environment").Default("pnx!@#").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_PASS").StringVar(&c.BasicAuthPass)
+	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("M8S_GIT_REPO").StringVar(&c.GitRepository)
 	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
-	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("PR_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
-	cmd.Flag("docker-repository", "Docker repository to push built images").Default("").OverrideDefaultFromEnvar("PR_DOCKER_REPOSITORY").StringVar(&c.DockerRepository)
-	cmd.Flag("exec-file", "Configuration file which contains execution steps").Default("m8s.yml").OverrideDefaultFromEnvar("PR_EXEC_FILE").StringVar(&c.ExecFile)
-	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Default("build").OverrideDefaultFromEnvar("PR_EXEC_STEP").StringVar(&c.ExecStep)
-	cmd.Flag("exec-inside", "Docker repository to push built images").Default("php").OverrideDefaultFromEnvar("PR_EXEC_INSIDE").StringVar(&c.ExecInside)
-	cmd.Flag("keep", "How many days before an environment can be deleted").Default("120h").OverrideDefaultFromEnvar("PR_KEEP").StringVar(&c.Keep)
+	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
+	cmd.Flag("docker-repository", "Docker repository to push built images").Default("").OverrideDefaultFromEnvar("M8S_DOCKER_REPOSITORY").StringVar(&c.DockerRepository)
+	cmd.Flag("exec-file", "Configuration file which contains execution steps").Default("m8s.yml").OverrideDefaultFromEnvar("M8S_EXEC_FILE").StringVar(&c.ExecFile)
+	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Default("build").OverrideDefaultFromEnvar("M8S_EXEC_STEP").StringVar(&c.ExecStep)
+	cmd.Flag("exec-inside", "Docker repository to push built images").Default("php").OverrideDefaultFromEnvar("M8S_EXEC_INSIDE").StringVar(&c.ExecInside)
+	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)
 }
 
 // A helper function to building and pushing an image to a Docker registry.
-func buildAndPush(dir, repository, tag string, dockercfg *pb.DockerCfg) error {
+func buildAndPush(dir, repository, tag string, dockercfg *pb.DockerCfgResponse) error {
 	client, err := docker.NewClientFromEnv()
 	if err != nil {
 		return err

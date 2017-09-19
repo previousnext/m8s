@@ -53,7 +53,7 @@ func List(app *kingpin.Application) {
 	c := new(cmdList)
 
 	cmd := app.Command("list", "List all the built environments").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default("pr.ci.pnx.com.au:433").StringVar(&c.API)
+	cmd.Flag("api", "API endpoint which accepts our build requests").Default("M8S.ci.pnx.com.au:433").StringVar(&c.API)
 	cmd.Flag("token", "Token used for authenticating with the API service").Required().StringVar(&c.Token)
 }
 

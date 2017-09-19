@@ -12,7 +12,7 @@ import (
 )
 
 // Pod converts a Docker Compose file into a Kubernetes Deployment object.
-func Pod(timeout int64, namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
+func Pod(namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/
 	perm := int32(256)
@@ -26,9 +26,6 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 			// This allows us to Link our Service to this Pod.
 			Labels: map[string]string{
 				"env": name,
-			},
-			Annotations: map[string]string{
-				"skipper.io/black-death": fmt.Sprintf("%v", timeout),
 			},
 		},
 		Spec: v1.PodSpec{

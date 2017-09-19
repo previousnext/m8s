@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/previousnext/m8s/api/k8s/env"
 	"github.com/previousnext/m8s/api/k8s/utils"
@@ -43,41 +42,29 @@ func (srv server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return fmt.Errorf("git repository was not provided")
 	}
 
-	if in.Keep == "" {
-		return fmt.Errorf("keep duration was not provided")
-	}
+	authSecret := fmt.Sprintf("%s-auth", in.Metadata.Name)
 
-	keep, err := time.ParseDuration(in.Keep)
-	if err != nil {
-		return fmt.Errorf("failed marshall field 'keep': %s", err)
-	}
-
-	var (
-		blackDeath = time.Now().Unix() + keep.Nanoseconds()
-		authSecret = fmt.Sprintf("%s-auth", in.Metadata.Name)
-	)
-
-	err = stepClaims(srv.client, stream)
+	err := stepClaims(srv.client, stream)
 	if err != nil {
 		return err
 	}
 
-	err = stepService(srv.client, in, stream, blackDeath)
+	err = stepService(srv.client, in, stream)
 	if err != nil {
 		return err
 	}
 
-	err = stepSecret(srv.client, in, stream, blackDeath, authSecret)
+	err = stepSecret(srv.client, in, stream, authSecret)
 	if err != nil {
 		return err
 	}
 
-	err = stepIngress(srv.client, in, stream, blackDeath, authSecret)
+	err = stepIngress(srv.client, in, stream, authSecret)
 	if err != nil {
 		return err
 	}
 
-	return stepPod(srv.client, in, stream, blackDeath)
+	return stepPod(srv.client, in, stream)
 }
 
 // A step for provisioning caching storage.
@@ -110,7 +97,7 @@ func stepClaims(client *client.Clientset, stream pb.M8S_CreateServer) error {
 }
 
 // A step to provision a Kubernetes service.
-func stepService(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, blackDeath int64) error {
+func stepService(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Service",
 	})
@@ -118,7 +105,7 @@ func stepService(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		return err
 	}
 
-	_, err = utils.ServiceCreate(client, env.Service(blackDeath, *cliNamespace, in.Metadata.Name))
+	_, err = utils.ServiceCreate(client, env.Service(*cliNamespace, in.Metadata.Name))
 	if err != nil {
 		return fmt.Errorf("failed create service: %s", err)
 	}
@@ -127,7 +114,7 @@ func stepService(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 }
 
 // A step to create a secret which contains http auth details.
-func stepSecret(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, blackDeath int64, name string) error {
+func stepSecret(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, name string) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Secret: Basic Authentication",
 	})
@@ -135,7 +122,7 @@ func stepSecret(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_Cr
 		return err
 	}
 
-	secret, err := env.Secret(blackDeath, *cliNamespace, name, in.Metadata.BasicAuth.User, in.Metadata.BasicAuth.Pass)
+	secret, err := env.Secret(*cliNamespace, name, in.Metadata.BasicAuth.User, in.Metadata.BasicAuth.Pass)
 	if err != nil {
 		return fmt.Errorf("failed build secret: %s", err)
 	}
@@ -149,7 +136,7 @@ func stepSecret(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_Cr
 }
 
 // A step to create an ingress for incoming traffic.
-func stepIngress(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, blackDeath int64, secret string) error {
+func stepIngress(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, secret string) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Ingress",
 	})
@@ -157,7 +144,7 @@ func stepIngress(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		return err
 	}
 
-	ing, err := env.Ingress(blackDeath, *cliNamespace, in.Metadata.Name, secret, in.Metadata.Domains)
+	ing, err := env.Ingress(*cliNamespace, in.Metadata.Name, secret, in.Metadata.Domains)
 	if err != nil {
 		return fmt.Errorf("failed build ingress: %s", err)
 	}
@@ -172,7 +159,7 @@ func stepIngress(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 }
 
 // A step for creating a pod (our Docker Compose environment).
-func stepPod(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, blackDeath int64) error {
+func stepPod(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Pod",
 	})
@@ -180,7 +167,7 @@ func stepPod(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_Creat
 		return err
 	}
 
-	pod, err := env.Pod(blackDeath, *cliNamespace, in.Metadata.Name, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services)
+	pod, err := env.Pod(*cliNamespace, in.Metadata.Name, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services)
 	if err != nil {
 		return fmt.Errorf("failed build pod: %s", err)
 	}

@@ -8,13 +8,8 @@ service m8s {
     rpc Describe (DescribeRequest) returns (DescribeResponse) {}
     rpc List (ListRequest) returns (ListResponse) {}
 
-    // Used for setting and getting SSH credentials.
-    rpc SSHSet (SSHSetRequest) returns (SSHSetResponse) {}
-    rpc SSHGet (SSHGetRequest) returns (SSHGetResponse) {}
-
-    // Used for setting and getting Docker registry secrets.
-    rpc DockerCfgSet (DockerCfgSetRequest) returns (DockerCfgSetResponse) {}
-    rpc DockerCfgGet (DockerCfgGetRequest) returns (DockerCfgGetResponse) {}
+    // Used for getting Docker registry secrets.
+    rpc DockerCfg (DockerCfgRequest) returns (DockerCfgResponse) {}
 }
 
 // Credentials is used for authenicating with the PR service.
@@ -28,7 +23,6 @@ message CreateRequest {
     Metadata Metadata = 2;
     Compose Compose = 3;
     GitCheckout GitCheckout = 4;
-    string Keep = 6;
 }
 
 // Metadata is high level information about the build.
@@ -153,30 +147,16 @@ message SSHGetResponse {
     SSH SSH = 1;
 }
 
-// DockerCfg contains standard Docker configuration eg ~/.docker/config
-message DockerCfg {
+// DockerCfgRequest requests the Docker configuration.
+message DockerCfgRequest {
+    Credentials Credentials = 1;
+}
+
+// DockerCfgResponse returns the Docker configuration.
+message DockerCfgResponse {
     string Registry = 1;
     string Username = 2;
     string Password = 3;
     string Email = 4;
     string Auth = 5;
-}
-
-// DockerCfgSetRequest is for setting new Docker configuration.
-message DockerCfgSetRequest {
-    Credentials Credentials = 1;
-    DockerCfg DockerCfg = 2;
-}
-
-// DockerCfgSetResponse returns if setting the Docker configuration was a success.
-message DockerCfgSetResponse {}
-
-// DockerCfgGetRequest requests the Docker configuration.
-message DockerCfgGetRequest {
-    Credentials Credentials = 1;
-}
-
-// DockerCfgGetResponse returns the Docker configuration.
-message DockerCfgGetResponse {
-    DockerCfg DockerCfg = 1;
 }

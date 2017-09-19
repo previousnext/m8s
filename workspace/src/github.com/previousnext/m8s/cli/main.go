@@ -8,10 +8,12 @@ import (
 )
 
 func main() {
-	app := kingpin.New("M8s", "PreviousNext short lived environments")
+	app := kingpin.New("M8s", "Short lived environments")
 
 	// Setup all the subcommands.
 	cmd.Build(app)
+	cmd.Exec(app)
+	cmd.List(app)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }

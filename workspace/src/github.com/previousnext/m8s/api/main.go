@@ -1,19 +1,23 @@
 package main
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net"
-
-	"crypto/tls"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/alecthomas/kingpin"
 	"github.com/previousnext/m8s/api/k8s/addons"
+	"github.com/previousnext/m8s/api/k8s/env"
+	"github.com/previousnext/m8s/api/k8s/utils"
 	pb "github.com/previousnext/m8s/pb"
 	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/kubernetes/pkg/api/v1"
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
@@ -31,10 +35,6 @@ var (
 	cliLetsEncryptDomain = kingpin.Flag("lets-encrypt-domain", "Domain to use for Lets Encrypt certificate").Default("").OverrideDefaultFromEnvar("LETS_ENCRYPT_DOMAIN").String()
 	cliLetsEncryptCache  = kingpin.Flag("lets-encrypt-cache", "Cache directory to use for Lets Encrypt").Default("/tmp").OverrideDefaultFromEnvar("LETS_ENCRYPT_CACHE").String()
 
-	// Black Death.
-	cliBlackDeathImage   = kingpin.Flag("black-death-image", "Black Death image to deploy").Default("previousnext/k8s-black-death").OverrideDefaultFromEnvar("BLACK_DEATH_IMAGE").String()
-	cliBlackDeathVersion = kingpin.Flag("black-death-version", "Version of Black Death to deploy").Default("0.0.2").OverrideDefaultFromEnvar("BLACK_DEATH_VERSION").String()
-
 	// Traefik.
 	cliTraefikImage   = kingpin.Flag("traefik-image", "Traefik image to deploy").Default("traefik").OverrideDefaultFromEnvar("TRAEFIK_IMAGE").String()
 	cliTraefikVersion = kingpin.Flag("traefik-version", "Version of Traefik to deploy").Default("1.3").OverrideDefaultFromEnvar("TRAEFIK_VERSION").String()
@@ -44,6 +44,13 @@ var (
 	cliSSHImage   = kingpin.Flag("ssh-image", "SSH server image to deploy").Default("previousnext/k8s-ssh-server").OverrideDefaultFromEnvar("SSH_IMAGE").String()
 	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("0.0.5").OverrideDefaultFromEnvar("SSH_VERSION").String()
 	cliSSHPort    = kingpin.Flag("ssh-port", "Assign this port to each node on the cluster for SSH ingress").Default("2222").OverrideDefaultFromEnvar("SSH_PORT").Int32()
+
+	// DockerCfg.
+	cliDockerCfgRegistry = kingpin.Flag("dockercfg-registry", "Registry for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_REGISTRY").String()
+	cliDockerCfgUsername = kingpin.Flag("dockercfg-username", "Username for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_USERNAME").String()
+	cliDockerCfgPassword = kingpin.Flag("dockercfg-password", "Password for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_PASSWORD").String()
+	cliDockerCfgEmail    = kingpin.Flag("dockercfg-email", "Email for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_EMAIL").String()
+	cliDockerCfgAuth     = kingpin.Flag("dockercfg-auth", "Auth token for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_AUTH").String()
 )
 
 func main() {
@@ -81,9 +88,9 @@ func main() {
 		panic(err)
 	}
 
-	log.Println("Installing addon: black-death")
+	log.Println("Syncing secrets: dockercfg")
 
-	err = addons.CreateBlackDeath(client, *cliNamespace, *cliBlackDeathImage, *cliBlackDeathVersion)
+	err = dockercfgSync(client, *cliDockerCfgRegistry, *cliDockerCfgUsername, *cliDockerCfgPassword, *cliDockerCfgEmail, *cliDockerCfgAuth)
 	if err != nil {
 		panic(err)
 	}
@@ -126,4 +133,39 @@ func getLetsEncrypt(domain, email, cache string) (credentials.TransportCredentia
 		Email:      email,
 	}
 	return credentials.NewTLS(&tls.Config{GetCertificate: manager.GetCertificate}), nil
+}
+
+// Helper function to sync Docker credentials.
+func dockercfgSync(client *client.Clientset, registry, username, password, email, auth string) error {
+	auths := map[string]DockerConfig{
+		registry: {
+			Username: username,
+			Password: password,
+			Email:    email,
+			Auth:     auth,
+		},
+	}
+
+	dockerconfig, err := json.Marshal(auths)
+	if err != nil {
+		return err
+	}
+
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: *cliNamespace,
+			Name:      env.SecretDockerCfg,
+		},
+		Data: map[string][]byte{
+			keyDockerCfg: dockerconfig,
+		},
+		Type: v1.SecretTypeDockercfg,
+	}
+
+	_, err = utils.SecretCreate(client, secret)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
