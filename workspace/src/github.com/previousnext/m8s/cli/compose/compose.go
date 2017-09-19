@@ -30,7 +30,8 @@ type ServiceDeploy struct {
 
 // ServiceDeployResources provides deployment resources information for a service.
 type ServiceDeployResources struct {
-	Limits ServiceDeployResource `yaml:"limits"`
+	Limits       ServiceDeployResource `yaml:"limits"`
+	Reservations ServiceDeployResource `yaml:"reservations"`
 }
 
 // ServiceDeployResource provides a single deployment resource information for a service.
@@ -51,8 +52,14 @@ func (dc DockerCompose) GRPC() *pb.Compose {
 			Ports:       service.Ports,
 			Environment: service.Environment,
 			Tmpfs:       service.Tmpfs,
-			CPU:         service.Deploy.Resources.Limits.CPUs,
-			Memory:      service.Deploy.Resources.Limits.Memory,
+			Limits: &pb.Resource{
+				CPU:    service.Deploy.Resources.Limits.CPUs,
+				Memory: service.Deploy.Resources.Limits.Memory,
+			},
+			Reservations: &pb.Resource{
+				CPU:    service.Deploy.Resources.Reservations.CPUs,
+				Memory: service.Deploy.Resources.Reservations.Memory,
+			},
 		})
 	}
 

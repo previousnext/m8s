@@ -61,12 +61,18 @@ message Compose {
 message ComposeService {
     string Name = 1;
     string Image = 2;
-    string CPU = 3;
-    string Memory = 4;
+    Resource Limits = 3;
+    Resource Reservations = 4;
     repeated string Volumes = 5;
     repeated string Ports = 6;
     repeated string Environment = 7;
     repeated string Tmpfs = 8;
+}
+
+// Resource is used for setting CPU and Memory of the build.
+message Resource {
+    string CPU = 1;
+    string Memory = 2;
 }
 
 // BuildResponse is a streamed response used for printing build output and status.

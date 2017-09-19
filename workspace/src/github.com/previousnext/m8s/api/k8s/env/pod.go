@@ -99,7 +99,7 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 			},
 		}
 
-		resources, err := podResources(service.CPU, service.Memory)
+		resources, err := podResources(service.Reservations, service.Limits)
 		if err != nil {
 			return pod, err
 		}
@@ -133,34 +133,46 @@ func Pod(timeout int64, namespace, name, repository, revision string, services [
 }
 
 // Helper function to extract resource limits from a service definition.
-func podResources(cpu, memory string) (v1.ResourceRequirements, error) {
+func podResources(reservations, limits *pb.Resource) (v1.ResourceRequirements, error) {
 	resources := v1.ResourceRequirements{
 		Limits:   make(map[v1.ResourceName]resource.Quantity),
 		Requests: make(map[v1.ResourceName]resource.Quantity),
 	}
 
-	if cpu != "" {
-		fmt.Println("cpu:", cpu)
-
-		quantity, err := resource.ParseQuantity(cpu)
+	if reservations.CPU != "" {
+		quantity, err := resource.ParseQuantity(reservations.CPU)
 		if err != nil {
-			return resources, fmt.Errorf("failed to parse cpu: %s", err)
+			return resources, fmt.Errorf("failed to parse cpu reservation: %s", err)
 		}
 
-		resources.Limits[v1.ResourceCPU] = quantity
 		resources.Requests[v1.ResourceCPU] = quantity
 	}
 
-	if memory != "" {
-		fmt.Println("memory:", memory)
-
-		quantity, err := resource.ParseQuantity(memory)
+	if reservations.Memory != "" {
+		quantity, err := resource.ParseQuantity(reservations.Memory)
 		if err != nil {
-			return resources, fmt.Errorf("failed to parse memory: %s", err)
+			return resources, fmt.Errorf("failed to parse memory reservation: %s", err)
+		}
+
+		resources.Requests[v1.ResourceMemory] = quantity
+	}
+
+	if limits.CPU != "" {
+		quantity, err := resource.ParseQuantity(limits.CPU)
+		if err != nil {
+			return resources, fmt.Errorf("failed to parse cpu limits: %s", err)
+		}
+
+		resources.Limits[v1.ResourceCPU] = quantity
+	}
+
+	if limits.Memory != "" {
+		quantity, err := resource.ParseQuantity(limits.Memory)
+		if err != nil {
+			return resources, fmt.Errorf("failed to parse memory limits: %s", err)
 		}
 
 		resources.Limits[v1.ResourceMemory] = quantity
-		resources.Requests[v1.ResourceMemory] = quantity
 	}
 
 	return resources, nil
