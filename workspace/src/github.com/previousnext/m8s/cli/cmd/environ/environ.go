@@ -7,7 +7,7 @@ import (
 )
 
 // Prefix is used for identifying if an external environment variable is required inside the environment.
-const Prefix = "PR_ENV_"
+const Prefix = "M8S_ENV_"
 
 // Get returns a list of environment variables, with their prefix stripped.
 //  eg. "FOO=bar,MY_PREFIX_FOO=baz" will result in "FOO=baz" if "MY_PREFIX" is provided.

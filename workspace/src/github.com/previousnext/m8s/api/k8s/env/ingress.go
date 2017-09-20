@@ -13,11 +13,14 @@ func Ingress(namespace, name, secret string, domains []string) (*extensions.Ingr
 			Namespace: namespace,
 			Name:      name,
 			Annotations: map[string]string{
-				"kubernetes.io/ingress.class":       "traefik",
-				"ingress.kubernetes.io/auth-type":   "basic",
-				"ingress.kubernetes.io/auth-secret": secret,
+				"kubernetes.io/ingress.class": "traefik",
 			},
 		},
+	}
+
+	if secret != "" {
+		ingress.ObjectMeta.Annotations["ingress.kubernetes.io/auth-type"] = "basic"
+		ingress.ObjectMeta.Annotations["ingress.kubernetes.io/auth-secret"] = secret
 	}
 
 	for _, domain := range domains {

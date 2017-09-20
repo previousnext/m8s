@@ -10,3 +10,7 @@ func machine(name string) string {
 	n = strings.Replace(n, "/", "", -1)
 	return n
 }
+
+func authProvided() {
+
+}

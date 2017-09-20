@@ -70,7 +70,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 
 	// These are additional environment variables that have been provided outside of this build, with the intent
 	// for them to be injected into our running containers.
-	//   eg. PR_ENV_FOO=bar, will inject FOO=bar into the containers.
+	//   eg. M8S_ENV_FOO=bar, will inject FOO=bar into the containers.
 	extraEnvs := environ.Get()
 
 	for name, service := range dc.Services {
@@ -174,8 +174,8 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)
-	cmd.Flag("basic-auth-user", "Basic auth user to assign to this environment").Default("pnx").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_USER").StringVar(&c.BasicAuthUser)
-	cmd.Flag("basic-auth-pass", "Basic auth user to assign to this environment").Default("pnx!@#").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_PASS").StringVar(&c.BasicAuthPass)
+	cmd.Flag("basic-auth-user", "Basic auth user to assign to this environment").Default("").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_USER").StringVar(&c.BasicAuthUser)
+	cmd.Flag("basic-auth-pass", "Basic auth user to assign to this environment").Default("").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_PASS").StringVar(&c.BasicAuthPass)
 	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("M8S_GIT_REPO").StringVar(&c.GitRepository)
 	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
 	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)

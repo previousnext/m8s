@@ -61,7 +61,7 @@ func Exec(app *kingpin.Application) {
 
 	cmd := app.Command("exec", "Exec command in the environment").Action(c.run)
 	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("M8S_API").StringVar(&c.API)
-	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8s_TOKEN").StringVar(&c.Token)
+	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)
 	cmd.Arg("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 	cmd.Arg("inside", "Unique identifier for the environment").Required().StringVar(&c.Inside)

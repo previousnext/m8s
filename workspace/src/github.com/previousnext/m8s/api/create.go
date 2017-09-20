@@ -10,20 +10,10 @@ import (
 )
 
 func (srv server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error {
+	var authSecret string
+
 	if in.Credentials.Token != *cliToken {
 		return fmt.Errorf("token is incorrect")
-	}
-
-	if in.Metadata.BasicAuth == nil {
-		return fmt.Errorf("basic auth was not provided")
-	}
-
-	if in.Metadata.BasicAuth.User == "" {
-		return fmt.Errorf("basic auth field was not provided: user")
-	}
-
-	if in.Metadata.BasicAuth.Pass == "" {
-		return fmt.Errorf("basic auth field was not provided: pass")
 	}
 
 	if len(in.Compose.Services) < 1 {
@@ -42,8 +32,6 @@ func (srv server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return fmt.Errorf("git repository was not provided")
 	}
 
-	authSecret := fmt.Sprintf("%s-auth", in.Metadata.Name)
-
 	err := stepClaims(srv.client, stream)
 	if err != nil {
 		return err
@@ -54,9 +42,14 @@ func (srv server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return err
 	}
 
-	err = stepSecret(srv.client, in, stream, authSecret)
-	if err != nil {
-		return err
+	if authProvided(in) {
+		// Set the auth secret so the ingress can turn on auth at its layer.
+		authSecret = fmt.Sprintf("%s-auth", in.Metadata.Name)
+
+		err = stepSecretBasicAuth(srv.client, in, stream, authSecret)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = stepIngress(srv.client, in, stream, authSecret)
@@ -114,7 +107,7 @@ func stepService(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 }
 
 // A step to create a secret which contains http auth details.
-func stepSecret(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, name string) error {
+func stepSecretBasicAuth(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, name string) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Secret: Basic Authentication",
 	})
