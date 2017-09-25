@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/alecthomas/kingpin"
@@ -12,6 +13,7 @@ import (
 	"github.com/previousnext/m8s/api/k8s/env"
 	"github.com/previousnext/m8s/api/k8s/utils"
 	pb "github.com/previousnext/m8s/pb"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -51,12 +53,21 @@ var (
 	cliDockerCfgPassword = kingpin.Flag("dockercfg-password", "Password for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_PASSWORD").String()
 	cliDockerCfgEmail    = kingpin.Flag("dockercfg-email", "Email for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_EMAIL").String()
 	cliDockerCfgAuth     = kingpin.Flag("dockercfg-auth", "Auth token for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_AUTH").String()
+
+	// Promtheus.
+	cliPrometheusPort   = kingpin.Flag("prometheus-port", "Prometheus metrics port").Default(":9000").OverrideDefaultFromEnvar("METRICS_PORT").String()
+	cliPrometheusPath   = kingpin.Flag("prometheus-path", "Prometheus metrics path").Default("/metrics").OverrideDefaultFromEnvar("METRICS_PATH").String()
+	cliPrometheusApache = kingpin.Flag("prometheus-apache-exporter", "Prometheus metrics port for Apache on built environments").Default("9117").OverrideDefaultFromEnvar("METRICS_APACHE_PORT").Int32()
 )
 
 func main() {
 	kingpin.Parse()
 
-	log.Println("Starting")
+	log.Println("Starting Prometheus Endpoint")
+
+	go metrics(*cliPrometheusPort, *cliPrometheusPath)
+
+	log.Println("Starting Server")
 
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", *cliPort))
 	if err != nil {
@@ -168,4 +179,10 @@ func dockercfgSync(client *client.Clientset, registry, username, password, email
 	}
 
 	return nil
+}
+
+// Helper function for serving Prometheus metrics.
+func metrics(port, path string) {
+	http.Handle(path, promhttp.Handler())
+	log.Fatal(http.ListenAndServe(port, nil))
 }
