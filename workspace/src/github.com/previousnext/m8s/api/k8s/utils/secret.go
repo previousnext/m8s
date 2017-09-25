@@ -6,7 +6,7 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-// CreateSecret is a wrapper which will attempt to create and/or up a secret.
+// SecretCreate is a wrapper which will attempt to create and/or up a secret.
 func SecretCreate(client *client.Clientset, new *v1.Secret) (*v1.Secret, error) {
 	secret, err := client.CoreV1().Secrets(new.ObjectMeta.Namespace).Create(new)
 	if errors.IsAlreadyExists(err) {

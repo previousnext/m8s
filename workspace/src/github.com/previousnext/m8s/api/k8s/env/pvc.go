@@ -6,7 +6,7 @@ import (
 	"k8s.io/kubernetes/pkg/api/v1"
 )
 
-// CreatePersistentVolumeClaim is used for creating a new PersistentVolumeClaim object.
+// PersistentVolumeClaim is used for creating a new PersistentVolumeClaim object.
 func PersistentVolumeClaim(namespace, name, storage string) *v1.PersistentVolumeClaim {
 	return &v1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{

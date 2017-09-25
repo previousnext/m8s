@@ -10,7 +10,7 @@ import (
 	remotecommandserver "k8s.io/kubernetes/pkg/kubelet/server/remotecommand"
 )
 
-// Helper function for running commands against a running pod.
+// PodExec for running commands against a running pod.
 func PodExec(client *client.Clientset, config *rest.Config, w io.Writer, namespace, name, container, step string) error {
 	cmd := &api.PodExecOptions{
 		Container: container,

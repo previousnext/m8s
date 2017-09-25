@@ -9,6 +9,7 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
+// PodCreate is used for creating a Pod object.
 func PodCreate(client *client.Clientset, pod *v1.Pod) (*v1.Pod, error) {
 	_, err := client.Pods(pod.ObjectMeta.Namespace).Create(pod)
 	if errors.IsAlreadyExists(err) {
