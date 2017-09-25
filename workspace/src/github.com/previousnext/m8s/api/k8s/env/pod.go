@@ -12,7 +12,7 @@ import (
 )
 
 // Pod converts a Docker Compose file into a Kubernetes Deployment object.
-func Pod(namespace, name, repository, revision string, services []*pb.ComposeService) (*v1.Pod, error) {
+func Pod(namespace, name, repository, revision string, services []*pb.ComposeService, promPort int32) (*v1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/
 	perm := int32(256)
@@ -27,8 +27,23 @@ func Pod(namespace, name, repository, revision string, services []*pb.ComposeSer
 			Labels: map[string]string{
 				"env": name,
 			},
+			Annotations: map[string]string{
+				"prometheus.io/scrape": "true",
+				"prometheus.io/port":   fmt.Sprintf("%d", promPort),
+			},
 		},
 		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  "apache-exporter",
+					Image: "previousnext/apache-exporter:latest",
+					Ports: []v1.ContainerPort{
+						{
+							ContainerPort: promPort,
+						},
+					},
+				},
+			},
 			Volumes: []v1.Volume{
 				{
 					Name: "ssh",

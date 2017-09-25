@@ -160,7 +160,7 @@ func stepPod(client *client.Clientset, in *pb.CreateRequest, stream pb.M8S_Creat
 		return err
 	}
 
-	pod, err := env.Pod(*cliNamespace, in.Metadata.Name, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services)
+	pod, err := env.Pod(*cliNamespace, in.Metadata.Name, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services, *cliPrometheusApache)
 	if err != nil {
 		return fmt.Errorf("failed build pod: %s", err)
 	}

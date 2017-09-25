@@ -10,7 +10,10 @@ import (
 )
 
 func TestPod(t *testing.T) {
-	perm := int32(256)
+	var (
+		perm = int32(256)
+		prom = int32(9117)
+	)
 
 	want := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -19,9 +22,22 @@ func TestPod(t *testing.T) {
 			Labels: map[string]string{
 				"env": "pr1",
 			},
+			Annotations: map[string]string{
+				"prometheus.io/scrape": "true",
+				"prometheus.io/port":   "9117",
+			},
 		},
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{
+				{
+					Name:  "apache-exporter",
+					Image: "previousnext/apache-exporter:latest",
+					Ports: []v1.ContainerPort{
+						{
+							ContainerPort: 9117,
+						},
+					},
+				},
 				{
 					Name:            "app",
 					Image:           "foo/bar",
@@ -201,7 +217,7 @@ func TestPod(t *testing.T) {
 			Name:  "solr",
 			Image: "previousnext/solr:5.x",
 		},
-	})
+	}, prom)
 	assert.Nil(t, err)
 	assert.Equal(t, want.ObjectMeta, have.ObjectMeta)
 	assert.Equal(t, want.Spec.Containers[0], have.Spec.Containers[0])
