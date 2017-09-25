@@ -17,8 +17,7 @@ func TestIngress(t *testing.T) {
 			Annotations: map[string]string{
 				"kubernetes.io/ingress.class":       "traefik",
 				"ingress.kubernetes.io/auth-type":   "basic",
-				"ingress.kubernetes.io/auth-secret": "foo",
-				"skipper.io/black-death":            "123456789",
+				"ingress.kubernetes.io/auth-secret": "pr1",
 			},
 		},
 		Spec: extensions.IngressSpec{
@@ -33,6 +32,20 @@ func TestIngress(t *testing.T) {
 									Backend: extensions.IngressBackend{
 										ServiceName: "pr1",
 										ServicePort: intstr.FromInt(80),
+									},
+								},
+								{
+									Path: "/mailhog",
+									Backend: extensions.IngressBackend{
+										ServiceName: "pr1",
+										ServicePort: intstr.FromInt(8025),
+									},
+								},
+								{
+									Path: "/solr",
+									Backend: extensions.IngressBackend{
+										ServiceName: "pr1",
+										ServicePort: intstr.FromInt(8983),
 									},
 								},
 							},
@@ -51,6 +64,20 @@ func TestIngress(t *testing.T) {
 										ServicePort: intstr.FromInt(80),
 									},
 								},
+								{
+									Path: "/mailhog",
+									Backend: extensions.IngressBackend{
+										ServiceName: "pr1",
+										ServicePort: intstr.FromInt(8025),
+									},
+								},
+								{
+									Path: "/solr",
+									Backend: extensions.IngressBackend{
+										ServiceName: "pr1",
+										ServicePort: intstr.FromInt(8983),
+									},
+								},
 							},
 						},
 					},
@@ -59,7 +86,7 @@ func TestIngress(t *testing.T) {
 		},
 	}
 
-	have, err := Ingress(123456789, "test", "foo", "pr1", []string{"pr1.example.com", "pr1.example2.com"})
+	have, err := Ingress("test", "pr1", "pr1", []string{"pr1.example.com", "pr1.example2.com"})
 	assert.Nil(t, err)
 	assert.Equal(t, want, have)
 }
