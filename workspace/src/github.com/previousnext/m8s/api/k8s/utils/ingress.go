@@ -6,7 +6,7 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-// CreateIngress is a wrapper which will attempt to create and/or up an ingress.
+// IngressCreate is a wrapper which will attempt to create and/or up an ingress.
 func IngressCreate(client *client.Clientset, new *extensions.Ingress) (*extensions.Ingress, error) {
 	ing, err := client.Extensions().Ingresses(new.ObjectMeta.Namespace).Create(new)
 	if errors.IsAlreadyExists(err) {

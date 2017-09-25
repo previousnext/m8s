@@ -19,9 +19,6 @@ func TestPod(t *testing.T) {
 			Labels: map[string]string{
 				"env": "pr1",
 			},
-			Annotations: map[string]string{
-				"skipper.io/black-death": "123456789",
-			},
 		},
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{
@@ -29,15 +26,15 @@ func TestPod(t *testing.T) {
 					Name:            "app",
 					Image:           "foo/bar",
 					ImagePullPolicy: v1.PullAlways,
+					Resources: v1.ResourceRequirements{
+						Limits:   v1.ResourceList{},
+						Requests: v1.ResourceList{},
+					},
 					VolumeMounts: []v1.VolumeMount{
 						{
 							Name:      SecretSSH,
 							ReadOnly:  true,
 							MountPath: "/root/.ssh",
-						},
-						{
-							Name:      "code",
-							MountPath: "/data",
 						},
 						{
 							Name:      CacheComposer,
@@ -46,6 +43,10 @@ func TestPod(t *testing.T) {
 						{
 							Name:      CacheYarn,
 							MountPath: "/usr/local/share/.cache/yarn",
+						},
+						{
+							Name:      "code",
+							MountPath: "/data",
 						},
 					},
 					Ports: []v1.ContainerPort{
@@ -64,6 +65,10 @@ func TestPod(t *testing.T) {
 					Name:            "mysql",
 					Image:           "mariadb",
 					ImagePullPolicy: v1.PullAlways,
+					Resources: v1.ResourceRequirements{
+						Limits:   v1.ResourceList{},
+						Requests: v1.ResourceList{},
+					},
 					VolumeMounts: []v1.VolumeMount{
 						{
 							Name:      SecretSSH,
@@ -102,6 +107,10 @@ func TestPod(t *testing.T) {
 					Name:            "solr",
 					Image:           "previousnext/solr:5.x",
 					ImagePullPolicy: v1.PullAlways,
+					Resources: v1.ResourceRequirements{
+						Limits:   v1.ResourceList{},
+						Requests: v1.ResourceList{},
+					},
 					VolumeMounts: []v1.VolumeMount{
 						{
 							Name:      SecretSSH,
@@ -164,7 +173,7 @@ func TestPod(t *testing.T) {
 		},
 	}
 
-	have, err := Pod(123456789, "test", "pr1", "git@github.com:foo/bar.git", "123456789", []*pb.ComposeService{
+	have, err := Pod("test", "pr1", "git@github.com:foo/bar.git", "123456789", []*pb.ComposeService{
 		{
 			Name:  "app",
 			Image: "foo/bar",
@@ -195,7 +204,9 @@ func TestPod(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, want.ObjectMeta, have.ObjectMeta)
-	assert.Equal(t, want.Spec.Containers, have.Spec.Containers)
+	assert.Equal(t, want.Spec.Containers[0], have.Spec.Containers[0])
+	assert.Equal(t, want.Spec.Containers[1], have.Spec.Containers[1])
+	assert.Equal(t, want.Spec.Containers[2], have.Spec.Containers[2])
 	assert.Equal(t, want.Spec.Volumes, have.Spec.Volumes)
 	assert.Equal(t, want.Spec.ImagePullSecrets, have.Spec.ImagePullSecrets)
 }

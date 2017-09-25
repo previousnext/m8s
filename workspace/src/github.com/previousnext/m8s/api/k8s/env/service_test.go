@@ -13,15 +13,21 @@ func TestService(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "pr1",
-			Annotations: map[string]string{
-				"skipper.io/black-death": "123456789",
-			},
 		},
 		Spec: v1.ServiceSpec{
 			ClusterIP: "None",
 			Ports: []v1.ServicePort{
 				{
+					Name: "http",
 					Port: 80,
+				},
+				{
+					Name: "mailhog",
+					Port: 8025,
+				},
+				{
+					Name: "solr",
+					Port: 8983,
 				},
 			},
 			Selector: map[string]string{
@@ -30,5 +36,5 @@ func TestService(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, want, Service(123456789, "test", "pr1"))
+	assert.Equal(t, want, Service("test", "pr1"))
 }

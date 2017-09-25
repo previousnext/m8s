@@ -6,6 +6,7 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
+// PersistentVolumeClaimCreate is used for creating new Persistent Volume Claims.
 func PersistentVolumeClaimCreate(client *client.Clientset, new *v1.PersistentVolumeClaim) (*v1.PersistentVolumeClaim, error) {
 	pvc, err := client.PersistentVolumeClaims(new.ObjectMeta.Namespace).Create(new)
 	if err != nil && !errors.IsAlreadyExists(err) {

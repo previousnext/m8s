@@ -55,7 +55,7 @@ func (cmd *cmdExec) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
-// Build declares the "build" sub command.
+// Exec declares the "exec" sub command.
 func Exec(app *kingpin.Application) {
 	c := new(cmdExec)
 

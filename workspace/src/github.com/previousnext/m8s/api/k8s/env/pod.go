@@ -136,7 +136,7 @@ func podResources(reservations, limits *pb.Resource) (v1.ResourceRequirements, e
 		Requests: make(map[v1.ResourceName]resource.Quantity),
 	}
 
-	if reservations.CPU != "" {
+	if reservations != nil && reservations.CPU != "" {
 		quantity, err := resource.ParseQuantity(reservations.CPU)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse cpu reservation: %s", err)
@@ -145,7 +145,7 @@ func podResources(reservations, limits *pb.Resource) (v1.ResourceRequirements, e
 		resources.Requests[v1.ResourceCPU] = quantity
 	}
 
-	if reservations.Memory != "" {
+	if reservations != nil && reservations.Memory != "" {
 		quantity, err := resource.ParseQuantity(reservations.Memory)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse memory reservation: %s", err)
@@ -154,7 +154,7 @@ func podResources(reservations, limits *pb.Resource) (v1.ResourceRequirements, e
 		resources.Requests[v1.ResourceMemory] = quantity
 	}
 
-	if limits.CPU != "" {
+	if limits != nil && limits.CPU != "" {
 		quantity, err := resource.ParseQuantity(limits.CPU)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse cpu limits: %s", err)
@@ -163,7 +163,7 @@ func podResources(reservations, limits *pb.Resource) (v1.ResourceRequirements, e
 		resources.Limits[v1.ResourceCPU] = quantity
 	}
 
-	if limits.Memory != "" {
+	if limits != nil && limits.Memory != "" {
 		quantity, err := resource.ParseQuantity(limits.Memory)
 		if err != nil {
 			return resources, fmt.Errorf("failed to parse memory limits: %s", err)
