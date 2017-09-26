@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	pb "github.com/previousnext/m8s/pb"
@@ -32,7 +33,7 @@ func (cmd *cmdExec) run(c *kingpin.ParseContext) error {
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
-		Name:      cmd.Name,
+		Name:      strings.ToLower(cmd.Name),
 		Container: cmd.Inside,
 		Command:   cmd.Command,
 	})

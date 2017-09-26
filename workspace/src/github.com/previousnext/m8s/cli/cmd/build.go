@@ -104,8 +104,8 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Token: cmd.Token,
 		},
 		Metadata: &pb.Metadata{
-			Name:    cmd.Name,
-			Domains: strings.Split(cmd.Domains, ","),
+			Name:    strings.ToLower(cmd.Name),
+			Domains: strings.Split(strings.ToLower(cmd.Domains), ","),
 			BasicAuth: &pb.BasicAuth{
 				User: cmd.BasicAuthUser,
 				Pass: cmd.BasicAuthPass,
@@ -141,7 +141,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Credentials: &pb.Credentials{
 				Token: cmd.Token,
 			},
-			Name:      cmd.Name,
+			Name:      strings.ToLower(cmd.Name),
 			Container: cmd.ExecInside,
 			Command:   step,
 		})
