@@ -87,21 +87,6 @@ message ExecResponse {
     string Message = 1;
 }
 
-// Container shows a container which is deployed in an Environment.
-message Container {
-    string Name = 1;
-    string Image = 2;
-}
-
-// Environment shows a group of containers which have been deployed.
-message Environment {
-    string Namespace = 1;
-    string Name = 2;
-    repeated string Domains = 3;
-    repeated Container Containers = 4;
-    repeated string SSH = 5;
-}
-
 // DescribeRequest asks for an Environment which has already been deployed.
 message DescribeRequest {
     Credentials Credentials = 1;
@@ -110,7 +95,11 @@ message DescribeRequest {
 
 // DescribeResponse responds with an Environment.
 message DescribeResponse {
-    Environment Environment = 1;
+    string Namespace = 1;
+    string Name = 2;
+    repeated string Domains = 3;
+    repeated string Containers = 4;
+    repeated string SSH = 5;
 }
 
 // DescribeRequest asks for all the Environments.

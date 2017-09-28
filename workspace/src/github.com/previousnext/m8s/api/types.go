@@ -5,11 +5,7 @@ import (
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-const (
-	keyPrivateKey = "id_rsa"
-	keyKnownHosts = "known_hosts"
-	keyDockerCfg  = ".dockercfg"
-)
+const keyDockerCfg = ".dockercfg"
 
 type server struct {
 	client *client.Clientset

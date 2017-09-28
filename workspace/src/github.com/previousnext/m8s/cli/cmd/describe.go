@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	pb "github.com/previousnext/m8s/pb"
 	"golang.org/x/net/context"
@@ -30,7 +31,16 @@ func (cmd *cmdDescribe) run(c *kingpin.ParseContext) error {
 		return fmt.Errorf("failed list built environments: %s", err)
 	}
 
-	fmt.Println(describe)
+	fmt.Println("Name:", describe.Name)
+	fmt.Println("Namespace:", describe.Namespace)
+
+	fmt.Println("SSH:")
+	for _, ssh := range describe.SSH {
+		fmt.Println("-", ssh)
+	}
+
+	fmt.Println("Containers:")
+	fmt.Println(strings.Join(describe.Containers, "\n"))
 
 	return err
 }

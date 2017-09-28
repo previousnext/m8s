@@ -35,30 +35,23 @@ func (srv server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 		return resp, err
 	}
 
-	env := &pb.Environment{
-		Name:      pod.ObjectMeta.Name,
-		Namespace: pod.ObjectMeta.Namespace,
-	}
+	resp.Name = pod.ObjectMeta.Name
+	resp.Namespace = pod.ObjectMeta.Namespace
 
 	// Get the list of domains.
 	for _, rule := range ing.Spec.Rules {
-		env.Domains = append(env.Domains, rule.Host)
+		resp.Domains = append(resp.Domains, rule.Host)
 	}
 
 	// Get the list of containers.
 	for _, container := range pod.Spec.Containers {
-		env.Containers = append(env.Containers, &pb.Container{
-			Name:  container.Name,
-			Image: container.Image,
-		})
+		resp.Containers = append(resp.Containers, container.Name)
 	}
 
 	// Get the SSH endpoint (load balancer attached to service).
 	for _, balancer := range svc.Status.LoadBalancer.Ingress {
-		env.SSH = append(env.SSH, fmt.Sprintf("%s:%v", balancer.Hostname, addons.SSHPort))
+		resp.SSH = append(resp.SSH, fmt.Sprintf("%s:%v", balancer.Hostname, addons.SSHPort))
 	}
-
-	resp.Environment = env
 
 	return resp, nil
 }

@@ -1,72 +1,76 @@
 package cmd
 
 import (
-	//"fmt"
-	//"github.com/nlopes/slack"
+	"fmt"
+	"strings"
+
+	"github.com/nlopes/slack"
+	pb "github.com/previousnext/m8s/pb"
+	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 type cmdSlack struct {
-	Token   string
-	Channel string
-	Color   string
-	Name    string
+	API          string
+	Token        string
+	SlackToken   string
+	SlackChannel string
+	SlackColor   string
+	Name         string
 }
 
 func (cmd *cmdSlack) run(c *kingpin.ParseContext) error {
-	/*client, err := buildClient(cmd.API)
+	client, err := buildClient(cmd.API)
 	if err != nil {
 		return fmt.Errorf("failed to connect: %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
-	defer cancel()
-
-	stream, err := client.Exec(ctx, &pb.ExecRequest{
+	describe, err := client.Describe(context.Background(), &pb.DescribeRequest{
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
-		Name:      strings.ToLower(cmd.Name),
-		Container: cmd.Inside,
-		Command:   cmd.Command,
+		Name: cmd.Name,
 	})
 	if err != nil {
-		return fmt.Errorf("the exec command has failed: %s", err)
+		return fmt.Errorf("failed list built environments: %s", err)
 	}
 
-	api := slack.New(cmd.Token)
+	api := slack.New(cmd.SlackToken)
 
-	// Get the details from the api.
-	domains := ""
-	ssh := "ssh foo~foo~foo@foo.com"
+	ssh, err := formatSSH(describe.Namespace, describe.Name, describe.SSH)
+	if err != nil {
+		return err
+	}
 
-	params := slack.PostMessageParameters{
+	msg := slack.PostMessageParameters{
 		Username:  "M8s",
 		IconEmoji: ":m8s:",
 		Attachments: []slack.Attachment{
 			{
-				Color: cmd.Color,
+				Color: cmd.SlackColor,
 				Fields: []slack.AttachmentField{
 					{
 						Title: "Name",
-						Value: cmd.Name,
-						Short: true,
+						Value: describe.Name,
 					},
 					{
 						Title: "Domains",
-						Value: domains,
-						Short: true,
+						Value: strings.Join(describe.Domains, "\n"),
+					},
+					{
+						Title: "Containers",
+						Value: strings.Join(describe.Containers, "\n"),
 					},
 					{
 						Title: "SSH",
-						Value: ssh,
+						Value: strings.Join(ssh, "\n"),
 					},
 				},
 			},
 		},
 	}
 
-	_, _, err = api.PostMessage(cmd.Channel, "Environment has been built", params)*/
+	_, _, err = api.PostMessage(cmd.SlackChannel, "Environment has been built", msg)
 
 	return nil
 }
@@ -77,7 +81,17 @@ func Slack(app *kingpin.Application) {
 
 	cmd := app.Command("notify", "Slack notification command for environments").Action(c.run)
 	cmd.Flag("slack-token", "Slack token for authentication").Default("").OverrideDefaultFromEnvar("M8S_SLACK_TOKEN").StringVar(&c.Token)
-	cmd.Flag("slack-channel", "Slack channel for posting updates").Default("").OverrideDefaultFromEnvar("M8S_SLACK_CHANNEL").StringVar(&c.Channel)
-	cmd.Flag("slack-color", "Color to use for Slack notifications").Default("").OverrideDefaultFromEnvar("M8S_SLACK_COLOR").StringVar(&c.Color)
+	cmd.Flag("slack-channel", "Slack channel for posting updates").Default("").OverrideDefaultFromEnvar("M8S_SLACK_CHANNEL").StringVar(&c.SlackChannel)
+	cmd.Flag("slack-color", "Color to use for Slack notifications").Default("").OverrideDefaultFromEnvar("M8S_SLACK_COLOR").StringVar(&c.SlackColor)
 	cmd.Arg("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
+}
+
+func formatSSH(namespace, name string, endpoints []string) ([]string, error) {
+	var commands []string
+
+	for _, balancer := range endpoints {
+		endpoints = append(endpoints, fmt.Sprintf("ssh %s-%s-CONTAINER~USER@%s", namespace, name, balancer))
+	}
+
+	return commands, nil
 }
