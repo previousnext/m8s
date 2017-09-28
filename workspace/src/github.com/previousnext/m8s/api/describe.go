@@ -58,5 +58,7 @@ func (srv server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 		env.SSH = append(env.SSH, fmt.Sprintf("%s:%s", balancer.Hostname, addons.SSHPort))
 	}
 
+	resp.Environment = env
+
 	return resp, nil
 }

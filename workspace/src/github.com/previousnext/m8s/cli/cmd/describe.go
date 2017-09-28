@@ -30,11 +30,7 @@ func (cmd *cmdDescribe) run(c *kingpin.ParseContext) error {
 		return fmt.Errorf("failed list built environments: %s", err)
 	}
 
-	fmt.Println(describe.Environment.Name)
-	fmt.Println(describe.Environment.Namespace)
-	fmt.Println(describe.Environment.Containers)
-	fmt.Println(describe.Environment.Domains)
-	fmt.Println(describe.Environment.SSH)
+	fmt.Println(describe)
 
 	return err
 }
