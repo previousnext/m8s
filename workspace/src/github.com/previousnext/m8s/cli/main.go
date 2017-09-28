@@ -14,6 +14,8 @@ func main() {
 	cmd.Build(app)
 	cmd.Exec(app)
 	cmd.List(app)
+	cmd.Describe(app)
+	cmd.Slack(app)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }

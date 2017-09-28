@@ -21,17 +21,7 @@ func (srv server) List(ctx context.Context, in *pb.ListRequest) (*pb.ListRespons
 	}
 
 	for _, pod := range pods.Items {
-		env := &pb.Environment{
-			Name:      pod.ObjectMeta.Name,
-			Namespace: pod.ObjectMeta.Namespace,
-		}
-
-		for _, container := range pod.Spec.Containers {
-			env.Containers = append(env.Containers, &pb.Container{
-				Name:  container.Name,
-				Image: container.Image,
-			})
-		}
+		resp.Environments = append(resp.Environments, pod.ObjectMeta.Name)
 	}
 
 	return resp, nil

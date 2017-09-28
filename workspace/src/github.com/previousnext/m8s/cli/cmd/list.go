@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/gosuri/uitable"
 	pb "github.com/previousnext/m8s/pb"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -34,16 +32,9 @@ func (cmd *cmdList) run(c *kingpin.ParseContext) error {
 		return fmt.Errorf("failed list built environments: %s", err)
 	}
 
-	table := uitable.New()
-	table.MaxColWidth = 50
-
-	table.AddRow("NAME", "DOMAINS", "CONTAINERS")
-
 	for _, env := range envs.Environments {
-		table.AddRow(env.Name, strings.Join(env.Domains, "\n"), printContainers(env.Containers))
+		fmt.Println(env)
 	}
-
-	fmt.Println(table)
 
 	return nil
 }
@@ -55,15 +46,4 @@ func List(app *kingpin.Application) {
 	cmd := app.Command("list", "List all the built environments").Action(c.run)
 	cmd.Flag("api", "API endpoint which accepts our build requests").Default("M8S.ci.pnx.com.au:433").StringVar(&c.API)
 	cmd.Flag("token", "Token used for authenticating with the API service").Required().StringVar(&c.Token)
-}
-
-// Helper function for formatting multiple containers.
-func printContainers(containers []*pb.Container) string {
-	var list []string
-
-	for _, container := range containers {
-		list = append(list, fmt.Sprintf("%s (%s)", container.Name, container.Image))
-	}
-
-	return strings.Join(list, "\n")
 }

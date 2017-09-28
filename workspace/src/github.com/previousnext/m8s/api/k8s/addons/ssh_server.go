@@ -5,18 +5,21 @@ import (
 
 	"github.com/previousnext/m8s/api/k8s/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/kubernetes/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/apis/extensions/v1beta1"
 	client "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 )
 
-const sshName = "ssh-server"
+const (
+	SSHName = "addon-ssh-server"
+	SSHPort = 22
+)
 
 // CreateSSHServer will create our ssh-server ingress router.
 // @todo, Look at using a DaemonSet.
 func CreateSSHServer(client *client.Clientset, namespace, image, version string, port int32) error {
 	var (
-		id      = "addon"
 		history = int32(1)
 
 		// Deploy this as a HA service, ensuring SSH Ingress will still work.
@@ -25,7 +28,7 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version string,
 
 	dply := &v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", id, sshName),
+			Name:      SSHName,
 			Namespace: namespace,
 		},
 		Spec: v1beta1.DeploymentSpec{
@@ -33,26 +36,26 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version string,
 			RevisionHistoryLimit: &history,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					id: sshName,
+					"name": SSHName,
 				},
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: fmt.Sprintf("%s-%s", id, sshName),
+					Name: SSHName,
 					Labels: map[string]string{
-						id: sshName,
+						"name": SSHName,
 					},
 					Namespace: namespace,
 				},
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
 						{
-							Name:  sshName,
+							Name:  SSHName,
 							Image: fmt.Sprintf("%s:%s", image, version),
 							Ports: []v1.ContainerPort{
 								{
 									Name:          "ssh",
-									ContainerPort: 80,
+									ContainerPort: SSHPort,
 									HostPort:      port,
 								},
 							},
@@ -65,7 +68,34 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version string,
 
 	_, err := utils.DeploymentCreate(client, dply)
 	if err != nil {
-		return fmt.Errorf("failed deploy ssh server: %s", err)
+		return fmt.Errorf("failed deploy ssh server deployment: %s", err)
+	}
+
+	// This automatically deploys a load balancer for this service.
+	svc := &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      SSHName,
+		},
+		Spec: v1.ServiceSpec{
+			Type: v1.ServiceTypeLoadBalancer,
+			Ports: []v1.ServicePort{
+				{
+					Name:       "ssh",
+					Port:       SSHPort,
+					TargetPort: intstr.FromInt(SSHPort),
+				},
+			},
+			// This allows us to link this Service to the Pod.
+			Selector: map[string]string{
+				"name": SSHName,
+			},
+		},
+	}
+
+	_, err = utils.ServiceCreate(client, svc)
+	if err != nil {
+		return fmt.Errorf("failed deploy ssh server service: %s", err)
 	}
 
 	return nil

@@ -99,6 +99,11 @@ message Environment {
     string Name = 2;
     repeated string Domains = 3;
     repeated Container Containers = 4;
+    Endpoints Endpoints = 5;
+}
+
+message Endpoints {
+    repeated string SSH = 1;
 }
 
 // DescribeRequest asks for an Environment which has already been deployed.
@@ -119,7 +124,7 @@ message ListRequest {
 
 // ListResponse returns a list of Environments.
 message ListResponse {
-    repeated Environment Environments = 1;
+    repeated string Environments = 1;
 }
 
 // SSH containers secrets for performing SSH commands on private endpoints.

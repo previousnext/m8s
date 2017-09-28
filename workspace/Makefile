@@ -10,9 +10,13 @@ NAME=m8s
 PACKAGE=github.com/previousnext/$(NAME)
 
 # Build binaries for linux/amd64 and darwin/amd64
-build:
-	gox -os='linux darwin' -arch='amd64' -output='bin/$(NAME)-api_{{.OS}}_{{.Arch}}' -ldflags='-extldflags "-static"' $(PACKAGE)/api
+all: cli api
+
+cli:
 	gox -os='linux darwin' -arch='amd64' -output='bin/$(NAME)-cli_{{.OS}}_{{.Arch}}' -ldflags='-extldflags "-static"' $(PACKAGE)/cli
+
+api:
+	gox -os='linux darwin' -arch='amd64' -output='bin/$(NAME)-api_{{.OS}}_{{.Arch}}' -ldflags='-extldflags "-static"' $(PACKAGE)/api
 
 # Run all lint checking with exit codes for CI
 lint:
