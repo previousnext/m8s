@@ -34,7 +34,7 @@ func (cmd *cmdDescribe) run(c *kingpin.ParseContext) error {
 	fmt.Println(describe.Environment.Namespace)
 	fmt.Println(describe.Environment.Containers)
 	fmt.Println(describe.Environment.Domains)
-	fmt.Println(describe.Environment.Endpoints)
+	fmt.Println(describe.Environment.SSH)
 
 	return err
 }

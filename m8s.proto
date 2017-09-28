@@ -99,11 +99,7 @@ message Environment {
     string Name = 2;
     repeated string Domains = 3;
     repeated Container Containers = 4;
-    Endpoints Endpoints = 5;
-}
-
-message Endpoints {
-    repeated string SSH = 1;
+    repeated string SSH = 5;
 }
 
 // DescribeRequest asks for an Environment which has already been deployed.
