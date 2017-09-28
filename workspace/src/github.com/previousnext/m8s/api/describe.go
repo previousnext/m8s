@@ -55,7 +55,7 @@ func (srv server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 
 	// Get the SSH endpoint (load balancer attached to service).
 	for _, balancer := range svc.Status.LoadBalancer.Ingress {
-		env.SSH = append(env.SSH, fmt.Sprintf("%s:%s", balancer.Hostname, addons.SSHPort))
+		env.SSH = append(env.SSH, fmt.Sprintf("%s:%v", balancer.Hostname, addons.SSHPort))
 	}
 
 	resp.Environment = env
