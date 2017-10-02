@@ -25,7 +25,7 @@ func (cmd *cmdDescribe) run(c *kingpin.ParseContext) error {
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
-		Name: cmd.Name,
+		Name: strings.ToLower(cmd.Name),
 	})
 	if err != nil {
 		return fmt.Errorf("failed list built environments: %s", err)
