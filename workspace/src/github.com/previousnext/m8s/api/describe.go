@@ -48,9 +48,8 @@ func (srv server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 		resp.Containers = append(resp.Containers, container.Name)
 	}
 
-	// Get the SSH endpoint (load balancer attached to service).
-	for _, balancer := range svc.Status.LoadBalancer.Ingress {
-		resp.SSH = append(resp.SSH, fmt.Sprintf("%s:%v", balancer.Hostname, addons.SSHPort))
+	if len(svc.Status.LoadBalancer.Ingress) > 0 {
+		resp.SSH = fmt.Sprintf("%s:%v", svc.Status.LoadBalancer.Ingress[0].Hostname, addons.SSHPort)
 	}
 
 	return resp, nil

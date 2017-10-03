@@ -11,7 +11,7 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type cmdExec struct {
+type cmdStep struct {
 	API     string
 	Token   string
 	Name    string
@@ -20,7 +20,7 @@ type cmdExec struct {
 	Timeout time.Duration
 }
 
-func (cmd *cmdExec) run(c *kingpin.ParseContext) error {
+func (cmd *cmdStep) run(c *kingpin.ParseContext) error {
 	client, err := buildClient(cmd.API)
 	if err != nil {
 		return fmt.Errorf("failed to connect: %s", err)
@@ -29,7 +29,7 @@ func (cmd *cmdExec) run(c *kingpin.ParseContext) error {
 	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
 	defer cancel()
 
-	stream, err := client.Exec(ctx, &pb.ExecRequest{
+	stream, err := client.Step(ctx, &pb.StepRequest{
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
@@ -38,7 +38,7 @@ func (cmd *cmdExec) run(c *kingpin.ParseContext) error {
 		Command:   cmd.Command,
 	})
 	if err != nil {
-		return fmt.Errorf("the exec command has failed: %s", err)
+		return fmt.Errorf("the step has failed: %s", err)
 	}
 
 	for {
@@ -56,11 +56,11 @@ func (cmd *cmdExec) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
-// Exec declares the "exec" sub command.
-func Exec(app *kingpin.Application) {
-	c := new(cmdExec)
+// Step declares the "step" sub command.
+func Step(app *kingpin.Application) {
+	c := new(cmdStep)
 
-	cmd := app.Command("exec", "Exec command in the environment").Action(c.run)
+	cmd := app.Command("step", "Step to run against the environment").Action(c.run)
 	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("M8S_API").StringVar(&c.API)
 	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)

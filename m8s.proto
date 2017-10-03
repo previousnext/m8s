@@ -4,9 +4,8 @@ package m8s;
 
 service m8s {
     rpc Create (CreateRequest) returns (stream CreateResponse) {}
-    rpc Exec (ExecRequest) returns (stream ExecResponse) {}
+    rpc Step (StepRequest) returns (stream StepResponse) {}
     rpc Describe (DescribeRequest) returns (DescribeResponse) {}
-    rpc List (ListRequest) returns (ListResponse) {}
 
     // Used for getting Docker registry secrets.
     rpc DockerCfg (DockerCfgRequest) returns (DockerCfgResponse) {}
@@ -74,16 +73,16 @@ message CreateResponse {
   string Message = 1;
 }
 
-// ExecRequest is our command being send to the remote environment.
-message ExecRequest {
+// StepRequest is our command being send to the remote environment.
+message StepRequest {
     Credentials Credentials = 1;
     string Name = 2;
     string Container = 3;
     string Command = 4;
 }
 
-// ExecResponse is a streamed response used to return output from the commands on the remove environment.
-message ExecResponse {
+// StepResponse is a streamed response used to return output from the commands on the remove environment.
+message StepResponse {
     string Message = 1;
 }
 
@@ -99,42 +98,12 @@ message DescribeResponse {
     string Name = 2;
     repeated string Domains = 3;
     repeated string Containers = 4;
-    repeated string SSH = 5;
+    string SSH = 5;
 }
 
 // DescribeRequest asks for all the Environments.
 message ListRequest {
     Credentials Credentials = 1;
-}
-
-// ListResponse returns a list of Environments.
-message ListResponse {
-    repeated string Environments = 1;
-}
-
-// SSH containers secrets for performing SSH commands on private endpoints.
-message SSH {
-    bytes KnownHosts = 1;
-    bytes PrivateKey = 2;
-}
-
-// SetSSHRequest allows for the developer to set SSH secrets "out of band".
-message SSHSetRequest {
-    Credentials Credentials = 1;
-    SSH SSH = 2;
-}
-
-// SetSSHResponse is a response after setting SSH.
-message SSHSetResponse {}
-
-// SSHGetRequest request for the SSH configuration.
-message SSHGetRequest {
-    Credentials Credentials = 1;
-}
-
-// SSHGetResponse returns the SSH configuration.
-message SSHGetResponse {
-    SSH SSH = 1;
 }
 
 // DockerCfgRequest requests the Docker configuration.

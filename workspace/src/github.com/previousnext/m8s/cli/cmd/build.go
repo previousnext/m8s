@@ -137,7 +137,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
 		defer cancel()
 
-		stream, err := client.Exec(ctx, &pb.ExecRequest{
+		stream, err := client.Step(ctx, &pb.StepRequest{
 			Credentials: &pb.Credentials{
 				Token: cmd.Token,
 			},

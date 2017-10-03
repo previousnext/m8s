@@ -12,10 +12,8 @@ func main() {
 
 	// Setup all the subcommands.
 	cmd.Build(app)
-	cmd.Exec(app)
-	cmd.List(app)
-	cmd.Describe(app)
-	cmd.Slack(app)
+	cmd.Step(app)
+	cmd.Notify(app)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }

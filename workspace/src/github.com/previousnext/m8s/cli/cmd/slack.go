@@ -10,7 +10,7 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type cmdSlack struct {
+type cmdNotify struct {
 	API          string
 	Token        string
 	SlackToken   string
@@ -19,7 +19,7 @@ type cmdSlack struct {
 	Name         string
 }
 
-func (cmd *cmdSlack) run(c *kingpin.ParseContext) error {
+func (cmd *cmdNotify) run(c *kingpin.ParseContext) error {
 	client, err := buildClient(cmd.API)
 	if err != nil {
 		return fmt.Errorf("failed to connect: %s", err)
@@ -54,7 +54,7 @@ func (cmd *cmdSlack) run(c *kingpin.ParseContext) error {
 					},
 					{
 						Title: "SSH",
-						Value: "m8s ssh cwi-m8s <container>",
+						Value: fmt.Sprintf("%s~%s~<container>~<user>@%s", describe.Namespace, describe.Name, describe.SSH),
 					},
 				},
 			},
@@ -66,9 +66,9 @@ func (cmd *cmdSlack) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
-// Slack declares the "slack" sub command.
-func Slack(app *kingpin.Application) {
-	c := new(cmdSlack)
+// Notify declares the "slack" sub command.
+func Notify(app *kingpin.Application) {
+	c := new(cmdNotify)
 
 	cmd := app.Command("notify", "Slack notification command for environments").Action(c.run)
 	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("M8S_API").StringVar(&c.API)
