@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	TraefikName = "addon-traefik"
+	TraefikName = "traefik"
 	TraefikPort = 80
 )
 

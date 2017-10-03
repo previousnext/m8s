@@ -12,12 +12,11 @@ import (
 )
 
 const (
-	SSHName = "addon-ssh-server"
+	SSHName = "ssh-server"
 	SSHPort = 22
 )
 
 // CreateSSHServer will create our ssh-server ingress router.
-// @todo, Look at using a DaemonSet.
 func CreateSSHServer(client *client.Clientset, namespace, image, version string, port int32) error {
 	var (
 		history = int32(1)
