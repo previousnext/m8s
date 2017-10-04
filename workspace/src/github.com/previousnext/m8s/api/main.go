@@ -9,7 +9,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/alecthomas/kingpin"
-	"github.com/previousnext/m8s/api/k8s/addons"
+	"github.com/previousnext/m8s/api/k8s/addons/ssh-server"
+	"github.com/previousnext/m8s/api/k8s/addons/traefik"
 	"github.com/previousnext/m8s/api/k8s/env"
 	"github.com/previousnext/m8s/api/k8s/utils"
 	pb "github.com/previousnext/m8s/pb"
@@ -44,7 +45,7 @@ var (
 
 	// SSH Server.
 	cliSSHImage   = kingpin.Flag("ssh-image", "SSH server image to deploy").Default("previousnext/k8s-ssh-server").OverrideDefaultFromEnvar("M8S_SSH_IMAGE").String()
-	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("2.0.3").OverrideDefaultFromEnvar("M8S_SSH_VERSION").String()
+	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("2.1.0").OverrideDefaultFromEnvar("M8S_SSH_VERSION").String()
 
 	// DockerCfg.
 	cliDockerCfgRegistry = kingpin.Flag("dockercfg-registry", "Registry for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("M8S_DOCKERCFG_REGISTRY").String()
@@ -86,14 +87,14 @@ func main() {
 
 	log.Println("Installing addon: traefik")
 
-	err = addons.CreateTraefik(client, *cliNamespace, *cliTraefikImage, *cliTraefikVersion, *cliTraefikPort)
+	err = traefik.Create(client, *cliNamespace, *cliTraefikImage, *cliTraefikVersion, *cliTraefikPort)
 	if err != nil {
 		panic(err)
 	}
 
 	log.Println("Installing addon: ssh-server")
 
-	err = addons.CreateSSHServer(client, *cliNamespace, *cliSSHImage, *cliSSHVersion, *cliFilesystemSize)
+	err = ssh_server.Create(client, *cliNamespace, *cliSSHImage, *cliSSHVersion)
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package addons
+package traefik
 
 import (
 	"fmt"
@@ -12,12 +12,12 @@ import (
 )
 
 const (
-	TraefikName = "traefik"
-	TraefikPort = 80
+	Name = "traefik"
+	Port = 80
 )
 
-// CreateTraefik will create our Traefik ingress router.
-func CreateTraefik(client *client.Clientset, namespace, image, version string, port int32) error {
+// Create will create our Traefik ingress router.
+func Create(client *client.Clientset, namespace, image, version string, port int32) error {
 	var (
 		history = int32(1)
 
@@ -27,7 +27,7 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 
 	dply := &v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      TraefikName,
+			Name:      Name,
 			Namespace: namespace,
 		},
 		Spec: v1beta1.DeploymentSpec{
@@ -35,21 +35,21 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 			RevisionHistoryLimit: &history,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"name": TraefikName,
+					"name": Name,
 				},
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: TraefikName,
+					Name: Name,
 					Labels: map[string]string{
-						"name": TraefikName,
+						"name": Name,
 					},
 					Namespace: namespace,
 				},
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
 						{
-							Name:  TraefikName,
+							Name:  Name,
 							Image: fmt.Sprintf("%s:%s", image, version),
 							Args: []string{
 								"--web",
@@ -58,7 +58,7 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 							Ports: []v1.ContainerPort{
 								{
 									Name:          "http",
-									ContainerPort: TraefikPort,
+									ContainerPort: Port,
 									HostPort:      port,
 								},
 							},
@@ -78,20 +78,20 @@ func CreateTraefik(client *client.Clientset, namespace, image, version string, p
 	svc := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      TraefikName,
+			Name:      Name,
 		},
 		Spec: v1.ServiceSpec{
 			Type: v1.ServiceTypeLoadBalancer,
 			Ports: []v1.ServicePort{
 				{
 					Name:       "http",
-					Port:       TraefikPort,
-					TargetPort: intstr.FromInt(TraefikPort),
+					Port:       Port,
+					TargetPort: intstr.FromInt(Port),
 				},
 			},
 			// This allows us to link this Service to the Pod.
 			Selector: map[string]string{
-				"name": TraefikName,
+				"name": Name,
 			},
 		},
 	}
