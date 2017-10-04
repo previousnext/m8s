@@ -60,21 +60,21 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version, storag
 							},
 							Env: []v1.EnvVar{
 								{
-									Name:  "SSH_SIGNERS",
-									Value: "/etc/signers",
+									Name:  "SSH_SIGNER",
+									Value: "/etc/ssh/signer",
 								},
 							},
 							VolumeMounts: []v1.VolumeMount{
 								{
-									Name:      "signers",
-									MountPath: "/etc/signers",
+									Name:      "ssh",
+									MountPath: "/etc/ssh",
 								},
 							},
 						},
 					},
 					Volumes: []v1.Volume{
 						{
-							Name: "signers",
+							Name: "ssh",
 							VolumeSource: v1.VolumeSource{
 								PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
 									ClaimName: SSHName,
