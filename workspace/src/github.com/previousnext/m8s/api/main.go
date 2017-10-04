@@ -30,7 +30,7 @@ var (
 	cliToken     = kingpin.Flag("token", "Token to authenticate against the API.").Default("").OverrideDefaultFromEnvar("AUTH_TOKEN").String()
 	cliNamespace = kingpin.Flag("namespace", "Namespace to build environments.").Default("default").OverrideDefaultFromEnvar("NAMESPACE").String()
 
-	cliCacheSize = kingpin.Flag("cache-size", "Size of the shared cache used between builds").Default("100Gi").OverrideDefaultFromEnvar("CACHE_SIZE").String()
+	cliFilesystemSize = kingpin.Flag("fs-size", "Size of the filesystem for persistent storage").Default("100Gi").OverrideDefaultFromEnvar("FS_SIZE").String()
 
 	// Lets Encrypt.
 	cliLetsEncryptEmail  = kingpin.Flag("lets-encrypt-email", "Email address to register with Lets Encrypt certificate").Default("admin@previousnext.com.au").OverrideDefaultFromEnvar("LETS_ENCRYPT_EMAIL").String()
@@ -44,7 +44,7 @@ var (
 
 	// SSH Server.
 	cliSSHImage   = kingpin.Flag("ssh-image", "SSH server image to deploy").Default("previousnext/k8s-ssh-server").OverrideDefaultFromEnvar("SSH_IMAGE").String()
-	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("2.0.1").OverrideDefaultFromEnvar("SSH_VERSION").String()
+	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("2.0.3").OverrideDefaultFromEnvar("SSH_VERSION").String()
 
 	// DockerCfg.
 	cliDockerCfgRegistry = kingpin.Flag("dockercfg-registry", "Registry for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_REGISTRY").String()
@@ -93,7 +93,7 @@ func main() {
 
 	log.Println("Installing addon: ssh-server")
 
-	err = addons.CreateSSHServer(client, *cliNamespace, *cliSSHImage, *cliSSHVersion)
+	err = addons.CreateSSHServer(client, *cliNamespace, *cliSSHImage, *cliSSHVersion, *cliFilesystemSize)
 	if err != nil {
 		panic(err)
 	}

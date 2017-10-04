@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/previousnext/m8s/api/k8s/utils"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/kubernetes/pkg/api/v1"
@@ -17,7 +18,7 @@ const (
 )
 
 // CreateSSHServer will create our ssh-server ingress router.
-func CreateSSHServer(client *client.Clientset, namespace, image, version string) error {
+func CreateSSHServer(client *client.Clientset, namespace, image, version, storage string) error {
 	var (
 		history = int32(1)
 
@@ -57,6 +58,28 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version string)
 									ContainerPort: SSHPort,
 								},
 							},
+							Env: []v1.EnvVar{
+								{
+									Name:  "SSH_SIGNERS",
+									Value: "/etc/signers",
+								},
+							},
+							VolumeMounts: []v1.VolumeMount{
+								{
+									Name:      "signers",
+									MountPath: "/etc/signers",
+								},
+							},
+						},
+					},
+					Volumes: []v1.Volume{
+						{
+							Name: "signers",
+							VolumeSource: v1.VolumeSource{
+								PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+									ClaimName: SSHName,
+								},
+							},
 						},
 					},
 				},
@@ -67,6 +90,33 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version string)
 	_, err := utils.DeploymentCreate(client, dply)
 	if err != nil {
 		return fmt.Errorf("failed deploy ssh server deployment: %s", err)
+	}
+
+	pvc := &v1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      SSHName,
+			Annotations: map[string]string{
+				// Setting this storage class to "cache" allows system admins to register any type of
+				// storage backend for "cache" claims.
+				"volume.beta.kubernetes.io/storage-class": "ssh",
+			},
+		},
+		Spec: v1.PersistentVolumeClaimSpec{
+			AccessModes: []v1.PersistentVolumeAccessMode{
+				v1.ReadWriteMany,
+			},
+			Resources: v1.ResourceRequirements{
+				Requests: v1.ResourceList{
+					v1.ResourceStorage: resource.MustParse(storage),
+				},
+			},
+		},
+	}
+
+	_, err = utils.PersistentVolumeClaimCreate(client, pvc)
+	if err != nil {
+		return fmt.Errorf("failed deploy ssh server pvc: %s", err)
 	}
 
 	// This automatically deploys a load balancer for this service.

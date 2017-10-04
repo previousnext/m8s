@@ -69,7 +69,7 @@ func stepClaims(client *client.Clientset, stream pb.M8S_CreateServer) error {
 		return err
 	}
 
-	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(*cliNamespace, env.CacheComposer, *cliCacheSize))
+	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(*cliNamespace, env.CacheComposer, *cliFilesystemSize))
 	if err != nil {
 		return fmt.Errorf("failed to provision composer cache: %s", err)
 	}
@@ -81,7 +81,7 @@ func stepClaims(client *client.Clientset, stream pb.M8S_CreateServer) error {
 		return err
 	}
 
-	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(*cliNamespace, env.CacheYarn, *cliCacheSize))
+	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(*cliNamespace, env.CacheYarn, *cliFilesystemSize))
 	if err != nil {
 		return fmt.Errorf("failed to provision yarn cache: %s", err)
 	}
