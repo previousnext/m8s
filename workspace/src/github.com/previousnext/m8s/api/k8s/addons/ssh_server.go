@@ -17,7 +17,7 @@ const (
 )
 
 // CreateSSHServer will create our ssh-server ingress router.
-func CreateSSHServer(client *client.Clientset, namespace, image, version string, port int32) error {
+func CreateSSHServer(client *client.Clientset, namespace, image, version string) error {
 	var (
 		history = int32(1)
 
@@ -55,7 +55,6 @@ func CreateSSHServer(client *client.Clientset, namespace, image, version string,
 								{
 									Name:          "ssh",
 									ContainerPort: SSHPort,
-									HostPort:      port,
 								},
 							},
 						},

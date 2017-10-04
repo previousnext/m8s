@@ -16,6 +16,7 @@ type cmdNotify struct {
 	SlackToken   string
 	SlackChannel string
 	SlackColor   string
+	Container    string
 	Name         string
 }
 
@@ -53,15 +54,15 @@ func (cmd *cmdNotify) run(c *kingpin.ParseContext) error {
 						Value: strings.Join(describe.Containers, ", "),
 					},
 					{
-						Title: "SSH",
-						Value: fmt.Sprintf("%s~%s~<container>~<user>@%s", describe.Namespace, describe.Name, describe.SSH),
+						Title: "Command Line Access",
+						Value: fmt.Sprintf("ssh %s~%s~%s~$(whoami)@%s", describe.Namespace, describe.Name, cmd.Container, describe.SSH),
 					},
 				},
 			},
 		},
 	}
 
-	_, _, err = api.PostMessage(cmd.SlackChannel, fmt.Sprintf("Environment has been built: *%s*", describe.Name), msg)
+	_, _, err = api.PostMessage(cmd.SlackChannel, fmt.Sprintf("Temporary environment is ready: *%s*", describe.Name), msg)
 
 	return nil
 }
@@ -76,5 +77,6 @@ func Notify(app *kingpin.Application) {
 	cmd.Flag("slack-token", "Slack token for authentication").Default("").OverrideDefaultFromEnvar("M8S_SLACK_TOKEN").StringVar(&c.SlackToken)
 	cmd.Flag("slack-channel", "Slack channel for posting updates").Default("").OverrideDefaultFromEnvar("M8S_SLACK_CHANNEL").StringVar(&c.SlackChannel)
 	cmd.Flag("slack-color", "Color to use for Slack notifications").Default("#32cd32").OverrideDefaultFromEnvar("M8S_SLACK_COLOR").StringVar(&c.SlackColor)
+	cmd.Flag("container", "Default container name to use").Default("php").OverrideDefaultFromEnvar("M8S_EXEC_INSIDE").StringVar(&c.Container)
 	cmd.Arg("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 }

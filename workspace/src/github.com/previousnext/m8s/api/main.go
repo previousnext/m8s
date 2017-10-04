@@ -44,8 +44,7 @@ var (
 
 	// SSH Server.
 	cliSSHImage   = kingpin.Flag("ssh-image", "SSH server image to deploy").Default("previousnext/k8s-ssh-server").OverrideDefaultFromEnvar("SSH_IMAGE").String()
-	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("0.0.5").OverrideDefaultFromEnvar("SSH_VERSION").String()
-	cliSSHPort    = kingpin.Flag("ssh-port", "Assign this port to each node on the cluster for SSH ingress").Default("2222").OverrideDefaultFromEnvar("SSH_PORT").Int32()
+	cliSSHVersion = kingpin.Flag("ssh-version", "Version of SSH server to deploy").Default("2.0.1").OverrideDefaultFromEnvar("SSH_VERSION").String()
 
 	// DockerCfg.
 	cliDockerCfgRegistry = kingpin.Flag("dockercfg-registry", "Registry for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("DOCKERCFG_REGISTRY").String()
@@ -94,7 +93,7 @@ func main() {
 
 	log.Println("Installing addon: ssh-server")
 
-	err = addons.CreateSSHServer(client, *cliNamespace, *cliSSHImage, *cliSSHVersion, *cliSSHPort)
+	err = addons.CreateSSHServer(client, *cliNamespace, *cliSSHImage, *cliSSHVersion)
 	if err != nil {
 		panic(err)
 	}

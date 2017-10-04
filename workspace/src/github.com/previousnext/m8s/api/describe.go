@@ -49,7 +49,7 @@ func (srv server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 	}
 
 	if len(svc.Status.LoadBalancer.Ingress) > 0 {
-		resp.SSH = fmt.Sprintf("%s:%v", svc.Status.LoadBalancer.Ingress[0].Hostname, addons.SSHPort)
+		resp.SSH = svc.Status.LoadBalancer.Ingress[0].Hostname
 	}
 
 	return resp, nil
