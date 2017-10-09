@@ -1,19 +1,33 @@
 #!/usr/bin/make -f
 
-VERSION=$(shell git describe --tags --always)
-IMAGE=previousnext/m8s
+PROJECT=github.com/previousnext/m8s
 
+# Builds the project
+build:
+	gox -os='linux' -arch='amd64' -output='bin/m8s-{{.OS}}_{{.Arch}}' -ldflags='-extldflags "-static"' $(PROJECT)	
+
+# Run all lint checking with exit codes for CI
+lint:
+	golint -set_exit_status $(PACKAGE)/...
+
+# Run tests with coverage reporting
+test:
+	go test -cover $(PACKAGE)/...
+
+IMAGE=previousnext/m8s
+VERSION=$(shell git describe --tags --always)
+
+# Releases the project Docker Hub
 release:
-	docker build -f dockerfiles/api/Dockerfile -t ${IMAGE}:${VERSION} .
+	docker build -t ${IMAGE}:${VERSION} .
 	docker push ${IMAGE}:${VERSION}
 
-GRPC_GO_IMAGE="nickschuch/skipper-grpc-go:latest"
-GRPC_GO_TARGET="workspace/src/github.com/previousnext/m8s/pb"
-GRPC_RUN=docker run -it -w /data -v $(PWD):/data
+PROTOBUF=$(PWD)/pb
 
+# Generates a new Protobuf Golang package
 protobuf:
-	docker build -f dockerfiles/grpc-go/Dockerfile -t $(GRPC_GO_IMAGE) dockerfiles/grpc-go
-	rm -fR $(GRPC_GO_TARGET) && mkdir -p $(GRPC_GO_TARGET)
-	$(GRPC_RUN) $(GRPC_GO_IMAGE) /bin/bash -c 'protoc -I . m8s.proto --go_out=plugins=grpc:$(GRPC_GO_TARGET)'
+	rm -fR $(PROTOBUF)
+	mkdir -p $(PROTOBUF)
+	docker run -it -w $(PWD) -v $(PWD):$(PWD) nickschuch/grpc-go:latest /bin/bash -c 'protoc -I . m8s.proto --go_out=plugins=grpc:$(PROTOBUF)'
 
-.PHONY: build push protobuf
+.PHONY: build lint test release protobuf
