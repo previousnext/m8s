@@ -50,8 +50,11 @@ func (s *containerRouter) postContainersCopy(ctx context.Context, w http.Respons
 	defer data.Close()
 
 	w.Header().Set("Content-Type", "application/x-tar")
-	_, err = io.Copy(w, data)
-	return err
+	if _, err := io.Copy(w, data); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // // Encode the stat to JSON, base64 encode, and place in a header.

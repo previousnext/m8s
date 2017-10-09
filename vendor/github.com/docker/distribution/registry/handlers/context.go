@@ -62,7 +62,7 @@ func getDigest(ctx context.Context) (dgst digest.Digest, err error) {
 		return "", errDigestNotAvailable
 	}
 
-	d, err := digest.Parse(dgstStr)
+	d, err := digest.ParseDigest(dgstStr)
 	if err != nil {
 		ctxu.GetLogger(ctx).Errorf("error parsing digest=%q: %v", dgstStr, err)
 		return "", err

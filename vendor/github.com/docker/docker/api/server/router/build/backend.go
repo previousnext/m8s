@@ -10,7 +10,7 @@ import (
 
 // Backend abstracts an image builder whose only purpose is to build an image referenced by an imageID.
 type Backend interface {
-	// BuildFromContext builds a Docker image referenced by an imageID string.
+	// Build builds a Docker image referenced by an imageID string.
 	//
 	// Note: Tagging an image should not be done by a Builder, it should instead be done
 	// by the caller.

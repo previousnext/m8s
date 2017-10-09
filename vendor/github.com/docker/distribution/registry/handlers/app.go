@@ -213,10 +213,6 @@ func NewApp(ctx context.Context, config *configuration.Configuration) *App {
 		options = append(options, storage.EnableRedirect)
 	}
 
-	if !config.Validation.Enabled {
-		config.Validation.Enabled = !config.Validation.Disabled
-	}
-
 	// configure validation
 	if config.Validation.Enabled {
 		if len(config.Validation.Manifests.URLs.Allow) == 0 && len(config.Validation.Manifests.URLs.Deny) == 0 {
@@ -345,7 +341,7 @@ func (app *App) RegisterHealthChecks(healthRegistries ...*health.Registry) {
 		}
 
 		storageDriverCheck := func() error {
-			_, err := app.driver.List(app, "/") // "/" should always exist
+			_, err := app.driver.Stat(app, "/") // "/" should always exist
 			return err                          // any error will be treated as failure
 		}
 

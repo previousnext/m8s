@@ -51,6 +51,7 @@ func (m stdinMock) Close() error {
 }
 
 func TestListImages(t *testing.T) {
+	t.Parallel()
 	body := `[
      {
              "Repository":"base",
@@ -103,6 +104,7 @@ func TestListImages(t *testing.T) {
 }
 
 func TestListImagesParameters(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "null", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	_, err := client.ListImages(ListImagesOptions{All: false})
@@ -145,6 +147,7 @@ func TestListImagesParameters(t *testing.T) {
 }
 
 func TestImageHistory(t *testing.T) {
+	t.Parallel()
 	body := `[
 	{
 		"Id": "25daec02219d2d852f7526137213a9b199926b4b24e732eab5b8bc6c49bd470e",
@@ -187,6 +190,7 @@ func TestImageHistory(t *testing.T) {
 }
 
 func TestRemoveImage(t *testing.T) {
+	t.Parallel()
 	name := "test"
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusNoContent}
 	client := newTestClient(fakeRT)
@@ -206,6 +210,7 @@ func TestRemoveImage(t *testing.T) {
 }
 
 func TestRemoveImageNotFound(t *testing.T) {
+	t.Parallel()
 	client := newTestClient(&FakeRoundTripper{message: "no such image", status: http.StatusNotFound})
 	err := client.RemoveImage("test:")
 	if err != ErrNoSuchImage {
@@ -214,6 +219,7 @@ func TestRemoveImageNotFound(t *testing.T) {
 }
 
 func TestRemoveImageExtended(t *testing.T) {
+	t.Parallel()
 	name := "test"
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusNoContent}
 	client := newTestClient(fakeRT)
@@ -237,6 +243,7 @@ func TestRemoveImageExtended(t *testing.T) {
 }
 
 func TestInspectImage(t *testing.T) {
+	t.Parallel()
 	body := `{
      "Id":"b750fe79269d2ec9a3c593ef05b4332b1d1a02a62b4accb2c21d589ff2f5f2dc",
      "Parent":"27cf784147099545",
@@ -295,6 +302,7 @@ func TestInspectImage(t *testing.T) {
 }
 
 func TestInspectImageNotFound(t *testing.T) {
+	t.Parallel()
 	client := newTestClient(&FakeRoundTripper{message: "no such image", status: http.StatusNotFound})
 	name := "test"
 	image, err := client.InspectImage(name)
@@ -307,6 +315,7 @@ func TestInspectImageNotFound(t *testing.T) {
 }
 
 func TestPushImage(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "Pushing 1/100", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -341,6 +350,7 @@ func TestPushImage(t *testing.T) {
 }
 
 func TestPushImageWithRawJSON(t *testing.T) {
+	t.Parallel()
 	body := `
 	{"status":"Pushing..."}
 	{"status":"Pushing", "progress":"1/? (n/a)", "progressDetail":{"current":1}}}
@@ -370,6 +380,7 @@ func TestPushImageWithRawJSON(t *testing.T) {
 }
 
 func TestPushImageWithAuthentication(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "Pushing 1/100", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -400,6 +411,7 @@ func TestPushImageWithAuthentication(t *testing.T) {
 }
 
 func TestPushImageCustomRegistry(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "Pushing 1/100", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var authConfig AuthConfiguration
@@ -420,6 +432,7 @@ func TestPushImageCustomRegistry(t *testing.T) {
 }
 
 func TestPushImageNoName(t *testing.T) {
+	t.Parallel()
 	client := Client{}
 	err := client.PushImage(PushImageOptions{}, AuthConfiguration{})
 	if err != ErrNoSuchImage {
@@ -428,6 +441,7 @@ func TestPushImageNoName(t *testing.T) {
 }
 
 func TestPullImage(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "Pulling 1/100", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -454,7 +468,78 @@ func TestPullImage(t *testing.T) {
 	}
 }
 
+func TestPullImageWithDigest(t *testing.T) {
+	t.Parallel()
+	fakeRT := &FakeRoundTripper{message: "Pulling 1/100", status: http.StatusOK}
+	client := newTestClient(fakeRT)
+	var buf bytes.Buffer
+	err := client.PullImage(PullImageOptions{
+		Repository:   "tsuru/bs:latest@sha256:504a2f04aa5d07768e4f7467ddd2618b07dd6013cfabca7dc527a3d9fa786580",
+		OutputStream: &buf,
+	}, AuthConfiguration{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := "Pulling 1/100"
+	if buf.String() != expected {
+		t.Errorf("PullImage: Wrong output. Want %q. Got %q.", expected, buf.String())
+	}
+	req := fakeRT.requests[0]
+	if req.Method != "POST" {
+		t.Errorf("PullImage: Wrong HTTP method. Want POST. Got %s.", req.Method)
+	}
+	u, _ := url.Parse(client.getURL("/images/create"))
+	if req.URL.Path != u.Path {
+		t.Errorf("PullImage: Wrong request path. Want %q. Got %q.", u.Path, req.URL.Path)
+	}
+	expectedQuery := url.Values{
+		"fromImage": {"tsuru/bs:latest"},
+		"tag":       {"sha256:504a2f04aa5d07768e4f7467ddd2618b07dd6013cfabca7dc527a3d9fa786580"},
+	}
+	if !reflect.DeepEqual(req.URL.Query(), expectedQuery) {
+		t.Errorf("PullImage: Wrong query string\nWant %#v\nGot  %#v", expectedQuery, req.URL.Query())
+	}
+}
+
+func TestPullImageWithDigestAndTag(t *testing.T) {
+	// This is probably a wrong use of the Docker API, but let's let users
+	// send the request to the API. And also changing this behavior would
+	// be a breaking change on go-dockerclient.
+	t.Parallel()
+	fakeRT := &FakeRoundTripper{message: "Pulling 1/100", status: http.StatusOK}
+	client := newTestClient(fakeRT)
+	var buf bytes.Buffer
+	err := client.PullImage(PullImageOptions{
+		Repository:   "tsuru/bs:latest@sha256:504a2f04aa5d07768e4f7467ddd2618b07dd6013cfabca7dc527a3d9fa786580",
+		Tag:          "latest",
+		OutputStream: &buf,
+	}, AuthConfiguration{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := "Pulling 1/100"
+	if buf.String() != expected {
+		t.Errorf("PullImage: Wrong output. Want %q. Got %q.", expected, buf.String())
+	}
+	req := fakeRT.requests[0]
+	if req.Method != "POST" {
+		t.Errorf("PullImage: Wrong HTTP method. Want POST. Got %s.", req.Method)
+	}
+	u, _ := url.Parse(client.getURL("/images/create"))
+	if req.URL.Path != u.Path {
+		t.Errorf("PullImage: Wrong request path. Want %q. Got %q.", u.Path, req.URL.Path)
+	}
+	expectedQuery := url.Values{
+		"fromImage": {"tsuru/bs:latest@sha256:504a2f04aa5d07768e4f7467ddd2618b07dd6013cfabca7dc527a3d9fa786580"},
+		"tag":       {"latest"},
+	}
+	if !reflect.DeepEqual(req.URL.Query(), expectedQuery) {
+		t.Errorf("PullImage: Wrong query string\nWant %#vGot  %#v", expectedQuery, req.URL.Query())
+	}
+}
+
 func TestPullImageWithRawJSON(t *testing.T) {
+	t.Parallel()
 	body := `
 	{"status":"Pulling..."}
 	{"status":"Pulling", "progress":"1 B/ 100 B", "progressDetail":{"current":1, "total":100}}
@@ -482,6 +567,7 @@ func TestPullImageWithRawJSON(t *testing.T) {
 }
 
 func TestPullImageWithoutOutputStream(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "Pulling 1/100", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	opts := PullImageOptions{
@@ -501,6 +587,7 @@ func TestPullImageWithoutOutputStream(t *testing.T) {
 }
 
 func TestPullImageCustomRegistry(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "Pulling 1/100", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -522,6 +609,7 @@ func TestPullImageCustomRegistry(t *testing.T) {
 }
 
 func TestPullImageTag(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "Pulling 1/100", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -544,6 +632,7 @@ func TestPullImageTag(t *testing.T) {
 }
 
 func TestPullImageNoRepository(t *testing.T) {
+	t.Parallel()
 	var opts PullImageOptions
 	client := Client{}
 	err := client.PullImage(opts, AuthConfiguration{})
@@ -553,6 +642,7 @@ func TestPullImageNoRepository(t *testing.T) {
 }
 
 func TestImportImageFromUrl(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -575,6 +665,7 @@ func TestImportImageFromUrl(t *testing.T) {
 }
 
 func TestImportImageFromInput(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	in := bytes.NewBufferString("tar content")
@@ -604,7 +695,8 @@ func TestImportImageFromInput(t *testing.T) {
 	}
 }
 
-func TestImportImageDoesNotPassesInputIfSourceIsNotDash(t *testing.T) {
+func TestImportImageDoesNotPassInputIfSourceIsNotDash(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -633,6 +725,7 @@ func TestImportImageDoesNotPassesInputIfSourceIsNotDash(t *testing.T) {
 }
 
 func TestImportImageShouldPassTarContentToBodyWhenSourceIsFilePath(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -661,6 +754,7 @@ func TestImportImageShouldPassTarContentToBodyWhenSourceIsFilePath(t *testing.T)
 }
 
 func TestImportImageShouldChangeSourceToDashWhenItsAFilePath(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -682,6 +776,7 @@ func TestImportImageShouldChangeSourceToDashWhenItsAFilePath(t *testing.T) {
 }
 
 func TestBuildImageParameters(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -738,6 +833,7 @@ func TestBuildImageParameters(t *testing.T) {
 }
 
 func TestBuildImageParametersForRemoteBuild(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -760,6 +856,7 @@ func TestBuildImageParametersForRemoteBuild(t *testing.T) {
 }
 
 func TestBuildImageMissingRepoAndNilInput(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -775,6 +872,7 @@ func TestBuildImageMissingRepoAndNilInput(t *testing.T) {
 }
 
 func TestBuildImageMissingOutputStream(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	opts := BuildImageOptions{Name: "testImage"}
@@ -785,6 +883,7 @@ func TestBuildImageMissingOutputStream(t *testing.T) {
 }
 
 func TestBuildImageWithRawJSON(t *testing.T) {
+	t.Parallel()
 	body := `
 	{"stream":"Step 0 : FROM ubuntu:latest\n"}
 	{"stream":" ---\u003e 4300eb9d3c8d\n"}
@@ -823,6 +922,7 @@ func TestBuildImageWithRawJSON(t *testing.T) {
 }
 
 func TestBuildImageRemoteWithoutName(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	var buf bytes.Buffer
@@ -844,6 +944,7 @@ func TestBuildImageRemoteWithoutName(t *testing.T) {
 }
 
 func TestTagImageParameters(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	opts := TagImageOptions{Repo: "testImage"}
@@ -860,6 +961,7 @@ func TestTagImageParameters(t *testing.T) {
 }
 
 func TestTagImageMissingRepo(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	opts := TagImageOptions{Repo: "testImage"}
@@ -871,6 +973,7 @@ func TestTagImageMissingRepo(t *testing.T) {
 }
 
 func TestIsUrl(t *testing.T) {
+	t.Parallel()
 	url := "http://foo.bar/"
 	result := isURL(url)
 	if !result {
@@ -884,6 +987,7 @@ func TestIsUrl(t *testing.T) {
 }
 
 func TestLoadImage(t *testing.T) {
+	t.Parallel()
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
 	tar, err := os.Open("testing/data/container.tar")
@@ -907,6 +1011,7 @@ func TestLoadImage(t *testing.T) {
 }
 
 func TestExportImage(t *testing.T) {
+	t.Parallel()
 	var buf bytes.Buffer
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
@@ -926,6 +1031,7 @@ func TestExportImage(t *testing.T) {
 }
 
 func TestExportImages(t *testing.T) {
+	t.Parallel()
 	var buf bytes.Buffer
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
@@ -946,6 +1052,7 @@ func TestExportImages(t *testing.T) {
 }
 
 func TestExportImagesNoNames(t *testing.T) {
+	t.Parallel()
 	var buf bytes.Buffer
 	fakeRT := &FakeRoundTripper{message: "", status: http.StatusOK}
 	client := newTestClient(fakeRT)
@@ -960,6 +1067,7 @@ func TestExportImagesNoNames(t *testing.T) {
 }
 
 func TestSearchImages(t *testing.T) {
+	t.Parallel()
 	body := `[
 	{
 		"description":"A container with Cassandra 2.0.3",
@@ -1000,6 +1108,7 @@ func TestSearchImages(t *testing.T) {
 }
 
 func TestSearchImagesEx(t *testing.T) {
+	t.Parallel()
 	body := `[
 	{
 		"description":"A container with Cassandra 2.0.3",
@@ -1041,6 +1150,7 @@ func TestSearchImagesEx(t *testing.T) {
 }
 
 func TestPruneImages(t *testing.T) {
+	t.Parallel()
 	results := `{
 		"ImagesDeleted": [
 			{"Deleted": "a"},

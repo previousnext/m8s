@@ -552,7 +552,10 @@ func testBlobAPI(t *testing.T, env *testEnv, args blobArgs) *testEnv {
 	})
 
 	// Verify the body
-	verifier := layerDigest.Verifier()
+	verifier, err := digest.NewDigestVerifier(layerDigest)
+	if err != nil {
+		t.Fatalf("unexpected error getting digest verifier: %s", err)
+	}
 	io.Copy(verifier, resp.Body)
 
 	if !verifier.Verified() {
@@ -1215,7 +1218,7 @@ func testManifestAPISchema2(t *testing.T, env *testEnv, imageName reference.Name
 		Config: distribution.Descriptor{
 			Digest:    "sha256:1a9ec845ee94c202b2d5da74a24f0ed2058318bfa9879fa541efaecba272e86b",
 			Size:      3253,
-			MediaType: schema2.MediaTypeImageConfig,
+			MediaType: schema2.MediaTypeConfig,
 		},
 		Layers: []distribution.Descriptor{
 			{

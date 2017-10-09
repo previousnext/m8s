@@ -53,7 +53,6 @@ func newImageBuildOptions(ctx context.Context, r *http.Request) (*types.ImageBui
 	options.CgroupParent = r.FormValue("cgroupparent")
 	options.NetworkMode = r.FormValue("networkmode")
 	options.Tags = r.Form["t"]
-	options.ExtraHosts = r.Form["extrahosts"]
 	options.SecurityOpt = r.Form["securityopt"]
 	options.Squash = httputils.BoolValue(r, "squash")
 

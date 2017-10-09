@@ -145,7 +145,7 @@ func DetectCompression(source []byte) Compression {
 			logrus.Debug("Len too short")
 			continue
 		}
-		if bytes.Equal(m, source[:len(m)]) {
+		if bytes.Compare(m, source[:len(m)]) == 0 {
 			return compression
 		}
 	}
@@ -240,38 +240,6 @@ func (compression *Compression) Extension() string {
 	return ""
 }
 
-// FileInfoHeader creates a populated Header from fi.
-// Compared to archive pkg this function fills in more information.
-func FileInfoHeader(path, name string, fi os.FileInfo) (*tar.Header, error) {
-	var link string
-	if fi.Mode()&os.ModeSymlink != 0 {
-		var err error
-		link, err = os.Readlink(path)
-		if err != nil {
-			return nil, err
-		}
-	}
-	hdr, err := tar.FileInfoHeader(fi, link)
-	if err != nil {
-		return nil, err
-	}
-	hdr.Mode = int64(chmodTarEntry(os.FileMode(hdr.Mode)))
-	name, err = canonicalTarName(name, fi.IsDir())
-	if err != nil {
-		return nil, fmt.Errorf("tar: cannot canonicalize path: %v", err)
-	}
-	hdr.Name = name
-	if err := setHeaderForSpecialDevice(hdr, name, fi.Sys()); err != nil {
-		return nil, err
-	}
-	capability, _ := system.Lgetxattr(path, "security.capability")
-	if capability != nil {
-		hdr.Xattrs = make(map[string]string)
-		hdr.Xattrs["security.capability"] = string(capability)
-	}
-	return hdr, nil
-}
-
 type tarWhiteoutConverter interface {
 	ConvertWrite(*tar.Header, string, os.FileInfo) (*tar.Header, error)
 	ConvertRead(*tar.Header, string) (bool, error)
@@ -315,7 +283,26 @@ func (ta *tarAppender) addTarFile(path, name string) error {
 		return err
 	}
 
-	hdr, err := FileInfoHeader(path, name, fi)
+	link := ""
+	if fi.Mode()&os.ModeSymlink != 0 {
+		if link, err = os.Readlink(path); err != nil {
+			return err
+		}
+	}
+
+	hdr, err := tar.FileInfoHeader(fi, link)
+	if err != nil {
+		return err
+	}
+	hdr.Mode = int64(chmodTarEntry(os.FileMode(hdr.Mode)))
+
+	name, err = canonicalTarName(name, fi.IsDir())
+	if err != nil {
+		return fmt.Errorf("tar: cannot canonicalize path: %v", err)
+	}
+	hdr.Name = name
+
+	inode, err := setHeaderForSpecialDevice(hdr, ta, name, fi.Sys())
 	if err != nil {
 		return err
 	}
@@ -323,10 +310,6 @@ func (ta *tarAppender) addTarFile(path, name string) error {
 	// if it's not a directory and has more than 1 link,
 	// it's hard linked, so set the type flag accordingly
 	if !fi.IsDir() && hasHardlinks(fi) {
-		inode, err := getInodeFromStat(fi.Sys())
-		if err != nil {
-			return err
-		}
 		// a link should have a name that it links too
 		// and that linked name should be first in the tar archive
 		if oldpath, ok := ta.SeenFiles[inode]; ok {
@@ -336,6 +319,12 @@ func (ta *tarAppender) addTarFile(path, name string) error {
 		} else {
 			ta.SeenFiles[inode] = name
 		}
+	}
+
+	capability, _ := system.Lgetxattr(path, "security.capability")
+	if capability != nil {
+		hdr.Xattrs = make(map[string]string)
+		hdr.Xattrs["security.capability"] = string(capability)
 	}
 
 	//handle re-mapping container ID mappings back to host ID mappings before
@@ -564,7 +553,8 @@ func TarWithOptions(srcPath string, options *TarOptions) (io.ReadCloser, error) 
 	// on platforms other than Windows.
 	srcPath = fixVolumePathPrefix(srcPath)
 
-	pm, err := fileutils.NewPatternMatcher(options.ExcludePatterns)
+	patterns, patDirs, exceptions, err := fileutils.CleanPatterns(options.ExcludePatterns)
+
 	if err != nil {
 		return nil, err
 	}
@@ -661,7 +651,7 @@ func TarWithOptions(srcPath string, options *TarOptions) (io.ReadCloser, error) 
 				// is asking for that file no matter what - which is true
 				// for some files, like .dockerignore and Dockerfile (sometimes)
 				if include != relFilePath {
-					skip, err = pm.Matches(relFilePath)
+					skip, err = fileutils.OptimizedMatches(relFilePath, patterns, patDirs)
 					if err != nil {
 						logrus.Errorf("Error matching %s: %v", relFilePath, err)
 						return err
@@ -671,7 +661,7 @@ func TarWithOptions(srcPath string, options *TarOptions) (io.ReadCloser, error) 
 				if skip {
 					// If we want to skip this file and its a directory
 					// then we should first check to see if there's an
-					// excludes pattern (e.g. !dir/file) that starts with this
+					// excludes pattern (eg !dir/file) that starts with this
 					// dir. If so then we can't skip this dir.
 
 					// Its not a dir then so we can just return/skip.
@@ -680,17 +670,18 @@ func TarWithOptions(srcPath string, options *TarOptions) (io.ReadCloser, error) 
 					}
 
 					// No exceptions (!...) in patterns so just skip dir
-					if !pm.Exclusions() {
+					if !exceptions {
 						return filepath.SkipDir
 					}
 
 					dirSlash := relFilePath + string(filepath.Separator)
 
-					for _, pat := range pm.Patterns() {
-						if !pat.Exclusion() {
+					for _, pat := range patterns {
+						if pat[0] != '!' {
 							continue
 						}
-						if strings.HasPrefix(pat.String()+string(filepath.Separator), dirSlash) {
+						pat = pat[1:] + string(filepath.Separator)
+						if strings.HasPrefix(pat, dirSlash) {
 							// found a match - so can't skip this dir
 							return nil
 						}

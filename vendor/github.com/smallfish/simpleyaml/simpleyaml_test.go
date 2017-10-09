@@ -1,7 +1,9 @@
-package simpleyaml
+package simpleyaml_test
 
 import (
 	"testing"
+	"github.com/smallfish/simpleyaml"
+	"github.com/smallfish/simpleyaml/helper/util"
 )
 
 var data = []byte(`
@@ -23,7 +25,7 @@ bb:
 `)
 
 func TestBool(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -38,7 +40,7 @@ func TestBool(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -53,7 +55,7 @@ func TestString(t *testing.T) {
 }
 
 func TestStringFromIntKey(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -69,7 +71,7 @@ func TestStringFromIntKey(t *testing.T) {
 }
 
 func TestFloat(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -85,7 +87,7 @@ func TestFloat(t *testing.T) {
 }
 
 func TestInt(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -100,7 +102,7 @@ func TestInt(t *testing.T) {
 }
 
 func TestGetIndex(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -112,7 +114,7 @@ func TestGetIndex(t *testing.T) {
 }
 
 func TestString2(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -127,7 +129,7 @@ func TestString2(t *testing.T) {
 }
 
 func TestGetPath(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -141,8 +143,25 @@ func TestGetPath(t *testing.T) {
 	}
 }
 
+func TestGetAllPaths(t *testing.T) {
+	y, err := simpleyaml.NewYaml(data)
+	if err != nil {
+		t.Fatal("init yaml failed")
+	}
+
+	v, err := util.GetAllPaths(y)
+	if err != nil {
+		t.Fatal("Getting all paths failed")
+	}
+
+	t.Log(v)
+	if len(v) != 10 {
+		t.Fatal("Number of paths do not match number or real paths.")
+	}
+}
+
 func TestArray(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -157,7 +176,7 @@ func TestArray(t *testing.T) {
 }
 
 func TestMap(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}
@@ -175,7 +194,7 @@ func TestMap(t *testing.T) {
 }
 
 func TestIsFound(t *testing.T) {
-	y, err := NewYaml(data)
+	y, err := simpleyaml.NewYaml(data)
 	if err != nil {
 		t.Fatal("init yaml failed")
 	}

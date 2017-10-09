@@ -4,10 +4,10 @@ import (
 	"io"
 
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/client/unversioned/remotecommand"
-	remotecommandserver "k8s.io/kubernetes/pkg/kubelet/server/remotecommand"
+	"k8s.io/client-go/tools/remotecommand"
+	remotecommandserver "k8s.io/apimachinery/pkg/util/remotecommand"
 )
 
 // PodExec for running commands against a running pod.
@@ -26,9 +26,9 @@ func PodExec(client *kubernetes.Clientset, config *rest.Config, w io.Writer, nam
 
 	opts := remotecommand.StreamOptions{
 		SupportedProtocols: remotecommandserver.SupportedStreamingProtocols,
-		Stdout:             w,
-		Stderr:             w,
-		Tty:                true,
+		Stdout: w,
+		Stderr: w,
+		Tty:    true,
 	}
 
 	// Use the Kubernetes inbuilt client to build a URL endpoint for running our exec command.

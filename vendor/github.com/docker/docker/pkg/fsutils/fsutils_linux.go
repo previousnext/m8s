@@ -23,8 +23,10 @@ func locateDummyIfEmpty(path string) (string, error) {
 		return "", err
 	}
 	name := dummyFile.Name()
-	err = dummyFile.Close()
-	return name, err
+	if err = dummyFile.Close(); err != nil {
+		return name, err
+	}
+	return name, nil
 }
 
 // SupportsDType returns whether the filesystem mounted on path supports d_type

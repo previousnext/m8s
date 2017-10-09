@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Backend abstracts a swarm manager.
+// Backend abstracts an swarm commands manager.
 type Backend interface {
 	Init(req types.InitRequest) (string, error)
 	Join(req types.JoinRequest) error
@@ -19,9 +19,9 @@ type Backend interface {
 	GetServices(basictypes.ServiceListOptions) ([]types.Service, error)
 	GetService(string) (types.Service, error)
 	CreateService(types.ServiceSpec, string) (*basictypes.ServiceCreateResponse, error)
-	UpdateService(string, uint64, types.ServiceSpec, basictypes.ServiceUpdateOptions) (*basictypes.ServiceUpdateResponse, error)
+	UpdateService(string, uint64, types.ServiceSpec, string, string) (*basictypes.ServiceUpdateResponse, error)
 	RemoveService(string) error
-	ServiceLogs(context.Context, *backend.LogSelector, *basictypes.ContainerLogsOptions) (<-chan *backend.LogMessage, error)
+	ServiceLogs(context.Context, string, *backend.ContainerLogsConfig, chan struct{}) error
 	GetNodes(basictypes.NodeListOptions) ([]types.Node, error)
 	GetNode(string) (types.Node, error)
 	UpdateNode(string, uint64, types.NodeSpec) error
