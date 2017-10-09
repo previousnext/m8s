@@ -8,21 +8,25 @@ import (
 const keyDockerCfg = ".dockercfg"
 
 type Server struct {
-	client            *kubernetes.Clientset
-	config            *rest.Config
-	Token             string
-	Namespace         string
-	FilesystemSize    string
-	ApacheExporter    int32
-	DockerCfgRegistry string
-	DockerCfgUsername string
-	DockerCfgPassword string
-	DockerCfgEmail    string
-	DockerCfgAuth     string
+	client         *kubernetes.Clientset
+	config         *rest.Config
+	Token          string
+	Namespace      string
+	FilesystemSize string
+	ApacheExporter int32
+	Docker         ServerDockerCfg
 }
 
-// DockerConfig is used mashalling Docker Configuration.
-type DockerConfig struct {
+type ServerDockerCfg struct {
+	Registry string
+	Username string
+	Password string
+	Email    string
+	Auth     string
+}
+
+// DockerCfg is used mashalling Docker Configuration.
+type DockerCfg struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Email    string `json:"email"`

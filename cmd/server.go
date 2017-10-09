@@ -91,7 +91,13 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 	log.Println("Booting API")
 
 	// Create a new server which adheres to the GRPC interface.
-	srv, err := server.New(client, config, cmd.Token, cmd.Namespace, cmd.FilesystemSize, cmd.PrometheusApache, cmd.DockerCfgRegistry, cmd.DockerCfgUsername, cmd.DockerCfgPassword, cmd.DockerCfgEmail, cmd.DockerCfgAuth)
+	srv, err := server.New(client, config, cmd.Token, cmd.Namespace, cmd.FilesystemSize, cmd.PrometheusApache, server.ServerDockerCfg{
+		Registry: cmd.DockerCfgRegistry,
+		Username: cmd.DockerCfgUsername,
+		Password: cmd.DockerCfgPassword,
+		Email:    cmd.DockerCfgEmail,
+		Auth:     cmd.DockerCfgAuth,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -172,5 +178,6 @@ func getLetsEncrypt(domain, email, cache string) (credentials.TransportCredentia
 		HostPolicy: autocert.HostWhitelist(domain),
 		Email:      email,
 	}
+
 	return credentials.NewTLS(&tls.Config{GetCertificate: manager.GetCertificate}), nil
 }

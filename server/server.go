@@ -12,22 +12,18 @@ import (
 )
 
 // New is used for returning a new M8s server.
-func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, fs string, exporter int32, dockerreg, dockeruser, dockerpass, dockeremail, dockerauth string) (Server, error) {
+func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, fs string, exporter int32, dockercfg ServerDockerCfg) (Server, error) {
 	srv := Server{
-		client:            client,
-		config:            config,
-		Token:             token,
-		Namespace:         namespace,
-		FilesystemSize:    fs,
-		ApacheExporter:    exporter,
-		DockerCfgRegistry: dockerreg,
-		DockerCfgUsername: dockeruser,
-		DockerCfgPassword: dockerpass,
-		DockerCfgEmail:    dockeremail,
-		DockerCfgAuth:     dockerauth,
+		client:         client,
+		config:         config,
+		Token:          token,
+		Namespace:      namespace,
+		FilesystemSize: fs,
+		ApacheExporter: exporter,
+		Docker:         dockercfg,
 	}
 
-	err := dockercfgSync(client, namespace, dockerreg, dockeruser, dockerpass, dockeremail, dockerauth)
+	err := dockercfgSync(client, namespace, dockercfg)
 	if err != nil {
 		return srv, err
 	}
@@ -36,13 +32,13 @@ func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, fs
 }
 
 // Helper function to sync Docker credentials.
-func dockercfgSync(client *kubernetes.Clientset, namespace, registry, username, password, email, auth string) error {
-	auths := map[string]DockerConfig{
-		registry: {
-			Username: username,
-			Password: password,
-			Email:    email,
-			Auth:     auth,
+func dockercfgSync(client *kubernetes.Clientset, namespace string, dockercfg ServerDockerCfg) error {
+	auths := map[string]DockerCfg{
+		dockercfg.Registry: {
+			Username: dockercfg.Username,
+			Password: dockercfg.Password,
+			Email:    dockercfg.Email,
+			Auth:     dockercfg.Auth,
 		},
 	}
 

@@ -15,10 +15,10 @@ func (srv Server) DockerCfg(ctx context.Context, in *pb.DockerCfgRequest) (*pb.D
 	}
 
 	return &pb.DockerCfgResponse{
-		Registry: srv.DockerCfgRegistry,
-		Username: srv.DockerCfgUsername,
-		Password: srv.DockerCfgPassword,
-		Email:    srv.DockerCfgEmail,
-		Auth:     srv.DockerCfgAuth,
+		Registry: srv.Docker.Registry,
+		Username: srv.Docker.Username,
+		Password: srv.Docker.Password,
+		Email:    srv.Docker.Email,
+		Auth:     srv.Docker.Auth,
 	}, nil
 }
