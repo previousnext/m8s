@@ -12,6 +12,7 @@ import (
 	"github.com/gosexy/to"
 	"github.com/previousnext/m8s/cmd/compose"
 	"github.com/previousnext/m8s/cmd/environ"
+	"github.com/previousnext/m8s/cmd/metadata"
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/smallfish/simpleyaml"
 	"golang.org/x/net/context"
@@ -98,14 +99,20 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	ctx, cancel = context.WithTimeout(context.Background(), cmd.Timeout)
 	defer cancel()
 
+	annotations, err := metadata.Annotations(os.Environ())
+	if err != nil {
+		return err
+	}
+
 	// Start the build.
 	stream, err := client.Create(ctx, &pb.CreateRequest{
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
 		Metadata: &pb.Metadata{
-			Name:    strings.ToLower(cmd.Name),
-			Domains: strings.Split(strings.ToLower(cmd.Domains), ","),
+			Name:        strings.ToLower(cmd.Name),
+			Annotations: annotations,
+			Domains:     strings.Split(strings.ToLower(cmd.Domains), ","),
 			BasicAuth: &pb.BasicAuth{
 				User: cmd.BasicAuthUser,
 				Pass: cmd.BasicAuthPass,

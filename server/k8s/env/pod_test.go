@@ -3,6 +3,7 @@ package env
 import (
 	"testing"
 
+	"github.com/previousnext/m8s/cmd/metadata"
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,8 +24,9 @@ func TestPod(t *testing.T) {
 				"env": "pr1",
 			},
 			Annotations: map[string]string{
-				"prometheus.io/scrape": "true",
-				"prometheus.io/port":   "9117",
+				"prometheus.io/scrape":                "true",
+				"prometheus.io/port":                  "9117",
+				metadata.AnnotationBitbucketRepoOwner: "nick",
 			},
 		},
 		Spec: v1.PodSpec{
@@ -189,7 +191,10 @@ func TestPod(t *testing.T) {
 		},
 	}
 
-	have, err := Pod("test", "pr1", "git@github.com:foo/bar.git", "123456789", []*pb.ComposeService{
+	annotations, err := metadata.Annotations([]string{"BITBUCKET_REPO_OWNER=nick"})
+	assert.Nil(t, err)
+
+	have, err := Pod("test", "pr1", annotations, "git@github.com:foo/bar.git", "123456789", []*pb.ComposeService{
 		{
 			Name:  "app",
 			Image: "foo/bar",
