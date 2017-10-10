@@ -7,6 +7,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
+// DockerCfg returns Docker credentials for pushing and pulling images.
 func (srv Server) DockerCfg(ctx context.Context, in *pb.DockerCfgRequest) (*pb.DockerCfgResponse, error) {
 	resp := new(pb.DockerCfgResponse)
 

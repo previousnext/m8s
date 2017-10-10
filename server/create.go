@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// Create is used for creating a new environment.
 func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error {
 	var authSecret string
 

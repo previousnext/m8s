@@ -9,6 +9,7 @@ import (
 	"github.com/previousnext/m8s/server/k8s/utils"
 )
 
+// Step is used for defining a single "command" step
 func (srv Server) Step(in *pb.StepRequest, stream pb.M8S_StepServer) error {
 	if in.Credentials.Token != srv.Token {
 		return fmt.Errorf("token is incorrect")

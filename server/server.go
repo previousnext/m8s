@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// New is used for returning a new M8s server.
+// New is used for returning a new M8s server
 func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, fs string, exporter int32, dockercfg ServerDockerCfg) (Server, error) {
 	srv := Server{
 		client:         client,

@@ -8,11 +8,12 @@ build:
 
 # Run all lint checking with exit codes for CI
 lint:
-	golint -set_exit_status $(PACKAGE)/...
+	golint -set_exit_status `go list ./... | grep -v /vendor/`
 
 # Run tests with coverage reporting
 test:
-	go test -cover $(PACKAGE)/...
+	go test -cover ./server/...
+	go test -cover ./pkg/...
 
 IMAGE=previousnext/m8s
 VERSION=$(shell git describe --tags --always)

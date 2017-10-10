@@ -7,6 +7,7 @@ import (
 
 const keyDockerCfg = ".dockercfg"
 
+// Server is the M8s server for running builds.
 type Server struct {
 	client         *kubernetes.Clientset
 	config         *rest.Config
@@ -14,10 +15,11 @@ type Server struct {
 	Namespace      string
 	FilesystemSize string
 	ApacheExporter int32
-	Docker         ServerDockerCfg
+	Docker         DockerRegistry
 }
 
-type ServerDockerCfg struct {
+// DockerRegistry contains Docker Hub credentials and registry information.
+type DockerRegistry struct {
 	Registry string
 	Username string
 	Password string

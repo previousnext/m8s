@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Describe returns details about the temporary environment.
 func (srv Server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.DescribeResponse, error) {
 	resp := new(pb.DescribeResponse)
 
