@@ -3,7 +3,7 @@ package env
 import (
 	"fmt"
 
-	"github.com/previousnext/m8s/pkg/htpasswd"
+	"github.com/previousnext/m8s/server/k8s/env/htpasswd"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api/v1"
 )

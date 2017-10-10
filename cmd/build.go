@@ -10,9 +10,9 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/gosexy/to"
+	"github.com/previousnext/m8s/cmd/compose"
 	"github.com/previousnext/m8s/cmd/environ"
 	pb "github.com/previousnext/m8s/pb"
-	"github.com/previousnext/m8s/pkg/compose"
 	"github.com/smallfish/simpleyaml"
 	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
