@@ -12,7 +12,7 @@ import (
 )
 
 // New is used for returning a new M8s server.
-func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, fs string, exporter int32, dockercfg ServerDockerCfg) (Server, error) {
+func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, ssh, fs string, exporter int32, dockercfg ServerDockerCfg) (Server, error) {
 	srv := Server{
 		client:         client,
 		config:         config,
