@@ -14,6 +14,7 @@ type Server struct {
 	Token          string
 	Namespace      string
 	FilesystemSize string
+	SSHService     string
 	ApacheExporter int32
 	Docker         DockerRegistry
 }

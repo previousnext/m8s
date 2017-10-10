@@ -9,8 +9,6 @@ import (
 
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server"
-	"github.com/previousnext/m8s/server/k8s/addons/ssh-server"
-	"github.com/previousnext/m8s/server/k8s/addons/traefik"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
@@ -34,12 +32,7 @@ type cmdServer struct {
 	LetsEncryptDomain string
 	LetsEncryptCache  string
 
-	TraefikImage   string
-	TraefikVersion string
-	TraefikPort    int32
-
-	SSHImage   string
-	SSHVersion string
+	SSHService string
 
 	DockerCfgRegistry string
 	DockerCfgUsername string
@@ -74,24 +67,10 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		panic(err.Error())
 	}
 
-	log.Println("Installing addon: traefik")
-
-	err = traefik.Create(client, cmd.Namespace, cmd.TraefikImage, cmd.TraefikVersion, cmd.TraefikPort)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Println("Installing addon: ssh-server")
-
-	err = ssh_server.Create(client, cmd.Namespace, cmd.SSHImage, cmd.SSHVersion)
-	if err != nil {
-		panic(err)
-	}
-
 	log.Println("Booting API")
 
 	// Create a new server which adheres to the GRPC interface.
-	srv, err := server.New(client, config, cmd.Token, cmd.Namespace, cmd.FilesystemSize, cmd.PrometheusApache, server.ServerDockerCfg{
+	srv, err := server.New(client, config, cmd.Token, cmd.Namespace, cmd.SSHService, cmd.FilesystemSize, cmd.PrometheusApache, server.DockerRegistry{
 		Registry: cmd.DockerCfgRegistry,
 		Username: cmd.DockerCfgUsername,
 		Password: cmd.DockerCfgPassword,
@@ -142,14 +121,8 @@ func Server(app *kingpin.Application) {
 	cmd.Flag("lets-encrypt-domain", "Domain to use for Lets Encrypt certificate").Default("").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_DOMAIN").StringVar(&c.LetsEncryptDomain)
 	cmd.Flag("lets-encrypt-cache", "Cache directory to use for Lets Encrypt").Default("/tmp").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_CACHE").StringVar(&c.LetsEncryptCache)
 
-	// Traefik.
-	cmd.Flag("traefik-image", "Traefik image to deploy").Default("traefik").OverrideDefaultFromEnvar("M8S_TRAEFIK_IMAGE").StringVar(&c.TraefikImage)
-	cmd.Flag("traefik-version", "Version of Traefik to deploy").Default("1.3").OverrideDefaultFromEnvar("M8S_TRAEFIK_VERSION").StringVar(&c.TraefikVersion)
-	cmd.Flag("traefik-port", "Assign this port to each node on the cluster for Traefik ingress").Default("80").OverrideDefaultFromEnvar("M8S_TRAEFIK_PORT").Int32Var(&c.TraefikPort)
-
 	// SSH Server.
-	cmd.Flag("ssh-image", "SSH server image to deploy").Default("previousnext/k8s-ssh-server").OverrideDefaultFromEnvar("M8S_SSH_IMAGE").StringVar(&c.SSHImage)
-	cmd.Flag("ssh-version", "Version of SSH server to deploy").Default("2.1.0").OverrideDefaultFromEnvar("M8S_SSH_VERSION").StringVar(&c.SSHVersion)
+	cmd.Flag("ssh-service", "SSH server image to deploy").Default("ssh-server").OverrideDefaultFromEnvar("M8S_SSH_SERVICE").StringVar(&c.SSHService)
 
 	// DockerCfg.
 	cmd.Flag("dockercfg-registry", "Registry for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("M8S_DOCKERCFG_REGISTRY").StringVar(&c.DockerCfgRegistry)

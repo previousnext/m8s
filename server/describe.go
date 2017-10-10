@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	pb "github.com/previousnext/m8s/pb"
-	"github.com/previousnext/m8s/server/k8s/addons/ssh-server"
 	"golang.org/x/net/context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -31,7 +30,7 @@ func (srv Server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 		return resp, err
 	}
 
-	svc, err := srv.client.Services(srv.Namespace).Get(ssh_server.Name, metav1.GetOptions{})
+	svc, err := srv.client.Services(srv.Namespace).Get(srv.SSHService, metav1.GetOptions{})
 	if err != nil {
 		return resp, err
 	}

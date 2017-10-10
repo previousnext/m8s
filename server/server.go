@@ -11,8 +11,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// New is used for returning a new M8s server
-func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, fs string, exporter int32, dockercfg ServerDockerCfg) (Server, error) {
+// New is used for returning a new M8s server.
+func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, ssh, fs string, exporter int32, dockercfg DockerRegistry) (Server, error) {
 	srv := Server{
 		client:         client,
 		config:         config,
@@ -32,7 +32,7 @@ func New(client *kubernetes.Clientset, config *rest.Config, token, namespace, fs
 }
 
 // Helper function to sync Docker credentials.
-func dockercfgSync(client *kubernetes.Clientset, namespace string, dockercfg ServerDockerCfg) error {
+func dockercfgSync(client *kubernetes.Clientset, namespace string, dockercfg DockerRegistry) error {
 	auths := map[string]DockerCfg{
 		dockercfg.Registry: {
 			Username: dockercfg.Username,
