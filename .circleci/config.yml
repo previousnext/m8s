@@ -13,12 +13,12 @@ jobs:
       - run: go get github.com/golang/lint/golint
       - run:
           name: Run linting
-          command: cd workspace && make lint
+          command: make lint
       - run:
           name: Run unit tests
           command: |
             trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
-            cd workspace && make test | tee ${TEST_RESULTS}/go-test.out
+            make test | tee ${TEST_RESULTS}/go-test.out
       - store_artifacts:
           path: /tmp/test-results
           destination: raw-test-output
