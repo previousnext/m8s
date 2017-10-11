@@ -99,7 +99,7 @@ func stepService(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 		return err
 	}
 
-	_, err = utils.ServiceCreate(client, env.Service(namespace, in.Metadata.Name))
+	_, err = utils.ServiceCreate(client, env.Service(namespace, in.Metadata.Name, in.Metadata.Annotations))
 	if err != nil {
 		return fmt.Errorf("failed create service: %s", err)
 	}
@@ -116,7 +116,7 @@ func stepSecretBasicAuth(client *kubernetes.Clientset, in *pb.CreateRequest, str
 		return err
 	}
 
-	secret, err := env.Secret(namespace, name, in.Metadata.BasicAuth.User, in.Metadata.BasicAuth.Pass)
+	secret, err := env.Secret(namespace, name, in.Metadata.Annotations, in.Metadata.BasicAuth.User, in.Metadata.BasicAuth.Pass)
 	if err != nil {
 		return fmt.Errorf("failed build secret: %s", err)
 	}
@@ -138,7 +138,7 @@ func stepIngress(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 		return err
 	}
 
-	ing, err := env.Ingress(namespace, in.Metadata.Name, secret, in.Metadata.Domains)
+	ing, err := env.Ingress(namespace, in.Metadata.Name, in.Metadata.Annotations, secret, in.Metadata.Domains)
 	if err != nil {
 		return fmt.Errorf("failed build ingress: %s", err)
 	}
@@ -161,7 +161,7 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		return err
 	}
 
-	pod, err := env.Pod(namespace, in.Metadata.Name, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services, prom)
+	pod, err := env.Pod(namespace, in.Metadata.Name, in.Metadata.Annotations, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Compose.Services, prom)
 	if err != nil {
 		return fmt.Errorf("failed build pod: %s", err)
 	}

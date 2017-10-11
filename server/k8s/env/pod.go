@@ -12,12 +12,10 @@ import (
 )
 
 // Pod converts a Docker Compose file into a Kubernetes Deployment object.
-func Pod(namespace, name, repository, revision string, services []*pb.ComposeService, promPort int32) (*v1.Pod, error) {
+func Pod(namespace, name string, annotations []*pb.Annotation, repository, revision string, services []*pb.ComposeService, promPort int32) (*v1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/
 	perm := int32(256)
-
-	// Set the pod sizing.
 
 	pod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -87,6 +85,10 @@ func Pod(namespace, name, repository, revision string, services []*pb.ComposeSer
 				},
 			},
 		},
+	}
+
+	for _, annotation := range annotations {
+		pod.ObjectMeta.Annotations[annotation.Name] = annotation.Value
 	}
 
 	for _, service := range services {

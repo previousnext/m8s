@@ -1,13 +1,14 @@
 package env
 
 import (
+	pb "github.com/previousnext/m8s/pb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	extensions "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
 // Ingress converts a Docker Compose file into a Kubernetes Ingress object.
-func Ingress(namespace, name, secret string, domains []string) (*extensions.Ingress, error) {
+func Ingress(namespace, name string, annotations []*pb.Annotation, secret string, domains []string) (*extensions.Ingress, error) {
 	ingress := &extensions.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -21,6 +22,10 @@ func Ingress(namespace, name, secret string, domains []string) (*extensions.Ingr
 	if secret != "" {
 		ingress.ObjectMeta.Annotations["ingress.kubernetes.io/auth-type"] = "basic"
 		ingress.ObjectMeta.Annotations["ingress.kubernetes.io/auth-secret"] = secret
+	}
+
+	for _, annotation := range annotations {
+		ingress.ObjectMeta.Annotations[annotation.Name] = annotation.Value
 	}
 
 	for _, domain := range domains {
