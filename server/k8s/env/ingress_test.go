@@ -91,7 +91,7 @@ func TestIngress(t *testing.T) {
 	annotations, err := metadata.Annotations([]string{"BITBUCKET_REPO_OWNER=nick"})
 	assert.Nil(t, err)
 
-	have, err := Ingress("test", "pr1", annotations, "pr1", []string{"pr1.example.com", "pr1.example2.com"})
+	have, err := Ingress("test", "pr1", annotations, "pr1", "", []string{"pr1.example.com", "pr1.example2.com"})
 	assert.Nil(t, err)
 	assert.Equal(t, want, have)
 }

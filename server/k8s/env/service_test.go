@@ -43,5 +43,8 @@ func TestService(t *testing.T) {
 	annotations, err := metadata.Annotations([]string{"BITBUCKET_REPO_OWNER=nick"})
 	assert.Nil(t, err)
 
-	assert.Equal(t, want, Service("test", "pr1", annotations))
+	svc, err := Service("test", "pr1", "", annotations)
+	assert.Nil(t, err)
+
+	assert.Equal(t, want, svc)
 }
