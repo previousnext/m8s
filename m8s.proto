@@ -30,6 +30,7 @@ message Metadata {
   repeated Annotation Annotations = 2;
   repeated string Domains = 3;
   BasicAuth BasicAuth = 4;
+  string Retention = 5;
 }
 
 // Annotation provides information about where the environment was triggered.
