@@ -20,13 +20,9 @@ We can the following directories by default:
 
 ## Development
 
-### Principles
-
-* Code lives in the `workspace` directory
-
 ### Tools
 
-* **Dependency management** - https://getgb.io
+* **Dependency management** - https://github.com/golang/dep
 * **Build** - https://github.com/mitchellh/gox
 * **Linting** - https://github.com/golang/lint
 
@@ -37,7 +33,7 @@ We can the following directories by default:
 **Installing a new dependency**
 
 ```bash
-gb vendor fetch github.com/foo/bar
+dep ensure -add github.com/foo/bar
 ```
 
 **Running quality checks**
