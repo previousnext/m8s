@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	pb "github.com/previousnext/m8s/pb"
 	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -23,7 +24,7 @@ type cmdStep struct {
 func (cmd *cmdStep) run(c *kingpin.ParseContext) error {
 	client, err := buildClient(cmd.API)
 	if err != nil {
-		return fmt.Errorf("failed to connect: %s", err)
+		return errors.Wrap(err, "failed to build client")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
@@ -38,7 +39,7 @@ func (cmd *cmdStep) run(c *kingpin.ParseContext) error {
 		Command:   cmd.Command,
 	})
 	if err != nil {
-		return fmt.Errorf("the step has failed: %s", err)
+		return errors.Wrap(err, "the step has failed")
 	}
 
 	for {
@@ -47,7 +48,7 @@ func (cmd *cmdStep) run(c *kingpin.ParseContext) error {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("failed to read stream: %s", err)
+			return errors.Wrap(err, "failed to read stream")
 		}
 
 		fmt.Println(string(resp.Message))

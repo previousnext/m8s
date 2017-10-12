@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/nlopes/slack"
+	"github.com/pkg/errors"
 	pb "github.com/previousnext/m8s/pb"
 	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -23,7 +24,7 @@ type cmdNotify struct {
 func (cmd *cmdNotify) run(c *kingpin.ParseContext) error {
 	client, err := buildClient(cmd.API)
 	if err != nil {
-		return fmt.Errorf("failed to connect: %s", err)
+		return errors.Wrap(err, "failed to build client")
 	}
 
 	describe, err := client.Describe(context.Background(), &pb.DescribeRequest{
@@ -33,7 +34,7 @@ func (cmd *cmdNotify) run(c *kingpin.ParseContext) error {
 		Name: strings.ToLower(cmd.Name),
 	})
 	if err != nil {
-		return fmt.Errorf("failed list built environments: %s", err)
+		return errors.Wrap(err, "failed to describe environment")
 	}
 
 	api := slack.New(cmd.SlackToken)
