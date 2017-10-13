@@ -3,6 +3,7 @@ package env
 import (
 	"testing"
 
+	"github.com/previousnext/m8s/cmd/metadata"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api/v1"
@@ -13,6 +14,9 @@ func TestService(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: "test",
 			Name:      "pr1",
+			Annotations: map[string]string{
+				metadata.AnnotationBitbucketRepoOwner: "nick",
+			},
 		},
 		Spec: v1.ServiceSpec{
 			ClusterIP: "None",
@@ -36,5 +40,11 @@ func TestService(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, want, Service("test", "pr1"))
+	annotations, err := metadata.Annotations([]string{"BITBUCKET_REPO_OWNER=nick"})
+	assert.Nil(t, err)
+
+	svc, err := Service("test", "pr1", "", annotations)
+	assert.Nil(t, err)
+
+	assert.Equal(t, want, svc)
 }

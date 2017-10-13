@@ -3,6 +3,7 @@ package env
 import (
 	"testing"
 
+	"github.com/previousnext/m8s/cmd/metadata"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -15,9 +16,10 @@ func TestIngress(t *testing.T) {
 			Namespace: "test",
 			Name:      "pr1",
 			Annotations: map[string]string{
-				"kubernetes.io/ingress.class":       "traefik",
-				"ingress.kubernetes.io/auth-type":   "basic",
-				"ingress.kubernetes.io/auth-secret": "pr1",
+				"kubernetes.io/ingress.class":         "traefik",
+				"ingress.kubernetes.io/auth-type":     "basic",
+				"ingress.kubernetes.io/auth-secret":   "pr1",
+				metadata.AnnotationBitbucketRepoOwner: "nick",
 			},
 		},
 		Spec: extensions.IngressSpec{
@@ -86,7 +88,10 @@ func TestIngress(t *testing.T) {
 		},
 	}
 
-	have, err := Ingress("test", "pr1", "pr1", []string{"pr1.example.com", "pr1.example2.com"})
+	annotations, err := metadata.Annotations([]string{"BITBUCKET_REPO_OWNER=nick"})
+	assert.Nil(t, err)
+
+	have, err := Ingress("test", "pr1", annotations, "pr1", "", []string{"pr1.example.com", "pr1.example2.com"})
 	assert.Nil(t, err)
 	assert.Equal(t, want, have)
 }

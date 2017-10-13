@@ -26,9 +26,17 @@ message CreateRequest {
 
 // Metadata is high level information about the build.
 message Metadata {
-  string Name = 2;
+  string Name = 1;
+  repeated Annotation Annotations = 2;
   repeated string Domains = 3;
   BasicAuth BasicAuth = 4;
+  string Retention = 5;
+}
+
+// Annotation provides information about where the environment was triggered.
+message Annotation {
+    string Name = 1;
+    string Value = 2;
 }
 
 message BasicAuth {

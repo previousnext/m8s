@@ -1,16 +1,20 @@
 package env
 
 import (
+	"time"
+
+	pb "github.com/previousnext/m8s/pb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api/v1"
 )
 
 // Service converts a Docker Compose file into a Kubernetes Service object.
-func Service(namespace, name string) *v1.Service {
-	return &v1.Service{
+func Service(namespace, name, retention string, annotations []*pb.Annotation) (*v1.Service, error) {
+	svc := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
+			Namespace:   namespace,
+			Name:        name,
+			Annotations: make(map[string]string),
 		},
 		Spec: v1.ServiceSpec{
 			ClusterIP: "None", // We defer this logic to the load balancer.
@@ -34,4 +38,19 @@ func Service(namespace, name string) *v1.Service {
 			},
 		},
 	}
+
+	for _, annotation := range annotations {
+		svc.ObjectMeta.Annotations[annotation.Name] = annotation.Value
+	}
+
+	if retention != "" {
+		unix, err := retentionToUnix(time.Now(), retention)
+		if err != nil {
+			return svc, err
+		}
+
+		svc.ObjectMeta.Annotations["black-death.skpr.io"] = unix
+	}
+
+	return svc, nil
 }
