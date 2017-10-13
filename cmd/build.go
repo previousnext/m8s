@@ -26,6 +26,7 @@ type cmdBuild struct {
 	Domains          string
 	BasicAuthUser    string
 	BasicAuthPass    string
+	Retention        time.Duration
 	GitRepository    string
 	GitRevision      string
 	DockerCompose    string
@@ -117,6 +118,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 				User: cmd.BasicAuthUser,
 				Pass: cmd.BasicAuthPass,
 			},
+			Retention: cmd.Retention.String(),
 		},
 		GitCheckout: &pb.GitCheckout{
 			Repository: cmd.GitRepository,
@@ -183,6 +185,7 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)
 	cmd.Flag("basic-auth-user", "Basic auth user to assign to this environment").Default("").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_USER").StringVar(&c.BasicAuthUser)
 	cmd.Flag("basic-auth-pass", "Basic auth user to assign to this environment").Default("").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_PASS").StringVar(&c.BasicAuthPass)
+	cmd.Flag("retention", "How long to keep an environment").Default("120h").OverrideDefaultFromEnvar("M8S_RETENTION").DurationVar(&c.Retention)
 	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("M8S_GIT_REPO").StringVar(&c.GitRepository)
 	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
 	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)

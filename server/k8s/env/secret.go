@@ -2,6 +2,7 @@ package env
 
 import (
 	"fmt"
+	"time"
 
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server/k8s/env/htpasswd"
@@ -11,7 +12,7 @@ import (
 
 // Secret is used for generating a "basic auth" secret for our PR environment.
 // @todo, Needs a test.
-func Secret(namespace, name string, annotations []*pb.Annotation, user, pass string) (*v1.Secret, error) {
+func Secret(namespace, name string, annotations []*pb.Annotation, user, pass, retention string) (*v1.Secret, error) {
 	// Convert our user and pass into a htpasswd file.
 	hash, err := htpasswd.Hash(pass)
 	if err != nil {
@@ -30,6 +31,15 @@ func Secret(namespace, name string, annotations []*pb.Annotation, user, pass str
 
 	for _, annotation := range annotations {
 		secret.ObjectMeta.Annotations[annotation.Name] = annotation.Value
+	}
+
+	if retention != "" {
+		unix, err := retentionToUnix(time.Now(), retention)
+		if err != nil {
+			return secret, err
+		}
+
+		secret.ObjectMeta.Annotations["black-death.skpr.io"] = unix
 	}
 
 	return secret, nil
