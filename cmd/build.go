@@ -10,7 +10,7 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/gosexy/to"
-	"github.com/previousnext/m8s/cmd/compose"
+	"github.com/previousnext/compose"
 	"github.com/previousnext/m8s/cmd/environ"
 	"github.com/previousnext/m8s/cmd/metadata"
 	pb "github.com/previousnext/m8s/pb"
@@ -124,7 +124,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Repository: cmd.GitRepository,
 			Revision:   cmd.GitRevision,
 		},
-		Compose: dc.GRPC(),
+		Compose: composeToGRPC(dc),
 	})
 	if err != nil {
 		return fmt.Errorf("the build has failed: %s", err)
@@ -256,4 +256,30 @@ func loadSteps(f, step string) ([]string, error) {
 	}
 
 	return steps, nil
+}
+
+// Helper function used for marshalling a Docker Compose file into a M8s object.
+func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
+	resp := new(pb.Compose)
+
+	for name, service := range dc.Services {
+		resp.Services = append(resp.Services, &pb.ComposeService{
+			Name:        name,
+			Image:       service.Image,
+			Volumes:     service.Volumes,
+			Ports:       service.Ports,
+			Environment: service.Environment,
+			Tmpfs:       service.Tmpfs,
+			Limits: &pb.Resource{
+				CPU:    service.Deploy.Resources.Limits.CPUs,
+				Memory: service.Deploy.Resources.Limits.Memory,
+			},
+			Reservations: &pb.Resource{
+				CPU:    service.Deploy.Resources.Reservations.CPUs,
+				Memory: service.Deploy.Resources.Reservations.Memory,
+			},
+		})
+	}
+
+	return resp
 }
