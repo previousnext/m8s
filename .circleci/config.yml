@@ -59,6 +59,8 @@ workflows:
             - lint_test
             - build
           filters:
+            # Only run for version tags. Never for branches.
             tags:
-              # Match tags starting with v and a number. eg v1.0.0
               only: /v[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/
