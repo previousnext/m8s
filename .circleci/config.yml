@@ -3,18 +3,13 @@ version: 2
 jobs:
   lint_test:
     docker:
-      - image: circleci/golang:1.8
+      - image: previousnext/golang:1.8
     working_directory: /go/src/github.com/previousnext/m8s
     environment:
       TEST_RESULTS: /tmp/test-results
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
-      - run:
-          name: Install dependencies
-          command: |
-            go get github.com/jstemmer/go-junit-report
-            go get github.com/golang/lint/golint
       - run:
           name: Run linting
           command: make lint
@@ -30,11 +25,10 @@ jobs:
           path: /tmp/test-results
   build:
     docker:
-      - image: circleci/golang:1.8
+      - image: previousnext/golang:1.8
     working_directory: /go/src/github.com/previousnext/m8s
     steps:
       - checkout
-      - run: go get github.com/mitchellh/gox
       - run:
           name: Compile binaries
           command: make build
@@ -44,13 +38,12 @@ jobs:
             - bin
   release:
     docker:
-      - image: circleci/golang:1.8
+      - image: previousnext/golang:1.8
     working_directory: /go/src/github.com/previousnext/m8s
     steps:
       - checkout
       - attach_workspace:
           at: .
-      - run: go get github.com/tcnksm/ghr
       - run:
           name: Push release binary to github
           command: ls -l ./bin
