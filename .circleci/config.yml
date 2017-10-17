@@ -24,3 +24,13 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: /tmp/test-results
+      - run:
+          name: Prepare release
+          command: |
+            RELEASE="$(git describe --exact --tag)"
+            if [ ! -z "${RELEASE}" ]; then
+              make build
+
+              go get -u github.com/tcnksm/ghr
+              ghr "${RELEASE}" ./bin/
+            fi
