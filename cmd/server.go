@@ -89,12 +89,12 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 	if cmd.TLSCert != "" && cmd.TLSKey != "" {
 		creds, err = credentials.NewServerTLSFromFile(cmd.TLSCert, cmd.TLSKey)
 		if err != nil {
-			return errors.Wrap(err, "failed to load tls")
+			return errors.Wrap(err, "failed to load tls from the filesystem")
 		}
 	} else {
 		creds, err = getLetsEncrypt(cmd.LetsEncryptDomain, cmd.LetsEncryptEmail, cmd.LetsEncryptCache)
 		if err != nil {
-			return errors.Wrap(err, "failed to load tls")
+			return errors.Wrap(err, "failed to load tls from lets encrypt")
 		}
 	}
 
