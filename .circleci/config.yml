@@ -46,7 +46,7 @@ jobs:
           at: .
       - run:
           name: Push release binary to github
-          command: ghr -u previousnext "${CIRCLE_TAG}" ./bin/
+          command: ghr -u previousnext "$(git describe --tag --exact)" ./bin/
 
 workflows:
   version: 2
