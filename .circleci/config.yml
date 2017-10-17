@@ -1,7 +1,7 @@
 ---
 version: 2
 jobs:
-  test:
+  lint_test:
     docker:
       - image: circleci/golang:1.8
     working_directory: /go/src/github.com/previousnext/m8s
@@ -10,7 +10,14 @@ jobs:
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
-      - run: go get github.com/jstemmer/go-junit-report
+      - run:
+          name: Install dependencies
+          command: |
+            go get github.com/jstemmer/go-junit-report
+            go get github.com/golang/lint/golint
+      - run:
+          name: Run linting
+          command: make lint
       - run:
           name: Run unit tests
           command: |
@@ -21,16 +28,6 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: /tmp/test-results
-  lint:
-    docker:
-      - image: circleci/golang:1.8
-    working_directory: /go/src/github.com/previousnext/m8s
-    steps:
-      - checkout
-      - run: go get github.com/golang/lint/golint
-      - run:
-          name: Run linting
-          command: make lint
   build:
     docker:
       - image: circleci/golang:1.8
@@ -60,19 +57,13 @@ jobs:
 
 workflows:
   version: 2
-  test:
+  everything:
     jobs:
-      - lint
-      - test
-  release:
-    jobs:
-      - lint
-      - test
+      - lint_test
       - build
       - release:
           requires:
-            - lint
-            - test
+            - lint_test
             - build
           filters:
             tags:
