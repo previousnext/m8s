@@ -29,6 +29,7 @@ jobs:
           command: |
             RELEASE="$(git describe --exact --tag)"
             if [ ! -z "${RELEASE}" ]; then
+              go get -u github.com/mitchellh/gox
               make build
 
               go get -u github.com/tcnksm/ghr
