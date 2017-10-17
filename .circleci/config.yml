@@ -46,7 +46,7 @@ jobs:
           at: .
       - run:
           name: Push release binary to github
-          command: ls -l ./bin
+          command: ghr -u previousnext "${CIRCLE_TAG}" ./bin/
 
 workflows:
   version: 2
