@@ -51,3 +51,11 @@ make lint test
 ```bash
 make build
 ```
+
+**Release**
+
+Release artifacts are pushed to the [github releases page](https://github.com/previousnext/m8s/releases) when tagged
+properly. Use [semantic versioning](http://semver.org/) prefixed with `v` for version scheme. Examples:
+
+- `v1.0.0`
+- `v1.1.0-beta1`
