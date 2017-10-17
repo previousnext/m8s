@@ -73,7 +73,7 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 
 	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(namespace, env.CacheComposer, fs))
 	if err != nil {
-		return errors.Wrap(err, "failed to provision compose cache")
+		return errors.Wrap(err, "failed to provision composer cache")
 	}
 
 	err = stream.Send(&pb.CreateResponse{
