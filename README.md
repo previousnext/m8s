@@ -1,5 +1,5 @@
-Mates (m8s)
-===========
+![M8s](/logo/small.png "Logo")
+=========================
 
 [![CircleCI](https://circleci.com/gh/previousnext/m8s.svg?style=svg&circle-token=cd74c538bea3d8ae9d0de9b008fedf35b7f00ad8)](https://circleci.com/gh/previousnext/m8s)
 
