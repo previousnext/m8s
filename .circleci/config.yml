@@ -1,7 +1,7 @@
 ---
 version: 2
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/golang:1.8
     working_directory: /go/src/github.com/previousnext/m8s
@@ -11,10 +11,6 @@ jobs:
       - checkout
       - run: mkdir -p $TEST_RESULTS
       - run: go get github.com/jstemmer/go-junit-report
-      - run: go get github.com/golang/lint/golint
-      - run:
-          name: Run linting
-          command: make lint
       - run:
           name: Run unit tests
           command: |
@@ -25,3 +21,60 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: /tmp/test-results
+  lint:
+    docker:
+      - image: circleci/golang:1.8
+    working_directory: /go/src/github.com/previousnext/m8s
+    steps:
+      - checkout
+      - run: go get github.com/golang/lint/golint
+      - run:
+          name: Run linting
+          command: make lint
+  build:
+    docker:
+      - image: circleci/golang:1.8
+    working_directory: /go/src/github.com/previousnext/m8s
+    steps:
+      - checkout
+      - run: go get github.com/mitchellh/gox
+      - run:
+          name: Compile binaries
+          command: make build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - bin
+  release:
+    docker:
+      - image: circleci/golang:1.8
+    working_directory: /go/src/github.com/previousnext/m8s
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: go get github.com/tcnksm/ghr
+      - run:
+          name: Push release binary to github
+          command: ls -l ./bin
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - lint
+      - test
+  release:
+    jobs:
+      - lint
+      - test
+      - build
+      - release:
+          requires:
+            - lint
+            - test
+            - build
+          filters:
+            tags:
+              # Match tags starting with v and a number. eg v1.0.0
+              only: /^v[0-9].*/
