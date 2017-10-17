@@ -194,7 +194,7 @@ func TestPod(t *testing.T) {
 	annotations, err := metadata.Annotations([]string{"BITBUCKET_REPO_OWNER=nick"})
 	assert.Nil(t, err)
 
-	have, err := Pod("test", "pr1", annotations, "git@github.com:foo/bar.git", "123456789", []*pb.ComposeService{
+	have, err := Pod("test", "pr1", annotations, "git@github.com:foo/bar.git", "123456789", "", []*pb.ComposeService{
 		{
 			Name:  "app",
 			Image: "foo/bar",
