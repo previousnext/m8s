@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server/k8s/env"
 	"github.com/previousnext/m8s/server/k8s/utils"
@@ -72,7 +73,7 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 
 	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(namespace, env.CacheComposer, fs))
 	if err != nil {
-		return fmt.Errorf("failed to provision composer cache: %s", err)
+		return errors.Wrap(err, "failed to provision composer cache")
 	}
 
 	err = stream.Send(&pb.CreateResponse{
@@ -84,7 +85,7 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 
 	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(namespace, env.CacheYarn, fs))
 	if err != nil {
-		return fmt.Errorf("failed to provision yarn cache: %s", err)
+		return errors.Wrap(err, "failed to provision yarn cache")
 	}
 
 	return nil
@@ -106,7 +107,7 @@ func stepService(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 
 	_, err = utils.ServiceCreate(client, svc)
 	if err != nil {
-		return fmt.Errorf("failed create service: %s", err)
+		return errors.Wrap(err, "failed to create service")
 	}
 
 	return nil
@@ -123,12 +124,12 @@ func stepSecretBasicAuth(client *kubernetes.Clientset, in *pb.CreateRequest, str
 
 	secret, err := env.Secret(namespace, name, in.Metadata.Annotations, in.Metadata.BasicAuth.User, in.Metadata.BasicAuth.Pass, in.Metadata.Retention)
 	if err != nil {
-		return fmt.Errorf("failed build secret: %s", err)
+		return errors.Wrap(err, "failed to build secret")
 	}
 
 	_, err = utils.SecretCreate(client, secret)
 	if err != nil {
-		return fmt.Errorf("failed create service: %s", err)
+		return errors.Wrap(err, "failed to create service")
 	}
 
 	return nil
@@ -145,13 +146,13 @@ func stepIngress(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 
 	ing, err := env.Ingress(namespace, in.Metadata.Name, in.Metadata.Annotations, secret, in.Metadata.Retention, in.Metadata.Domains)
 	if err != nil {
-		return fmt.Errorf("failed build ingress: %s", err)
+		return errors.Wrap(err, "failed to build ingress")
 	}
 
 	// Create Basic Auth if required.
 	_, err = utils.IngressCreate(client, ing)
 	if err != nil {
-		return fmt.Errorf("failed create ingress: %s", err)
+		return errors.Wrap(err, "failed to create ingress")
 	}
 
 	return err
@@ -168,12 +169,12 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 
 	pod, err := env.Pod(namespace, in.Metadata.Name, in.Metadata.Annotations, in.GitCheckout.Repository, in.Metadata.Retention, in.GitCheckout.Revision, in.Compose.Services, prom)
 	if err != nil {
-		return fmt.Errorf("failed build pod: %s", err)
+		return errors.Wrap(err, "failed to build pod")
 	}
 
 	_, err = utils.PodCreate(client, pod)
 	if err != nil {
-		return fmt.Errorf("failed create pod: %s", err)
+		return errors.Wrap(err, "failed to create pod")
 	}
 
 	return err

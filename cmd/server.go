@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/pkg/errors"
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -54,17 +55,17 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", cmd.Port))
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "failed to start listener")
 	}
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "failed to get cluster config")
 	}
 
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		return errors.Wrap(err, "failed to get kubernetes client")
 	}
 
 	log.Println("Booting API")
@@ -78,7 +79,7 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		Auth:     cmd.DockerCfgAuth,
 	})
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "failed to start server")
 	}
 
 	var creds credentials.TransportCredentials
@@ -88,12 +89,12 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 	if cmd.TLSCert != "" && cmd.TLSKey != "" {
 		creds, err = credentials.NewServerTLSFromFile(cmd.TLSCert, cmd.TLSKey)
 		if err != nil {
-			panic(err)
+			return errors.Wrap(err, "failed to load tls from the filesystem")
 		}
 	} else {
 		creds, err = getLetsEncrypt(cmd.LetsEncryptDomain, cmd.LetsEncryptEmail, cmd.LetsEncryptCache)
 		if err != nil {
-			panic(err)
+			return errors.Wrap(err, "failed to load tls from lets encrypt")
 		}
 	}
 

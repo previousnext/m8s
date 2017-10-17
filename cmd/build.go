@@ -10,6 +10,7 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/gosexy/to"
+	"github.com/pkg/errors"
 	"github.com/previousnext/compose"
 	"github.com/previousnext/m8s/cmd/environ"
 	"github.com/previousnext/m8s/cmd/metadata"
@@ -42,19 +43,19 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	// configuration for this build.
 	dc, err := compose.Load(cmd.DockerCompose)
 	if err != nil {
-		return fmt.Errorf("failed to load Docker Compose file: %s", err)
+		return errors.Wrap(err, "failed to load Docker Compose file")
 	}
 
 	// Load the steps required to run the build, these are bespoke steps used
 	// for bootstrapping and testing the application.
 	steps, err := loadSteps(cmd.ExecFile, cmd.ExecStep)
 	if err != nil {
-		return fmt.Errorf("failed to load steps: %s", err)
+		return errors.Wrap(err, "failed to load steps")
 	}
 
 	client, err := buildClient(cmd.API)
 	if err != nil {
-		return fmt.Errorf("failed to connect: %s", err)
+		return errors.Wrap(err, "failed to connect")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
@@ -67,7 +68,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to request Docker configuration to pushing built images: %s", err)
+		return errors.Wrap(err, "failed to request Docker configuration to pushing built image")
 	}
 
 	// These are additional environment variables that have been provided outside of this build, with the intent
@@ -87,7 +88,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 
 			err := buildAndPush(service.Build, cmd.DockerRepository, tag, dockercfg)
 			if err != nil {
-				return fmt.Errorf("failed to build image: %s", err)
+				return errors.Wrap(err, "failed to build image")
 			}
 
 			// Pass this on so our API uses this image for the build.
@@ -102,7 +103,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 
 	annotations, err := metadata.Annotations(os.Environ())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get annotations")
 	}
 
 	// Start the build.
@@ -127,7 +128,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		Compose: composeToGRPC(dc),
 	})
 	if err != nil {
-		return fmt.Errorf("the build has failed: %s", err)
+		return errors.Wrap(err, "the build has failed")
 	}
 
 	for {
@@ -136,7 +137,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("failed to read stream: %s", err)
+			return errors.Wrap(err, "failed to read stream")
 		}
 
 		fmt.Println(string(resp.Message))
@@ -155,7 +156,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Command:   step,
 		})
 		if err != nil {
-			return fmt.Errorf("the exec command has failed: %s", err)
+			return errors.Wrap(err, "the exec command has failed")
 		}
 
 		for {
@@ -164,7 +165,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 				break
 			}
 			if err != nil {
-				return fmt.Errorf("failed to read stream: %s", err)
+				return errors.Wrap(err, "failed to read stream")
 			}
 
 			fmt.Println(string(resp.Message))
