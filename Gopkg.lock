@@ -241,6 +241,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/previousnext/compose"
+  packages = ["."]
+  revision = "a4653ed607c7afb4cb640f9904e3e021a1225862"
+
+[[projects]]
   name = "github.com/prometheus/client_golang"
   packages = ["prometheus","prometheus/promhttp"]
   revision = "c5b7fccd204277076155f10851dad72b76a49317"
@@ -362,6 +368,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "299fab66c36e9e5fc36d1ca5935d711ae7d2d8a28479f068d920de03575e7989"
+  inputs-digest = "c62346a326170457578d211fd978930e512706c1f282eb73d29a0fe7ca4b3243"
   solver-name = "gps-cdcl"
   solver-version = 1
