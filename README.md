@@ -5,7 +5,11 @@
 
 **Maintainer**: Nick Schuch
 
-CLI and API for building temporary environments.
+## Overview
+
+m8s is a CLI and API for building temporary environments in Kubernetes.
+
+Often in your CI/CD workflows, you want a real environment to run automated or manual tests. For example, you might want to preview changes you are making in a branch or Pull Request. m8s provides a simple tool for acheiving this. It takes a docker compose file, and translates that into a pod definition Kubernetes understands, and deploys it on Kubernetes. The pod is _ephemeral_, meaning it's not meant to stick around for long, and any data will be deleted once the pod is removed.
 
 ![Diagram](/docs/diagram.png "Diagram")
 
