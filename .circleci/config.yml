@@ -23,44 +23,46 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: /tmp/test-results
-  build:
+  release_docker:
+    docker:
+      - image: previousnext/circleci-docker
+    working_directory: /go/src/github.com/previousnext/m8s
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build container image and push to dockerhub.
+          command: make release-docker
+  release_github:
     docker:
       - image: previousnext/golang:1.8
     working_directory: /go/src/github.com/previousnext/m8s
     steps:
       - checkout
       - run:
-          name: Compile binaries
-          command: make build
-      - persist_to_workspace:
-          root: .
-          paths:
-            - bin
-  release:
-    docker:
-      - image: previousnext/golang:1.8
-    working_directory: /go/src/github.com/previousnext/m8s
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - run:
-          name: Push release binary to github
-          command: ghr -u previousnext "$(git describe --tag --exact)" ./bin/
+          name: Compile and push release binary to github
+          command: make release-github
+
+# YAML anchor used to centralise filtering of workflows to release tags.
+filters_release: &filters_release
+  tags:
+    only: /v[0-9]+(\.[0-9]+)*/
+  branches:
+    ignore: /.*/
 
 workflows:
   version: 2
-  everything:
+  main:
     jobs:
       - lint_test
-      - build
-      - release:
+      - release_github:
           requires:
             - lint_test
-            - build
           filters:
-            # Only run for version tags. Never for branches.
-            tags:
-              only: /v[0-9]+(\.[0-9]+)*/
-            branches:
-              ignore: /.*/
+            <<: *filters_release
+      - release_docker:
+          requires:
+            - lint_test
+          filters:
+            <<: *filters_release
