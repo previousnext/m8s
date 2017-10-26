@@ -259,10 +259,10 @@
   revision = "6f3806018612930941127f2a7c6c453ba2c527d2"
 
 [[projects]]
-  branch = "master"
+  branch = "addlog"
   name = "github.com/prometheus/common"
-  packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
-  revision = "1bab55dd05dbff384524a6a1c99006d9eb5f139b"
+  packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","log","model"]
+  revision = "89d80287644767070914e30199b4d959e491bd3d"
 
 [[projects]]
   branch = "master"
@@ -308,7 +308,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
+  packages = ["unix","windows","windows/registry","windows/svc/eventlog"]
   revision = "ebfc5b4631820b793c9010c87fd8fef0f39eb082"
 
 [[projects]]
@@ -368,6 +368,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c62346a326170457578d211fd978930e512706c1f282eb73d29a0fe7ca4b3243"
+  inputs-digest = "674dcd1bea881c4f4b49d9a68f6aa743513bb5f3f3e7fe6e433dffc436d4b605"
   solver-name = "gps-cdcl"
   solver-version = 1
