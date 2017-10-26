@@ -11,6 +11,7 @@ import (
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	promlog "github.com/prometheus/common/log"
 	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -47,11 +48,11 @@ type cmdServer struct {
 }
 
 func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
-	log.Println("Starting Prometheus Endpoint")
+	promlog.Info("Starting Prometheus Endpoint")
 
 	go metrics(cmd.PrometheusPort, cmd.PrometheusPath)
 
-	log.Println("Starting Server")
+	promlog.Info("Starting Listener")
 
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", cmd.Port))
 	if err != nil {
@@ -68,7 +69,7 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to get kubernetes client")
 	}
 
-	log.Println("Booting API")
+	promlog.Info("Configuring Server")
 
 	// Create a new server which adheres to the GRPC interface.
 	srv, err := server.New(client, config, cmd.Token, cmd.Namespace, cmd.SSHService, cmd.FilesystemSize, cmd.PrometheusApache, server.DockerRegistry{
@@ -82,21 +83,29 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to start server")
 	}
 
+	promlog.Info("Configuring TLS")
+
 	var creds credentials.TransportCredentials
 
 	// Attempt to load user provided certificates.
 	// If no certificates are provided, fallback to Lets Encrypt.
 	if cmd.TLSCert != "" && cmd.TLSKey != "" {
+		promlog.Info("Loading TLS certificates from the filesystem")
+
 		creds, err = credentials.NewServerTLSFromFile(cmd.TLSCert, cmd.TLSKey)
 		if err != nil {
 			return errors.Wrap(err, "failed to load tls from the filesystem")
 		}
 	} else {
+		promlog.Info("Generating TLS certificates from LetsEncrypt")
+
 		creds, err = getLetsEncrypt(cmd.LetsEncryptDomain, cmd.LetsEncryptEmail, cmd.LetsEncryptCache)
 		if err != nil {
 			return errors.Wrap(err, "failed to load tls from lets encrypt")
 		}
 	}
+
+	promlog.Info("Booting Server")
 
 	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	pb.RegisterM8SServer(grpcServer, srv)
