@@ -30,7 +30,6 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
           version: 17.07.0-ce
       - run:
           name: Build container image and push to dockerhub.
