@@ -16,6 +16,7 @@ func PersistentVolumeClaim(namespace, name, storage string) *v1.PersistentVolume
 				// Setting this storage class to "cache" allows system admins to register any type of
 				// storage backend for "cache" claims.
 				"volume.beta.kubernetes.io/storage-class": "cache",
+				"author": "m8s",
 			},
 		},
 		Spec: v1.PersistentVolumeClaimSpec{

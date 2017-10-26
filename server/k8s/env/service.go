@@ -12,9 +12,11 @@ import (
 func Service(namespace, name, retention string, annotations []*pb.Annotation) (*v1.Service, error) {
 	svc := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace:   namespace,
-			Name:        name,
-			Annotations: make(map[string]string),
+			Namespace: namespace,
+			Name:      name,
+			Annotations: map[string]string{
+				"author": "m8s",
+			},
 		},
 		Spec: v1.ServiceSpec{
 			ClusterIP: "None", // We defer this logic to the load balancer.
