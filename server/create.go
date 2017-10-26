@@ -167,7 +167,7 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		return err
 	}
 
-	pod, err := env.Pod(namespace, in.Metadata.Name, in.Metadata.Annotations, in.GitCheckout.Repository, in.Metadata.Retention, in.GitCheckout.Revision, in.Compose.Services, prom)
+	pod, err := env.Pod(namespace, in.Metadata.Name, in.Metadata.Annotations, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Metadata.Retention, in.Compose.Services, prom)
 	if err != nil {
 		return errors.Wrap(err, "failed to build pod")
 	}
