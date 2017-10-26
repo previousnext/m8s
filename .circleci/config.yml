@@ -25,7 +25,7 @@ jobs:
           path: /tmp/test-results
   release_docker:
     docker:
-      - image: previousnext/circleci-docker
+      - image: previousnext/pnx-packager
     working_directory: /go/src/github.com/previousnext/m8s
     steps:
       - checkout
