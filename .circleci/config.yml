@@ -1,16 +1,15 @@
+---
 version: 2
 jobs:
-  build:
+  lint_test:
     docker:
-      - image: circleci/golang:1.8
+      - image: previousnext/golang:1.8
     working_directory: /go/src/github.com/previousnext/m8s
     environment:
       TEST_RESULTS: /tmp/test-results
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
-      - run: go get github.com/jstemmer/go-junit-report
-      - run: go get github.com/golang/lint/golint
       - run:
           name: Run linting
           command: make lint
@@ -24,3 +23,53 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: /tmp/test-results
+  release_docker:
+    docker:
+      - image: previousnext/pnx-packager
+    working_directory: /go/src/github.com/previousnext/m8s
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.07.0-ce
+      - run:
+          name: Build container image and push to dockerhub.
+          command: |
+            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+            make release-docker
+  release_github:
+    docker:
+      - image: previousnext/golang:1.8
+    working_directory: /go/src/github.com/previousnext/m8s
+    steps:
+      - checkout
+      - run:
+          name: Compile and push release binary to github
+          command: make release-github
+
+# YAML anchor used to centralise filtering of workflows to release tags.
+filters_release: &filters_release
+  tags:
+    only: /v[0-9]+(\.[0-9]+).*/
+  branches:
+    ignore: /.*/
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - lint_test
+  release:
+    jobs:
+      - lint_test:
+          filters:
+            <<: *filters_release
+      - release_github:
+          requires:
+            - lint_test
+          filters:
+            <<: *filters_release
+      - release_docker:
+          requires:
+            - lint_test
+          filters:
+            <<: *filters_release

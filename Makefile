@@ -6,7 +6,7 @@ PROJECT=github.com/previousnext/m8s
 
 # Builds the project
 build:
-	gox -os='linux' -arch='amd64' -output='bin/m8s_{{.OS}}_{{.Arch}}' -ldflags='-extldflags "-static"' $(PROJECT)
+	gox -os='linux darwin' -arch='amd64' -output='bin/m8s_{{.OS}}_{{.Arch}}' -ldflags='-extldflags "-static"' $(PROJECT)
 
 # Run all lint checking with exit codes for CI
 lint:
@@ -21,9 +21,14 @@ IMAGE=previousnext/m8s
 VERSION=$(shell git describe --tags --always)
 
 # Releases the project Docker Hub
-release:
+release-docker:
 	docker build -t ${IMAGE}:${VERSION} .
 	docker push ${IMAGE}:${VERSION}
+
+release-github: build
+	ghr -u previousnext "${VERSION}" ./bin/
+
+release: release-docker release-github
 
 PROTOBUF=$(PWD)/pb
 
@@ -33,4 +38,4 @@ protobuf:
 	mkdir -p $(PROTOBUF)
 	docker run -it -w $(PWD) -v $(PWD):$(PWD) nickschuch/grpc-go:latest /bin/bash -c 'protoc -I . m8s.proto --go_out=plugins=grpc:$(PROTOBUF)'
 
-.PHONY: build lint test release protobuf
+.PHONY: build lint test release-docker release-github release protobuf
