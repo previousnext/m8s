@@ -47,7 +47,7 @@ jobs:
 # YAML anchor used to centralise filtering of workflows to release tags.
 filters_release: &filters_release
   tags:
-    only: /v[0-9]+(\.[0-9]+)*/
+    only: /v[0-9]+(\.[0-9]+).*/
   branches:
     ignore: /.*/
 
