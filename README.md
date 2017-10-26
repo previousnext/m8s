@@ -29,6 +29,7 @@ We can the following directories by default:
 * **Dependency management** - https://github.com/golang/dep
 * **Build** - https://github.com/mitchellh/gox
 * **Linting** - https://github.com/golang/lint
+* **GitHub Releases** - https://github.com/tcnksm/ghr
 
 ### Workflow
 
