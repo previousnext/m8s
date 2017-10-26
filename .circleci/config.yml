@@ -55,14 +55,12 @@ workflows:
   version: 2
   main:
     jobs:
+      - lint_test
+  release:
+    jobs:
       - lint_test:
-          # Builds only run for tags when explicitly configured to. Because
-          # lint_test is a dependency of the release_* jobs this must be
-          # configured to run on all tags.
-          # It will run on all branches by default.
           filters:
-            tags:
-              only: /.*/
+            <<: *filters_release
       - release_github:
           requires:
             - lint_test
