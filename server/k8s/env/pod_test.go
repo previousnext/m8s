@@ -24,6 +24,7 @@ func TestPod(t *testing.T) {
 				"env": "pr1",
 			},
 			Annotations: map[string]string{
+				"author":                              "m8s",
 				"prometheus.io/scrape":                "true",
 				"prometheus.io/port":                  "9117",
 				metadata.AnnotationBitbucketRepoOwner: "nick",
