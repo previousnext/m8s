@@ -34,7 +34,9 @@ jobs:
           version: 17.07.0-ce
       - run:
           name: Build container image and push to dockerhub.
-          command: make release-docker
+          command: |
+            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+            make release-docker
   release_github:
     docker:
       - image: previousnext/golang:1.8
