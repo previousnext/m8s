@@ -17,6 +17,7 @@ func Ingress(namespace, name string, annotations []*pb.Annotation, secret, reten
 			Name:      name,
 			Annotations: map[string]string{
 				"kubernetes.io/ingress.class": "traefik",
+				"author":                      "m8s",
 			},
 		},
 	}

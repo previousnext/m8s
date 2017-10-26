@@ -29,6 +29,7 @@ func Pod(namespace, name string, annotations []*pb.Annotation, repository, revis
 			Annotations: map[string]string{
 				"prometheus.io/scrape": "true",
 				"prometheus.io/port":   fmt.Sprintf("%d", promPort),
+				"author":               "m8s",
 			},
 		},
 		Spec: v1.PodSpec{

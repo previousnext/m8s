@@ -23,6 +23,9 @@ func Secret(namespace, name string, annotations []*pb.Annotation, user, pass, re
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      name,
+			Annotations: map[string]string{
+				"author": "m8s",
+			},
 		},
 		StringData: map[string]string{
 			"auth": fmt.Sprintf("%s:%s", user, hash),

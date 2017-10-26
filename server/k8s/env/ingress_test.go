@@ -16,6 +16,7 @@ func TestIngress(t *testing.T) {
 			Namespace: "test",
 			Name:      "pr1",
 			Annotations: map[string]string{
+				"author":                              "m8s",
 				"kubernetes.io/ingress.class":         "traefik",
 				"ingress.kubernetes.io/auth-type":     "basic",
 				"ingress.kubernetes.io/auth-secret":   "pr1",

@@ -15,6 +15,7 @@ func TestService(t *testing.T) {
 			Namespace: "test",
 			Name:      "pr1",
 			Annotations: map[string]string{
+				"author": "m8s",
 				metadata.AnnotationBitbucketRepoOwner: "nick",
 			},
 		},
