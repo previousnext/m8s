@@ -71,7 +71,11 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 		return err
 	}
 
-	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(namespace, env.CacheComposer, fs))
+	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(env.PersistentVolumeClaimInput{
+		Namespace: namespace,
+		Name:      env.CacheComposer,
+		Storage:   fs,
+	}))
 	if err != nil {
 		return errors.Wrap(err, "failed to provision composer cache")
 	}
@@ -83,7 +87,11 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 		return err
 	}
 
-	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(namespace, env.CacheYarn, fs))
+	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(env.PersistentVolumeClaimInput{
+		Namespace: namespace,
+		Name:      env.CacheYarn,
+		Storage:   fs,
+	}))
 	if err != nil {
 		return errors.Wrap(err, "failed to provision yarn cache")
 	}
@@ -100,7 +108,12 @@ func stepService(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 		return err
 	}
 
-	svc, err := env.Service(namespace, in.Metadata.Name, in.Metadata.Retention, in.Metadata.Annotations)
+	svc, err := env.Service(env.ServiceInput{
+		Namespace:   namespace,
+		Name:        in.Metadata.Name,
+		Annotations: in.Metadata.Annotations,
+		Retention:   in.Metadata.Retention,
+	})
 	if err != nil {
 		return err
 	}
@@ -122,7 +135,14 @@ func stepSecretBasicAuth(client *kubernetes.Clientset, in *pb.CreateRequest, str
 		return err
 	}
 
-	secret, err := env.Secret(namespace, name, in.Metadata.Annotations, in.Metadata.BasicAuth.User, in.Metadata.BasicAuth.Pass, in.Metadata.Retention)
+	secret, err := env.Secret(env.SecretInput{
+		Namespace:   namespace,
+		Name:        name,
+		Annotations: in.Metadata.Annotations,
+		User:        in.Metadata.BasicAuth.User,
+		Pass:        in.Metadata.BasicAuth.Pass,
+		Retention:   in.Metadata.Retention,
+	})
 	if err != nil {
 		return errors.Wrap(err, "failed to build secret")
 	}
@@ -144,7 +164,14 @@ func stepIngress(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 		return err
 	}
 
-	ing, err := env.Ingress(namespace, in.Metadata.Name, in.Metadata.Annotations, secret, in.Metadata.Retention, in.Metadata.Domains)
+	ing, err := env.Ingress(env.IngressInput{
+		Namespace:   namespace,
+		Name:        in.Metadata.Name,
+		Annotations: in.Metadata.Annotations,
+		Secret:      secret,
+		Retention:   in.Metadata.Retention,
+		Domains:     in.Metadata.Domains,
+	})
 	if err != nil {
 		return errors.Wrap(err, "failed to build ingress")
 	}
@@ -167,7 +194,16 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		return err
 	}
 
-	pod, err := env.Pod(namespace, in.Metadata.Name, in.Metadata.Annotations, in.GitCheckout.Repository, in.GitCheckout.Revision, in.Metadata.Retention, in.Compose.Services, prom)
+	pod, err := env.Pod(env.PodInput{
+		Namespace:   namespace,
+		Name:        in.Metadata.Name,
+		Annotations: in.Metadata.Annotations,
+		Repository:  in.GitCheckout.Repository,
+		Revision:    in.GitCheckout.Revision,
+		Retention:   in.Metadata.Retention,
+		Services:    in.Compose.Services,
+		Prometheus:  prom,
+	})
 	if err != nil {
 		return errors.Wrap(err, "failed to build pod")
 	}

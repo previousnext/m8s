@@ -12,23 +12,35 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 )
 
+// PodInput provides the Pod function with information to produce a Kubernetes Pod.
+type PodInput struct {
+	Namespace   string
+	Name        string
+	Annotations []*pb.Annotation
+	Repository  string
+	Revision    string
+	Retention   string
+	Services    []*pb.ComposeService
+	Prometheus  int32
+}
+
 // Pod converts a Docker Compose file into a Kubernetes Deployment object.
-func Pod(namespace, name string, annotations []*pb.Annotation, repository, revision, retention string, services []*pb.ComposeService, promPort int32) (*v1.Pod, error) {
+func Pod(input PodInput) (*v1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/
 	perm := int32(256)
 
 	pod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
+			Namespace: input.Namespace,
+			Name:      input.Name,
 			// This allows us to Link our Service to this Pod.
 			Labels: map[string]string{
-				"env": name,
+				"env": input.Name,
 			},
 			Annotations: map[string]string{
 				"prometheus.io/scrape": "true",
-				"prometheus.io/port":   fmt.Sprintf("%d", promPort),
+				"prometheus.io/port":   fmt.Sprintf("%d", input.Prometheus),
 				"author":               "m8s",
 			},
 		},
@@ -39,7 +51,7 @@ func Pod(namespace, name string, annotations []*pb.Annotation, repository, revis
 					Image: "previousnext/apache-exporter:latest",
 					Ports: []v1.ContainerPort{
 						{
-							ContainerPort: promPort,
+							ContainerPort: input.Prometheus,
 						},
 					},
 				},
@@ -58,8 +70,8 @@ func Pod(namespace, name string, annotations []*pb.Annotation, repository, revis
 					Name: "code",
 					VolumeSource: v1.VolumeSource{
 						GitRepo: &v1.GitRepoVolumeSource{
-							Repository: repository,
-							Revision:   revision,
+							Repository: input.Repository,
+							Revision:   input.Revision,
 							Directory:  ".",
 						},
 					},
@@ -89,12 +101,12 @@ func Pod(namespace, name string, annotations []*pb.Annotation, repository, revis
 		},
 	}
 
-	for _, annotation := range annotations {
+	for _, annotation := range input.Annotations {
 		pod.ObjectMeta.Annotations[annotation.Name] = annotation.Value
 	}
 
-	if retention != "" {
-		unix, err := retentionToUnix(time.Now(), retention)
+	if input.Retention != "" {
+		unix, err := retentionToUnix(time.Now(), input.Retention)
 		if err != nil {
 			return pod, err
 		}
@@ -102,7 +114,7 @@ func Pod(namespace, name string, annotations []*pb.Annotation, repository, revis
 		pod.ObjectMeta.Annotations["black-death.skpr.io"] = unix
 	}
 
-	for _, service := range services {
+	for _, service := range input.Services {
 		container := v1.Container{
 			Name:            service.Name,
 			Image:           service.Image,

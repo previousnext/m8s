@@ -195,35 +195,43 @@ func TestPod(t *testing.T) {
 	annotations, err := metadata.Annotations([]string{"BITBUCKET_REPO_OWNER=nick"})
 	assert.Nil(t, err)
 
-	have, err := Pod("test", "pr1", annotations, "git@github.com:foo/bar.git", "123456789", "", []*pb.ComposeService{
-		{
-			Name:  "app",
-			Image: "foo/bar",
-			Volumes: []string{
-				".:/data",
+	have, err := Pod(PodInput{
+		Namespace:   "test",
+		Name:        "pr1",
+		Annotations: annotations,
+		Repository:  "git@github.com:foo/bar.git",
+		Revision:    "123456789",
+		Services: []*pb.ComposeService{
+			{
+				Name:  "app",
+				Image: "foo/bar",
+				Volumes: []string{
+					".:/data",
+				},
+				Ports: []string{
+					"80:80",
+				},
+				Environment: []string{
+					"FOO=bar",
+				},
 			},
-			Ports: []string{
-				"80:80",
+			{
+				Name:  "mysql",
+				Image: "mariadb",
+				Environment: []string{
+					"MYSQL_ROOT_PASSWORD=root",
+					"MYSQL_DATABASE=local",
+					"MYSQL_USER=drupal",
+					"MYSQL_PASSWORD=drupal",
+				},
 			},
-			Environment: []string{
-				"FOO=bar",
+			{
+				Name:  "solr",
+				Image: "previousnext/solr:5.x",
 			},
 		},
-		{
-			Name:  "mysql",
-			Image: "mariadb",
-			Environment: []string{
-				"MYSQL_ROOT_PASSWORD=root",
-				"MYSQL_DATABASE=local",
-				"MYSQL_USER=drupal",
-				"MYSQL_PASSWORD=drupal",
-			},
-		},
-		{
-			Name:  "solr",
-			Image: "previousnext/solr:5.x",
-		},
-	}, prom)
+		Prometheus: prom,
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, want.ObjectMeta, have.ObjectMeta)
 	assert.Equal(t, want.Spec.Containers[0], have.Spec.Containers[0])
