@@ -9,6 +9,8 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
+const error129 = "command terminated with exit code 129"
+
 // PodExec for running commands against a running pod.
 func PodExec(client *kubernetes.Clientset, config *rest.Config, w io.Writer, namespace, name, container, step string) error {
 	opts := remotecommand.StreamOptions{
@@ -30,7 +32,11 @@ func PodExec(client *kubernetes.Clientset, config *rest.Config, w io.Writer, nam
 	url := req.URL()
 
 	exec, err := remotecommand.NewExecutor(config, "POST", url)
-	if err != nil {
+	// This is not the most ideal way to handle the error since its tied to a specfic string.
+	// This appears to be an error from Docker.
+	// https://github.com/docker/compose/issues/3379
+	// @todo, Compare to containerd backed container runtime.
+	if err != nil && err.Error() != error129 {
 		return err
 	}
 
