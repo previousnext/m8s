@@ -8,12 +8,20 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 )
 
+// ServiceInput provides the Service function with information to produce a Kubernetes Service.
+type ServiceInput struct {
+	Namespace   string
+	Name        string
+	Annotations []*pb.Annotation
+	Retention   string
+}
+
 // Service converts a Docker Compose file into a Kubernetes Service object.
-func Service(namespace, name, retention string, annotations []*pb.Annotation) (*v1.Service, error) {
+func Service(input ServiceInput) (*v1.Service, error) {
 	svc := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
+			Namespace: input.Namespace,
+			Name:      input.Name,
 			Annotations: map[string]string{
 				"author": "m8s",
 			},
@@ -36,17 +44,17 @@ func Service(namespace, name, retention string, annotations []*pb.Annotation) (*
 			},
 			// This allows us to Link tihs Service to the Pod.
 			Selector: map[string]string{
-				"env": name,
+				"env": input.Name,
 			},
 		},
 	}
 
-	for _, annotation := range annotations {
+	for _, annotation := range input.Annotations {
 		svc.ObjectMeta.Annotations[annotation.Name] = annotation.Value
 	}
 
-	if retention != "" {
-		unix, err := retentionToUnix(time.Now(), retention)
+	if input.Retention != "" {
+		unix, err := retentionToUnix(time.Now(), input.Retention)
 		if err != nil {
 			return svc, err
 		}

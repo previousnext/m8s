@@ -9,12 +9,22 @@ import (
 	extensions "k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
+// IngressInput provides the Ingress function with information to produce a Kubernetes Ingress.
+type IngressInput struct {
+	Namespace   string
+	Name        string
+	Annotations []*pb.Annotation
+	Secret      string
+	Retention   string
+	Domains     []string
+}
+
 // Ingress converts a Docker Compose file into a Kubernetes Ingress object.
-func Ingress(namespace, name string, annotations []*pb.Annotation, secret, retention string, domains []string) (*extensions.Ingress, error) {
+func Ingress(input IngressInput) (*extensions.Ingress, error) {
 	ingress := &extensions.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
+			Namespace: input.Namespace,
+			Name:      input.Name,
 			Annotations: map[string]string{
 				"kubernetes.io/ingress.class": "traefik",
 				"author":                      "m8s",
@@ -22,13 +32,13 @@ func Ingress(namespace, name string, annotations []*pb.Annotation, secret, reten
 		},
 	}
 
-	if secret != "" {
+	if input.Secret != "" {
 		ingress.ObjectMeta.Annotations["ingress.kubernetes.io/auth-type"] = "basic"
-		ingress.ObjectMeta.Annotations["ingress.kubernetes.io/auth-secret"] = secret
+		ingress.ObjectMeta.Annotations["ingress.kubernetes.io/auth-secret"] = input.Secret
 	}
 
-	if retention != "" {
-		unix, err := retentionToUnix(time.Now(), retention)
+	if input.Retention != "" {
+		unix, err := retentionToUnix(time.Now(), input.Retention)
 		if err != nil {
 			return ingress, err
 		}
@@ -36,11 +46,11 @@ func Ingress(namespace, name string, annotations []*pb.Annotation, secret, reten
 		ingress.ObjectMeta.Annotations["black-death.skpr.io"] = unix
 	}
 
-	for _, annotation := range annotations {
+	for _, annotation := range input.Annotations {
 		ingress.ObjectMeta.Annotations[annotation.Name] = annotation.Value
 	}
 
-	for _, domain := range domains {
+	for _, domain := range input.Domains {
 		ingress.Spec.Rules = append(ingress.Spec.Rules, extensions.IngressRule{
 			Host: domain,
 			IngressRuleValue: extensions.IngressRuleValue{
@@ -49,21 +59,21 @@ func Ingress(namespace, name string, annotations []*pb.Annotation, secret, reten
 						{
 							Path: "/",
 							Backend: extensions.IngressBackend{
-								ServiceName: name,
+								ServiceName: input.Name,
 								ServicePort: intstr.FromInt(80),
 							},
 						},
 						{
 							Path: "/mailhog",
 							Backend: extensions.IngressBackend{
-								ServiceName: name,
+								ServiceName: input.Name,
 								ServicePort: intstr.FromInt(8025),
 							},
 						},
 						{
 							Path: "/solr",
 							Backend: extensions.IngressBackend{
-								ServiceName: name,
+								ServiceName: input.Name,
 								ServicePort: intstr.FromInt(8983),
 							},
 						},
