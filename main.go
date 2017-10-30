@@ -13,7 +13,6 @@ func main() {
 	cmd.Server(app)
 	cmd.Build(app)
 	cmd.Step(app)
-	cmd.Notify(app)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }
