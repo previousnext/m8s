@@ -22,6 +22,21 @@ We can the following directories by default:
 * **Composer** - /root/.composer
 * **Yarn** - /usr/local/share/.cache/yarn
 
+## Installation
+
+### Prerequisites
+
+- A Kubernetes cluster running v1.6 or later.
+  - [Google Container Engine (GKE)](https://cloud.google.com/container-engine/) is a managed kubernetes-as-a-service procided by Google Cloud Platform (there is a free tier!).
+  - [Kops](https://github.com/kubernetes/kops) is a tool for simplifying the management of DIY kubernetes clusters.
+  - [Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way) is for those who want to manually configure every component of the cluster.
+- SSH key-pair for fetching dependencies from private repositories.
+- TBC
+  
+### Install m8s API components
+
+- TBC
+
 ## Development
 
 ### Tools
