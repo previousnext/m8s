@@ -20,6 +20,9 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
+[[constraint]]
+  version = "v0.0.1"
+  name = "github.com/previousnext/compose"
 
 [[constraint]]
   revision = "500ce4a511436e00d4b60c72aed8ead1a5c4c822"

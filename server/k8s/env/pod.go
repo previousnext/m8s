@@ -156,10 +156,19 @@ func Pod(input PodInput) (*v1.Pod, error) {
 			return pod, err
 		}
 
+		securityContext, err := podSecurity(service.Capabilities)
+		if err != nil {
+			return pod, err
+		}
+
 		container.Resources = resources
 		container.VolumeMounts = append(container.VolumeMounts, mounts...)
 		container.Ports = append(container.Ports, ports...)
 		container.Env = append(container.Env, envs...)
+
+		if len(service.Capabilities) > 0 {
+			container.SecurityContext = securityContext
+		}
 
 		// Add volumes and containers to the pod definition.
 		pod.Spec.Volumes = append(pod.Spec.Volumes, volumes...)
@@ -307,4 +316,17 @@ func podEnvs(list []string) ([]v1.EnvVar, error) {
 	}
 
 	return envs, nil
+}
+
+// Helper function to extract a securit context for a container.
+func podSecurity(adds []string) (*v1.SecurityContext, error) {
+	caps := &v1.Capabilities{}
+
+	for _, add := range adds {
+		caps.Add = append(caps.Add, v1.Capability(add))
+	}
+
+	return &v1.SecurityContext{
+		Capabilities: caps,
+	}, nil
 }

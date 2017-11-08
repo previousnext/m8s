@@ -18,6 +18,7 @@ type Service struct {
 	Volumes     []string      `yaml:"volumes"`
 	Ports       []string      `yaml:"ports"`
 	Environment []string      `yaml:"environment"`
+	CapAdd      []string      `yaml:"cap_add"`
 	Tmpfs       []string      `yaml:"tmpfs"`
 	Deploy      ServiceDeploy `yaml:"deploy"`
 }
