@@ -28,8 +28,9 @@ type cmdServer struct {
 	Token     string
 	Namespace string
 
-	CacheSize string
-	CacheType string
+	CacheDirectories string
+	CacheSize        string
+	CacheType        string
 
 	LetsEncryptEmail  string
 	LetsEncryptDomain string
@@ -43,9 +44,8 @@ type cmdServer struct {
 	DockerCfgEmail    string
 	DockerCfgAuth     string
 
-	PrometheusPort   string
-	PrometheusPath   string
-	PrometheusApache int32
+	PrometheusPort string
+	PrometheusPath string
 }
 
 func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
@@ -73,12 +73,24 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 	promlog.Info("Configuring Server")
 
 	// Create a new server which adheres to the GRPC interface.
-	srv, err := server.New(client, config, cmd.Token, cmd.Namespace, cmd.SSHService, cmd.CacheType, cmd.CacheSize, cmd.PrometheusApache, server.DockerRegistry{
-		Registry: cmd.DockerCfgRegistry,
-		Username: cmd.DockerCfgUsername,
-		Password: cmd.DockerCfgPassword,
-		Email:    cmd.DockerCfgEmail,
-		Auth:     cmd.DockerCfgAuth,
+	srv, err := server.New(server.Input{
+		Client:    client,
+		Config:    config,
+		Token:     cmd.Token,
+		Namespace: cmd.Namespace,
+		SSH:       cmd.SSHService,
+		Cache: server.InputCache{
+			Directories: cmd.CacheDirectories,
+			Type:        cmd.CacheType,
+			Size:        cmd.CacheSize,
+		},
+		Dockercfg: server.DockerRegistry{
+			Registry: cmd.DockerCfgRegistry,
+			Username: cmd.DockerCfgUsername,
+			Password: cmd.DockerCfgPassword,
+			Email:    cmd.DockerCfgEmail,
+			Auth:     cmd.DockerCfgAuth,
+		},
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to start server")
@@ -125,6 +137,7 @@ func Server(app *kingpin.Application) {
 	cmd.Flag("token", "Token to authenticate against the API.").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("namespace", "Namespace to build environments.").Default("default").OverrideDefaultFromEnvar("M8S_NAMESPACE").StringVar(&c.Namespace)
 
+	cmd.Flag("cache-dirs", "Directories which will be cached between builds").Default("composer:/root/.composer,yarn:/usr/local/share/.cache/yarn").OverrideDefaultFromEnvar("M8S_CACHE_DIRS").StringVar(&c.CacheDirectories)
 	cmd.Flag("cache-size", "Size of the filesystem for persistent cache storage").Default("100Gi").OverrideDefaultFromEnvar("M8S_CACHE_SIZE").StringVar(&c.CacheSize)
 	cmd.Flag("cache-type", "StorageClass which you wish to use to provision the cache storage").Default("standard").OverrideDefaultFromEnvar("M8S_CACHE_TYPE").StringVar(&c.CacheType)
 
@@ -146,7 +159,6 @@ func Server(app *kingpin.Application) {
 	// Promtheus.
 	cmd.Flag("prometheus-port", "Prometheus metrics port").Default(":9000").OverrideDefaultFromEnvar("M8S_METRICS_PORT").StringVar(&c.PrometheusPort)
 	cmd.Flag("prometheus-path", "Prometheus metrics path").Default("/metrics").OverrideDefaultFromEnvar("M8S_METRICS_PATH").StringVar(&c.PrometheusPath)
-	cmd.Flag("prometheus-apache-exporter", "Prometheus metrics port for Apache on built environments").Default("9117").OverrideDefaultFromEnvar("M8S_METRICS_APACHE_PORT").Int32Var(&c.PrometheusApache)
 }
 
 // Helper function for serving Prometheus metrics.

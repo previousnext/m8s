@@ -34,12 +34,14 @@ func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return fmt.Errorf("git repository was not provided")
 	}
 
-	err := stepClaims(srv.client, stream, srv.Namespace, srv.CacheType, srv.CacheSize)
-	if err != nil {
-		return err
+	for _, cache := range srv.Cache.Directories {
+		err := stepClaims(srv.client, stream, srv.Namespace, cache.Name, srv.Cache.Type, srv.Cache.Size)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = stepService(srv.client, in, stream, srv.Namespace)
+	err := stepService(srv.client, in, stream, srv.Namespace)
 	if err != nil {
 		return err
 	}
@@ -59,13 +61,13 @@ func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return err
 	}
 
-	return stepPod(srv.client, in, stream, srv.Namespace, srv.ApacheExporter)
+	return stepPod(srv.client, in, stream, srv.Namespace)
 }
 
 // A step for provisioning caching storage.
-func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namespace, cacheType, cacheSize string) error {
+func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namespace, name, cacheType, cacheSize string) error {
 	err := stream.Send(&pb.CreateResponse{
-		Message: "Creating K8s PersistentVolumeClaim: Composer",
+		Message: fmt.Sprintf("Creating K8s PersistentVolumeClaim: %s", name),
 	})
 	if err != nil {
 		return err
@@ -73,29 +75,12 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 
 	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(env.PersistentVolumeClaimInput{
 		Namespace: namespace,
-		Name:      env.CacheComposer,
+		Name:      name,
 		Type:      cacheType,
 		Size:      cacheSize,
 	}))
 	if err != nil {
-		return errors.Wrap(err, "failed to provision composer cache")
-	}
-
-	err = stream.Send(&pb.CreateResponse{
-		Message: "Creating K8s PersistentVolumeClaim: Yarn",
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(env.PersistentVolumeClaimInput{
-		Namespace: namespace,
-		Name:      env.CacheYarn,
-		Type:      cacheType,
-		Size:      cacheSize,
-	}))
-	if err != nil {
-		return errors.Wrap(err, "failed to provision yarn cache")
+		return errors.Wrap(err, "failed to provision cache")
 	}
 
 	return nil
@@ -188,7 +173,7 @@ func stepIngress(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 }
 
 // A step for creating a pod (our Docker Compose environment).
-func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, namespace string, prom int32) error {
+func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, namespace string) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Pod",
 	})
@@ -204,7 +189,6 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		Revision:    in.GitCheckout.Revision,
 		Retention:   in.Metadata.Retention,
 		Services:    in.Compose.Services,
-		Prometheus:  prom,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to build pod")
