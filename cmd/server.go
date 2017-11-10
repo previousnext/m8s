@@ -28,7 +28,8 @@ type cmdServer struct {
 	Token     string
 	Namespace string
 
-	FilesystemSize string
+	CacheSize string
+	CacheType string
 
 	LetsEncryptEmail  string
 	LetsEncryptDomain string
@@ -72,7 +73,7 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 	promlog.Info("Configuring Server")
 
 	// Create a new server which adheres to the GRPC interface.
-	srv, err := server.New(client, config, cmd.Token, cmd.Namespace, cmd.SSHService, cmd.FilesystemSize, cmd.PrometheusApache, server.DockerRegistry{
+	srv, err := server.New(client, config, cmd.Token, cmd.Namespace, cmd.SSHService, cmd.CacheType, cmd.CacheSize, cmd.PrometheusApache, server.DockerRegistry{
 		Registry: cmd.DockerCfgRegistry,
 		Username: cmd.DockerCfgUsername,
 		Password: cmd.DockerCfgPassword,
@@ -121,10 +122,11 @@ func Server(app *kingpin.Application) {
 	cmd.Flag("cert", "Certificate for TLS connection").Default("").OverrideDefaultFromEnvar("M8S_TLS_CERT").StringVar(&c.TLSCert)
 	cmd.Flag("key", "Private key for TLS connection").Default("").OverrideDefaultFromEnvar("M8S_TLS_KEY").StringVar(&c.TLSKey)
 
-	cmd.Flag("token", "Token to authenticate against the API.").Default("").OverrideDefaultFromEnvar("M8S_AUTH_TOKEN").StringVar(&c.Token)
+	cmd.Flag("token", "Token to authenticate against the API.").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("namespace", "Namespace to build environments.").Default("default").OverrideDefaultFromEnvar("M8S_NAMESPACE").StringVar(&c.Namespace)
 
-	cmd.Flag("fs-size", "Size of the filesystem for persistent storage").Default("100Gi").OverrideDefaultFromEnvar("M8S_FS_SIZE").StringVar(&c.FilesystemSize)
+	cmd.Flag("cache-size", "Size of the filesystem for persistent cache storage").Default("100Gi").OverrideDefaultFromEnvar("M8S_CACHE_SIZE").StringVar(&c.CacheSize)
+	cmd.Flag("cache-type", "StorageClass which you wish to use to provision the cache storage").Default("standard").OverrideDefaultFromEnvar("M8S_CACHE_TYPE").StringVar(&c.CacheType)
 
 	// Lets Encrypt.
 	cmd.Flag("lets-encrypt-email", "Email address to register with Lets Encrypt certificate").Default("admin@previousnext.com.au").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_EMAIL").StringVar(&c.LetsEncryptEmail)

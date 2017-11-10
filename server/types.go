@@ -13,7 +13,8 @@ type Server struct {
 	config         *rest.Config
 	Token          string
 	Namespace      string
-	FilesystemSize string
+	CacheType      string
+	CacheSize      string
 	SSHService     string
 	ApacheExporter int32
 	Docker         DockerRegistry
