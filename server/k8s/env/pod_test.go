@@ -79,6 +79,13 @@ func TestPod(t *testing.T) {
 							Value: "bar",
 						},
 					},
+					SecurityContext: &v1.SecurityContext{
+						Capabilities: &v1.Capabilities{
+							Add: []v1.Capability{
+								v1.Capability("NOT_A_CAP"),
+							},
+						},
+					},
 				},
 				{
 					Name:            "mysql",
@@ -213,6 +220,9 @@ func TestPod(t *testing.T) {
 				},
 				Environment: []string{
 					"FOO=bar",
+				},
+				Capabilities: []string{
+					"NOT_A_CAP",
 				},
 			},
 			{

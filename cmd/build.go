@@ -265,12 +265,13 @@ func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
 
 	for name, service := range dc.Services {
 		resp.Services = append(resp.Services, &pb.ComposeService{
-			Name:        name,
-			Image:       service.Image,
-			Volumes:     service.Volumes,
-			Ports:       service.Ports,
-			Environment: service.Environment,
-			Tmpfs:       service.Tmpfs,
+			Name:         name,
+			Image:        service.Image,
+			Volumes:      service.Volumes,
+			Ports:        service.Ports,
+			Environment:  service.Environment,
+			Tmpfs:        service.Tmpfs,
+			Capabilities: service.CapAdd,
 			Limits: &pb.Resource{
 				CPU:    service.Deploy.Resources.Limits.CPUs,
 				Memory: service.Deploy.Resources.Limits.Memory,

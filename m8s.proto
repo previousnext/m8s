@@ -68,6 +68,7 @@ message ComposeService {
     repeated string Ports = 6;
     repeated string Environment = 7;
     repeated string Tmpfs = 8;
+    repeated string Capabilities = 9;
 }
 
 // Resource is used for setting CPU and Memory of the build.
