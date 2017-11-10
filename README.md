@@ -22,6 +22,29 @@ We can the following directories by default:
 * **Composer** - /root/.composer
 * **Yarn** - /usr/local/share/.cache/yarn
 
+## Installation
+
+### Prerequisites
+
+- A Kubernetes cluster running v1.6 or later.
+  - [Google Container Engine (GKE)](https://cloud.google.com/container-engine/) is a managed kubernetes-as-a-service provided by Google Cloud Platform (there is a free tier!).
+  - [Kops](https://github.com/kubernetes/kops) is a tool for simplifying the management of DIY kubernetes clusters.
+  - [Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way) is for those who want to manually configure every component of the cluster.
+- SSH key-pair for fetching dependencies from private repositories.
+- A `docker-compose.yml` file in the project root directory.
+  
+### Install m8s API Components
+
+- TBC
+
+### Install m8s Client 
+
+- Download the [latest release binary](https://github.com/previousnext/m8s/releases/latest) for your platform.
+
+### Add Project Configuration
+
+- Add a `m8s.yml` to the project root (see [example](docs/examples/m8s.yml)).
+
 ## Development
 
 ### Tools

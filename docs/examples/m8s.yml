@@ -1,0 +1,6 @@
+---
+build:
+  # Install dependencies.
+  - make dependencies
+  # Build the app.
+  - make build
