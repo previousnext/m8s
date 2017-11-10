@@ -126,7 +126,7 @@ func Server(app *kingpin.Application) {
 	cmd.Flag("namespace", "Namespace to build environments.").Default("default").OverrideDefaultFromEnvar("M8S_NAMESPACE").StringVar(&c.Namespace)
 
 	cmd.Flag("cache-size", "Size of the filesystem for persistent cache storage").Default("100Gi").OverrideDefaultFromEnvar("M8S_CACHE_SIZE").StringVar(&c.CacheSize)
-	cmd.Flag("cache-type", "Type of the filesystem for persistent cache storage").Default("standard").OverrideDefaultFromEnvar("M8S_CACHE_TYPE").StringVar(&c.CacheType)
+	cmd.Flag("cache-type", "StorageClass which you wish to use to provision the cache storage").Default("standard").OverrideDefaultFromEnvar("M8S_CACHE_TYPE").StringVar(&c.CacheType)
 
 	// Lets Encrypt.
 	cmd.Flag("lets-encrypt-email", "Email address to register with Lets Encrypt certificate").Default("admin@previousnext.com.au").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_EMAIL").StringVar(&c.LetsEncryptEmail)
