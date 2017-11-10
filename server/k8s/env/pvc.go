@@ -10,7 +10,8 @@ import (
 type PersistentVolumeClaimInput struct {
 	Namespace string
 	Name      string
-	Storage   string
+	Type      string
+	Size      string
 }
 
 // PersistentVolumeClaim is used for creating a new PersistentVolumeClaim object.
@@ -20,9 +21,7 @@ func PersistentVolumeClaim(input PersistentVolumeClaimInput) *v1.PersistentVolum
 			Namespace: input.Namespace,
 			Name:      input.Name,
 			Annotations: map[string]string{
-				// Setting this storage class to "cache" allows system admins to register any type of
-				// storage backend for "cache" claims.
-				"volume.beta.kubernetes.io/storage-class": "cache",
+				"volume.beta.kubernetes.io/storage-class": input.Type,
 				"author": "m8s",
 			},
 		},
@@ -32,7 +31,7 @@ func PersistentVolumeClaim(input PersistentVolumeClaimInput) *v1.PersistentVolum
 			},
 			Resources: v1.ResourceRequirements{
 				Requests: v1.ResourceList{
-					v1.ResourceStorage: resource.MustParse(input.Storage),
+					v1.ResourceStorage: resource.MustParse(input.Size),
 				},
 			},
 		},

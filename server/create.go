@@ -34,7 +34,7 @@ func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return fmt.Errorf("git repository was not provided")
 	}
 
-	err := stepClaims(srv.client, stream, srv.Namespace, srv.FilesystemSize)
+	err := stepClaims(srv.client, stream, srv.Namespace, srv.CacheType, srv.CacheSize)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 }
 
 // A step for provisioning caching storage.
-func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namespace, fs string) error {
+func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namespace, cacheType, cacheSize string) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s PersistentVolumeClaim: Composer",
 	})
@@ -74,7 +74,8 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(env.PersistentVolumeClaimInput{
 		Namespace: namespace,
 		Name:      env.CacheComposer,
-		Storage:   fs,
+		Type:      cacheType,
+		Size:      cacheSize,
 	}))
 	if err != nil {
 		return errors.Wrap(err, "failed to provision composer cache")
@@ -90,7 +91,8 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 	_, err = utils.PersistentVolumeClaimCreate(client, env.PersistentVolumeClaim(env.PersistentVolumeClaimInput{
 		Namespace: namespace,
 		Name:      env.CacheYarn,
-		Storage:   fs,
+		Type:      cacheType,
+		Size:      cacheSize,
 	}))
 	if err != nil {
 		return errors.Wrap(err, "failed to provision yarn cache")
