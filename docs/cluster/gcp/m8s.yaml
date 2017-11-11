@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: previousnext/m8s:v0.4.1
+        image: previousnext/m8s:<LATEST_VERSION_HERE>
         imagePullPolicy: Always
         env:
         - name:  M8S_TOKEN
