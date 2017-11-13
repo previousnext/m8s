@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsouza/go-dockerclient"
 	"github.com/gosexy/to"
 	"github.com/pkg/errors"
 	"github.com/previousnext/compose"
@@ -21,21 +20,20 @@ import (
 )
 
 type cmdBuild struct {
-	API              string
-	Token            string
-	Name             string
-	Domains          string
-	BasicAuthUser    string
-	BasicAuthPass    string
-	Retention        time.Duration
-	GitRepository    string
-	GitRevision      string
-	DockerCompose    string
-	DockerRepository string
-	ExecFile         string
-	ExecStep         string
-	ExecInside       string
-	Timeout          time.Duration
+	API           string
+	Token         string
+	Name          string
+	Domains       string
+	BasicAuthUser string
+	BasicAuthPass string
+	Retention     time.Duration
+	GitRepository string
+	GitRevision   string
+	DockerCompose string
+	ExecFile      string
+	ExecStep      string
+	ExecInside    string
+	Timeout       time.Duration
 }
 
 func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
@@ -58,19 +56,6 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to connect")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
-	defer cancel()
-
-	// Query the API for the Docker configuration.
-	dockercfg, err := client.DockerCfg(ctx, &pb.DockerCfgRequest{
-		Credentials: &pb.Credentials{
-			Token: cmd.Token,
-		},
-	})
-	if err != nil {
-		return errors.Wrap(err, "failed to request Docker configuration to pushing built image")
-	}
-
 	// These are additional environment variables that have been provided outside of this build, with the intent
 	// for them to be injected into our running containers.
 	//   eg. M8S_ENV_FOO=bar, will inject FOO=bar into the containers.
@@ -79,26 +64,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	for name, service := range dc.Services {
 		// Attach our addition environment variables to the service.
 		service.Environment = append(service.Environment, extraEnvs...)
-
-		// Build new images if the Docker Compose file is using the "build" option for a service.
-		if service.Build != "" {
-			fmt.Println("Detected Docker Compose file is using 'build' option. Packaging service:", name)
-
-			tag := fmt.Sprintf("%s-%s", cmd.Name, name)
-
-			err := buildAndPush(service.Build, cmd.DockerRepository, tag, dockercfg)
-			if err != nil {
-				return errors.Wrap(err, "failed to build image")
-			}
-
-			// Pass this on so our API uses this image for the build.
-			service.Image = fmt.Sprintf("%s:%s", cmd.DockerRepository, tag)
-		}
-
 		dc.Services[name] = service
 	}
 
-	ctx, cancel = context.WithTimeout(context.Background(), cmd.Timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
 	defer cancel()
 
 	annotations, err := metadata.Annotations(os.Environ())
@@ -190,47 +159,10 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("M8S_GIT_REPO").StringVar(&c.GitRepository)
 	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
 	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
-	cmd.Flag("docker-repository", "Docker repository to push built images").Default("").OverrideDefaultFromEnvar("M8S_DOCKER_REPOSITORY").StringVar(&c.DockerRepository)
 	cmd.Flag("exec-file", "Configuration file which contains execution steps").Default("m8s.yml").OverrideDefaultFromEnvar("M8S_EXEC_FILE").StringVar(&c.ExecFile)
 	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Default("build").OverrideDefaultFromEnvar("M8S_EXEC_STEP").StringVar(&c.ExecStep)
 	cmd.Flag("exec-inside", "Docker repository to push built images").Default("php").OverrideDefaultFromEnvar("M8S_EXEC_INSIDE").StringVar(&c.ExecInside)
 	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)
-}
-
-// A helper function to building and pushing an image to a Docker registry.
-func buildAndPush(dir, repository, tag string, dockercfg *pb.DockerCfgResponse) error {
-	client, err := docker.NewClientFromEnv()
-	if err != nil {
-		return err
-	}
-
-	creds := docker.AuthConfigurations{
-		Configs: map[string]docker.AuthConfiguration{
-			dockercfg.Registry: {
-				Username:      dockercfg.Username,
-				Password:      dockercfg.Password,
-				Email:         dockercfg.Email,
-				ServerAddress: dockercfg.Registry,
-			},
-		},
-	}
-
-	err = client.BuildImage(docker.BuildImageOptions{
-		Name:         fmt.Sprint("%s:%s", repository, tag),
-		Dockerfile:   "Dockerfile",
-		Pull:         true,
-		OutputStream: os.Stdout,
-		ContextDir:   dir,
-		AuthConfigs:  creds,
-	})
-	if err != nil {
-		return err
-	}
-
-	return client.PushImage(docker.PushImageOptions{
-		Name: repository,
-		Tag:  tag,
-	}, creds.Configs[dockercfg.Registry])
 }
 
 // Helper function to load testing steps.
