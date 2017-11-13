@@ -7,7 +7,7 @@ The following document is for creating a M8s API backed by Kubernetes and Google
 
 Known limitations:
 
-* We don't cache composer or yarn packaages, we don't have a solution for "easy" network storage on GCP.
+* We don't cache composer or yarn packages, we don't have a solution for "easy" network storage on GCP.
 
 ## Bootstrapping a cluster
 
@@ -143,4 +143,4 @@ api.m8sdemo.com -> 104.197.224.56
 
 ## Congratulations
 
-You are now ready to setup a Pipeline to create new environments!
+You are now ready to set up a Pipeline to create new environments!
