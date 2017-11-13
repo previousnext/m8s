@@ -102,11 +102,6 @@ The values will need to be changed in the [m8s.yaml](m8s.yaml) file - currently 
 - `M8S_NAMESPACE` - A Kubernetes namespace to encapsulate all m8s environments (eg `m8s`).
 - `M8S_LETS_ENCRYPT_DOMAIN` - The domain used for the m8s API server, usually something like `api.m8sdemo.com`.
 - `M8S_LETS_ENCRYPT_EMAIL` - A valid email address used to validate the domain. It does not have to match the domain being validated.
-- `M8S_DOCKERCFG_REGISTRY` - Container registry to pull containers from (if using DockerHub this can be left as the default value).
-- `M8S_DOCKERCFG_USERNAME` - Username of account to authenticate to container registry.
-- `M8S_DOCKERCFG_PASSWORD` - Corresponding password for container registry account.
-- `M8S_DOCKERCFG_EMAIL` - Corresponding email for container registry account.
-- `M8S_DOCKERCFG_AUTH` - Authentication token for container registry account.
 
 #### Create SSH Key Pair
 
