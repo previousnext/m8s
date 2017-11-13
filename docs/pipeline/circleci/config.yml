@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: previousnext/m8s:<LATEST_VERSION_HERE>
+      - image: previousnext/m8s:latest
     steps:
       - checkout
       - run:
