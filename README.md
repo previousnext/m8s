@@ -67,7 +67,20 @@ Our product roadmap can be found [here](/issues)
 
 ### Workflow
 
-(While in the `workspace` directory)
+* Install Go: https://golang.org/doc/install
+* Fork this repository
+* Checkout the code under your GOPATH
+
+```bash
+# Make sure the parent directories exist.
+mkdir -p $GOPATH/src/github.com/<your github>
+
+# Checkout the codebase.
+git clone git@github.com:<your github>/m8s $GOPATH/src/github.com/<your github>/m8s
+
+# Change into the project to run workflow commands.
+cd $GOPATH/src/github.com/<your github>/m8s
+```
 
 **Installing a new dependency**
 
