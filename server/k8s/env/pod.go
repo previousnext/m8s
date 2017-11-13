@@ -70,11 +70,6 @@ func Pod(input PodInput) (*v1.Pod, error) {
 					},
 				},
 			},
-			ImagePullSecrets: []v1.LocalObjectReference{
-				{
-					Name: SecretDockerCfg,
-				},
-			},
 		},
 	}
 

@@ -31,16 +31,6 @@ spec:
           value: "CHANGE_ME"
         - name:  M8S_LETS_ENCRYPT_EMAIL
           value: "CHANGE_ME"
-        - name:  M8S_DOCKERCFG_REGISTRY
-          value: "https://index.docker.io/v1/"
-        - name:  M8S_DOCKERCFG_USERNAME
-          value: "CHANGE_ME"
-        - name:  M8S_DOCKERCFG_PASSWORD
-          value: "CHANGE_ME"
-        - name:  M8S_DOCKERCFG_EMAIL
-          value: "CHANGE_ME"
-        - name:  M8S_DOCKERCFG_AUTH
-          value: "CHANGE_ME"
         # We mark this variable as empty.
         # We don't have a caching solution for GCP yet.
         - name: M8S_CACHE_DIRS

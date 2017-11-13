@@ -6,9 +6,6 @@ service m8s {
     rpc Create (CreateRequest) returns (stream CreateResponse) {}
     rpc Step (StepRequest) returns (stream StepResponse) {}
     rpc Describe (DescribeRequest) returns (DescribeResponse) {}
-
-    // Used for getting Docker registry secrets.
-    rpc DockerCfg (DockerCfgRequest) returns (DockerCfgResponse) {}
 }
 
 // Credentials is used for authenicating with the PR service.
@@ -113,18 +110,4 @@ message DescribeResponse {
 // DescribeRequest asks for all the Environments.
 message ListRequest {
     Credentials Credentials = 1;
-}
-
-// DockerCfgRequest requests the Docker configuration.
-message DockerCfgRequest {
-    Credentials Credentials = 1;
-}
-
-// DockerCfgResponse returns the Docker configuration.
-message DockerCfgResponse {
-    string Registry = 1;
-    string Username = 2;
-    string Password = 3;
-    string Email = 4;
-    string Auth = 5;
 }

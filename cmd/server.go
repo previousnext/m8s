@@ -36,14 +36,6 @@ type cmdServer struct {
 	LetsEncryptDomain string
 	LetsEncryptCache  string
 
-	SSHService string
-
-	DockerCfgRegistry string
-	DockerCfgUsername string
-	DockerCfgPassword string
-	DockerCfgEmail    string
-	DockerCfgAuth     string
-
 	PrometheusPort string
 	PrometheusPath string
 }
@@ -78,18 +70,10 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		Config:    config,
 		Token:     cmd.Token,
 		Namespace: cmd.Namespace,
-		SSH:       cmd.SSHService,
 		Cache: server.InputCache{
 			Directories: cmd.CacheDirectories,
 			Type:        cmd.CacheType,
 			Size:        cmd.CacheSize,
-		},
-		Dockercfg: server.DockerRegistry{
-			Registry: cmd.DockerCfgRegistry,
-			Username: cmd.DockerCfgUsername,
-			Password: cmd.DockerCfgPassword,
-			Email:    cmd.DockerCfgEmail,
-			Auth:     cmd.DockerCfgAuth,
 		},
 	})
 	if err != nil {
@@ -145,16 +129,6 @@ func Server(app *kingpin.Application) {
 	cmd.Flag("lets-encrypt-email", "Email address to register with Lets Encrypt certificate").Default("admin@previousnext.com.au").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_EMAIL").StringVar(&c.LetsEncryptEmail)
 	cmd.Flag("lets-encrypt-domain", "Domain to use for Lets Encrypt certificate").Default("").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_DOMAIN").StringVar(&c.LetsEncryptDomain)
 	cmd.Flag("lets-encrypt-cache", "Cache directory to use for Lets Encrypt").Default("/tmp").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_CACHE").StringVar(&c.LetsEncryptCache)
-
-	// SSH Server.
-	cmd.Flag("ssh-service", "SSH server image to deploy").Default("ssh-server").OverrideDefaultFromEnvar("M8S_SSH_SERVICE").StringVar(&c.SSHService)
-
-	// DockerCfg.
-	cmd.Flag("dockercfg-registry", "Registry for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("M8S_DOCKERCFG_REGISTRY").StringVar(&c.DockerCfgRegistry)
-	cmd.Flag("dockercfg-username", "Username for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("M8S_DOCKERCFG_USERNAME").StringVar(&c.DockerCfgUsername)
-	cmd.Flag("dockercfg-password", "Password for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("M8S_DOCKERCFG_PASSWORD").StringVar(&c.DockerCfgPassword)
-	cmd.Flag("dockercfg-email", "Email for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("M8S_DOCKERCFG_EMAIL").StringVar(&c.DockerCfgEmail)
-	cmd.Flag("dockercfg-auth", "Auth token for Docker Hub credentials").Default("").OverrideDefaultFromEnvar("M8S_DOCKERCFG_AUTH").StringVar(&c.DockerCfgAuth)
 
 	// Promtheus.
 	cmd.Flag("prometheus-port", "Prometheus metrics port").Default(":9000").OverrideDefaultFromEnvar("M8S_METRICS_PORT").StringVar(&c.PrometheusPort)

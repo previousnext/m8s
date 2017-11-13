@@ -177,11 +177,6 @@ func TestPod(t *testing.T) {
 					},
 				},
 			},
-			ImagePullSecrets: []v1.LocalObjectReference{
-				{
-					Name: SecretDockerCfg,
-				},
-			},
 		},
 	}
 
