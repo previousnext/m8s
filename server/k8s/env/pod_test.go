@@ -11,10 +11,7 @@ import (
 )
 
 func TestPod(t *testing.T) {
-	var (
-		perm = int32(256)
-		prom = int32(9117)
-	)
+	var perm = int32(256)
 
 	want := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -24,23 +21,12 @@ func TestPod(t *testing.T) {
 				"env": "pr1",
 			},
 			Annotations: map[string]string{
-				"author":                              "m8s",
-				"prometheus.io/scrape":                "true",
-				"prometheus.io/port":                  "9117",
+				"author": "m8s",
 				metadata.AnnotationBitbucketRepoOwner: "nick",
 			},
 		},
 		Spec: v1.PodSpec{
 			Containers: []v1.Container{
-				{
-					Name:  "apache-exporter",
-					Image: "previousnext/apache-exporter:latest",
-					Ports: []v1.ContainerPort{
-						{
-							ContainerPort: 9117,
-						},
-					},
-				},
 				{
 					Name:            "app",
 					Image:           "foo/bar",
@@ -56,11 +42,11 @@ func TestPod(t *testing.T) {
 							MountPath: "/root/.ssh",
 						},
 						{
-							Name:      CacheComposer,
+							Name:      "composer",
 							MountPath: "/root/.composer",
 						},
 						{
-							Name:      CacheYarn,
+							Name:      "yarn",
 							MountPath: "/usr/local/share/.cache/yarn",
 						},
 						{
@@ -102,11 +88,11 @@ func TestPod(t *testing.T) {
 							MountPath: "/root/.ssh",
 						},
 						{
-							Name:      CacheComposer,
+							Name:      "composer",
 							MountPath: "/root/.composer",
 						},
 						{
-							Name:      CacheYarn,
+							Name:      "yarn",
 							MountPath: "/usr/local/share/.cache/yarn",
 						},
 					},
@@ -144,11 +130,11 @@ func TestPod(t *testing.T) {
 							MountPath: "/root/.ssh",
 						},
 						{
-							Name:      CacheComposer,
+							Name:      "composer",
 							MountPath: "/root/.composer",
 						},
 						{
-							Name:      CacheYarn,
+							Name:      "yarn",
 							MountPath: "/usr/local/share/.cache/yarn",
 						},
 					},
@@ -175,18 +161,18 @@ func TestPod(t *testing.T) {
 					},
 				},
 				{
-					Name: CacheComposer,
+					Name: "composer",
 					VolumeSource: v1.VolumeSource{
 						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-							ClaimName: CacheComposer,
+							ClaimName: "composer",
 						},
 					},
 				},
 				{
-					Name: CacheYarn,
+					Name: "yarn",
 					VolumeSource: v1.VolumeSource{
 						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-							ClaimName: CacheYarn,
+							ClaimName: "yarn",
 						},
 					},
 				},
@@ -240,7 +226,16 @@ func TestPod(t *testing.T) {
 				Image: "previousnext/solr:5.x",
 			},
 		},
-		Prometheus: prom,
+		Caches: []PodInputCache{
+			{
+				Name: "composer",
+				Path: "/root/.composer",
+			},
+			{
+				Name: "yarn",
+				Path: "/usr/local/share/.cache/yarn",
+			},
+		},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, want.ObjectMeta, have.ObjectMeta)
