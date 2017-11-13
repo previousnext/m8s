@@ -24,6 +24,8 @@ VERSION=$(shell git describe --tags --always)
 release-docker:
 	docker build -t ${IMAGE}:${VERSION} .
 	docker push ${IMAGE}:${VERSION}
+	docker build -t ${IMAGE}:latest .
+	docker push ${IMAGE}:latest
 
 release-github: build
 	ghr -u previousnext "${VERSION}" ./bin/
