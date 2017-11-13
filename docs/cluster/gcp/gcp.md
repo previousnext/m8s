@@ -52,6 +52,8 @@ This project provides us with access to our build environments.
 
 #### Deploy
 
+See the example k8s manifest here - [traefik.yaml](traefik.yaml).
+
 ```bash
 kubectl create -f traefik.yaml
 ```
