@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  app:
+    image: previousnext/php:7.1-dev
+    ports:
+      - "80:80"
+      - "3306:3306"
+      - "8983:8983"
+      - "8025:8025"
+    volumes:
+      - .:/data
+
+  db:
+    image: mariadb
+    network_mode: service:php
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=local
+      - MYSQL_USER=drupal
+      - MYSQL_PASSWORD=drupal
+
+  mail:
+    image: previousnext/mailhog:latest
+    network_mode: service:php
+
+  search:
+    image: previousnext/solr:5.x
+    network_mode: service:php

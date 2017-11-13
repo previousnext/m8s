@@ -34,6 +34,12 @@ A continuous integration service / setup which will send information to the M8s 
 * Jenkins - Coming soon...
 * TravisCI - Coming soon...
 
+**Projects**
+
+Example implementations for applications.
+
+* [Drupal](/docs/projects/drupal/drupal.md)
+
 ## Documentation
 
 * [Cache](/docs/cache.md)
