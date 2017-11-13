@@ -94,12 +94,27 @@ site1.d8sdemo.com
 
 ### Requirements
 
-* **Token** - A random string used for M8s CLi -> API authentication
-* **LetsEncrypt** - TLS is required for this endpoint
-* **Docker Account** - Credentials used for pulling private images
-* **SSH Keypair** - A new keypair for allowing environment to ssh remote endpoints
+#### Update m8s.yaml
 
-The above are values which will need to be changed in the `m8s.yaml` file.
+The values will need to be changed in the [m8s.yaml](m8s.yaml) file - currently all set to `CHANGE_ME`.
+
+- `M8S_TOKEN` - An arbitrary random string used for M8s CLI -> API authentication (eg `openssl rand -base64 32`).
+- `M8S_NAMESPACE` - A Kubernetes namespace to encapsulate all m8s environments (eg `m8s`).
+- `M8S_LETS_ENCRYPT_DOMAIN` - The domain used for the m8s API server, usually something like `api.m8sdemo.com`.
+- `M8S_LETS_ENCRYPT_EMAIL` - A valid email address used to validate the domain. It does not have to match the domain being validated.
+- `M8S_DOCKERCFG_REGISTRY` - Container registry to pull containers from (eg `registry.hub.docker.com` if using DockerHub).
+- `M8S_DOCKERCFG_USERNAME` - Username of account to authenticate to container registry.
+- `M8S_DOCKERCFG_PASSWORD` - Corresponding password for container registry account.
+- `M8S_DOCKERCFG_EMAIL` - Corresponding email for container registry account.
+- `M8S_DOCKERCFG_AUTH` - Authentication token for container registry account.
+
+#### Create SSH Key Pair
+
+This command creates a 4096 bit RSA key-pair in the current directory. Adjust to suit your needs.
+
+```
+ssh-keygen -t rsa -b 4096 -C "m8s@m8sdemo.com" -f ./m8s.id_rsa -q -N ""
+```
 
 #### Create a namespace
 
