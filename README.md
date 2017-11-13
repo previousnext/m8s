@@ -50,7 +50,7 @@ Built in partnership with:
 
 ### Roadmap
 
-Our product roadmap can be found [here](/ROADMAP.md)
+Our product roadmap can be found [here](/issues)
 
 ### Tools
 
