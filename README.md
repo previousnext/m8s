@@ -7,22 +7,50 @@
 
 ## Overview
 
-m8s is a CLI and API for building temporary environments in Kubernetes.
+M8s is a CLI and API for building temporary environments in Kubernetes.
 
 Often in your CI/CD workflows, you want a real environment to run automated or manual tests. For example, you might want to preview changes you are making in a branch or Pull Request. m8s provides a simple tool for acheiving this. It takes a docker compose file, and translates that into a pod definition Kubernetes understands, and deploys it on Kubernetes. The pod is _ephemeral_, meaning it's not meant to stick around for long, and any data will be deleted once the pod is removed.
 
 ![Diagram](/docs/diagram.png "Diagram")
 
-## How this works
+## Getting Started
 
-### Caches
+To get started you will need 1 of each of the following:
 
-We can the following directories by default:
+**Cluster**
 
-* **Composer** - /root/.composer
-* **Yarn** - /usr/local/share/.cache/yarn
+Kubernetes and the M8s API server running.
+
+* [GKE](/docs/cluster/gcp/gcp.md)
+* Openshift - Coming soon...
+* Kops - Coming soon...
+
+**Pipelines**
+
+A continuous integration service / setup which will send information to the M8s API.
+
+* [CircleCI](/docs/pipeline/circleci/circleci.md)
+* Bitbucket Pipelines - Coming soon...
+* Jenkins - Coming soon...
+* TravisCI - Coming soon...
+
+## Documentation
+
+* [Cache](/docs/cache.md)
+* [Solr](/docs/solr.md)
+* [Mailhog](/docs/mailhog.md)
+
+## Acknowledgements
+
+Built in partnership with:
+
+* Transport for NSW - https://www.transport.nsw.gov.au
 
 ## Development
+
+### Roadmap
+
+Our product roadmap can be found [here](/ROADMAP.md)
 
 ### Tools
 

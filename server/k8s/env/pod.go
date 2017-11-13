@@ -21,7 +21,13 @@ type PodInput struct {
 	Revision    string
 	Retention   string
 	Services    []*pb.ComposeService
-	Prometheus  int32
+	Caches      []PodInputCache
+}
+
+// PodInputCache is used for passing in cache configuration to generate a pod.
+type PodInputCache struct {
+	Name string
+	Path string
 }
 
 // Pod converts a Docker Compose file into a Kubernetes Deployment object.
@@ -39,23 +45,10 @@ func Pod(input PodInput) (*v1.Pod, error) {
 				"env": input.Name,
 			},
 			Annotations: map[string]string{
-				"prometheus.io/scrape": "true",
-				"prometheus.io/port":   fmt.Sprintf("%d", input.Prometheus),
-				"author":               "m8s",
+				"author": "m8s",
 			},
 		},
 		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  "apache-exporter",
-					Image: "previousnext/apache-exporter:latest",
-					Ports: []v1.ContainerPort{
-						{
-							ContainerPort: input.Prometheus,
-						},
-					},
-				},
-			},
 			Volumes: []v1.Volume{
 				{
 					Name: "ssh",
@@ -76,24 +69,19 @@ func Pod(input PodInput) (*v1.Pod, error) {
 						},
 					},
 				},
-				{
-					Name: CacheComposer,
-					VolumeSource: v1.VolumeSource{
-						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-							ClaimName: CacheComposer,
-						},
-					},
-				},
-				{
-					Name: CacheYarn,
-					VolumeSource: v1.VolumeSource{
-						PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
-							ClaimName: CacheYarn,
-						},
-					},
-				},
 			},
 		},
+	}
+
+	for _, cache := range input.Caches {
+		pod.Spec.Volumes = append(pod.Spec.Volumes, v1.Volume{
+			Name: cache.Name,
+			VolumeSource: v1.VolumeSource{
+				PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+					ClaimName: cache.Name,
+				},
+			},
+		})
 	}
 
 	for _, annotation := range input.Annotations {
@@ -120,14 +108,6 @@ func Pod(input PodInput) (*v1.Pod, error) {
 					ReadOnly:  true,
 					MountPath: "/root/.ssh",
 				},
-				{
-					Name:      CacheComposer,
-					MountPath: "/root/.composer",
-				},
-				{
-					Name:      CacheYarn,
-					MountPath: "/usr/local/share/.cache/yarn",
-				},
 			},
 		}
 
@@ -136,7 +116,7 @@ func Pod(input PodInput) (*v1.Pod, error) {
 			return pod, err
 		}
 
-		mounts, volumes, err := podVolumes(service.Volumes, service.Tmpfs)
+		mounts, volumes, err := podVolumes(service.Volumes, service.Tmpfs, input.Caches)
 		if err != nil {
 			return pod, err
 		}
@@ -220,11 +200,18 @@ func podResources(reservations, limits *pb.Resource) (v1.ResourceRequirements, e
 }
 
 // Helper function to extract volumes from a service definition.
-func podVolumes(serviceVolumes []string, tmps []string) ([]v1.VolumeMount, []v1.Volume, error) {
+func podVolumes(serviceVolumes []string, tmps []string, caches []PodInputCache) ([]v1.VolumeMount, []v1.Volume, error) {
 	var (
 		mounts  []v1.VolumeMount
 		volumes []v1.Volume
 	)
+
+	for _, cache := range caches {
+		mounts = append(mounts, v1.VolumeMount{
+			Name:      cache.Name,
+			MountPath: cache.Path,
+		})
+	}
 
 	// Adds the Docker Compose volumes to our Pod object.
 	for _, serviceVolume := range serviceVolumes {

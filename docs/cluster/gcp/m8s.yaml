@@ -1,0 +1,112 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: api
+  name: api
+  namespace: m8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "9000"
+        prometheus.io/scrape: "true"
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: previousnext/m8s:latest
+        imagePullPolicy: Always
+        env:
+        - name:  M8S_TOKEN
+          value: "CHANGE_ME"
+        - name:  M8S_NAMESPACE
+          value: "m8s"
+        - name:  M8S_LETS_ENCRYPT_DOMAIN
+          value: "CHANGE_ME"
+        - name:  M8S_LETS_ENCRYPT_EMAIL
+          value: "CHANGE_ME"
+        - name:  M8S_DOCKERCFG_REGISTRY
+          value: "https://index.docker.io/v1/"
+        - name:  M8S_DOCKERCFG_USERNAME
+          value: "CHANGE_ME"
+        - name:  M8S_DOCKERCFG_PASSWORD
+          value: "CHANGE_ME"
+        - name:  M8S_DOCKERCFG_EMAIL
+          value: "CHANGE_ME"
+        - name:  M8S_DOCKERCFG_AUTH
+          value: "CHANGE_ME"
+        # We mark this variable as empty.
+        # We don't have a caching solution for GCP yet.
+        - name: M8S_CACHE_DIRS
+        ports:
+        - containerPort: 443
+        resources:
+          limits:
+            cpu: 100m
+            memory: 40Mi
+          requests:
+            cpu: 100m
+            memory: 40Mi
+        volumeMounts:
+        - name: acme-cache
+          mountPath: "/tmp"
+      volumes:
+      - name: acme-cache
+        persistentVolumeClaim:
+          claimName: api-tls
+---
+# Provides storage for our LetsEncrypt certificates.
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: api-tls
+  namespace: m8s
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "standard"
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# This provides us with a `/root/.ssh` directory within our environments.
+# Allowing us to:
+#   * Have ssh access to other endpoints (id_rsa)
+#   * Not be prompted for Github ssh connections (known_hosts)
+apiVersion: v1
+data:
+  # For private checkouts eg. Composer
+  # To generate this you will need to:
+  #   * Base64 encode a SSH private key
+  #   * Remove '\n' characters
+  # id_rsa: OPTIONAL_CHANGE_ME
+  known_hosts: fDF8dzJZU1RJSGNQN3pWSnJMZWJUOXZWZWJNekNjPXx1VmFQT1ZxMXorcisyem1vblhmejhzWkNxRGM9IHNzaC1yc2EgQUFBQUIzTnphQzF5YzJFQUFBQUJJd0FBQVFFQXEyQTdoUkdtZG5tOXRVRGJPOUlEU3dCSzZUYlFhK1BYWVBDUHk2cmJUclR0dzdQSGtjY0tycHAweVZocDVIZEVJY0tyNnBMbFZEQmZPTFg5UVVzeUNPVjB3emZqSUpObEdFWXNkbExKaXpIaGJuMm1VanZTQUhRcVpFVFlQODFlRnpMUU5uUEh0NEVWVlVoN1ZmREVTVTg0S2V6bUQ1UWxXcFhMbXZVMzEveU1mK1NlOHhoSFR2S1NDWklGSW1Xd29HNm1iVW9XZjluenBJb2FTakIrd2VxcVVVbXBhYWFzWFZhbDcySitVWDJCKzJSUFczUmNUMGVPelFncWxKTDNSS3JUSnZkc2pFM0pFQXZHcTNsR0hTWlh5MjhHM3NrdWEyU21WaS93NHlDRTZnYk9EcW5UV2xnNyt3QzYwNHlkR1hBOFZKaVM1YXA0M0pYaVVGRkFhUT09Cg==
+kind: Secret
+metadata:
+  name: ssh
+  namespace: m8s
+type: Opaque
+---
+# Exposes our M8s API to the world.
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: api
+  name: api
+  namespace: m8s
+spec:
+  ports:
+  - name: tls
+    port: 443
+    targetPort: 443
+  selector:
+    app: api
+  type: LoadBalancer
