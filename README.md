@@ -38,7 +38,7 @@ A continuous integration service / setup which will send information to the M8s 
 
 Example implementations for applications.
 
-* [Drupal](/docs/projects/drupal/drupal.md)
+* [Drupal](/docs/project/drupal/drupal.md)
 
 ## Documentation
 
