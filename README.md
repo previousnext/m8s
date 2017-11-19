@@ -21,7 +21,7 @@ To get started you will need 1 of each of the following:
 
 Kubernetes and the M8s API server running.
 
-* [GKE](/docs/cluster/gcp/gcp.md)
+* GKE ([Easy](/docs/cluster/gcp/easy.md)|[Comprehensive](/docs/cluster/gcp/comprehensive.md))
 * Openshift - Coming soon...
 * Kops - Coming soon...
 
