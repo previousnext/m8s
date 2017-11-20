@@ -1,8 +1,10 @@
 package cmd
 
 import (
-	"fmt"
+	"html/template"
+	"os"
 
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/previousnext/m8s/cmd/install/base"
 	"github.com/previousnext/m8s/cmd/install/m8s"
@@ -12,7 +14,18 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const success = `Deployed!
+
+To get the status of the components:
+
+  kubectl -n {{ . }} get pods
+
+To get a list of IP address for setting up DNS:
+
+  kubectl -n {{ . }} get svc`
+
 type cmdInstall struct {
+	APIServer  string
 	KubeConfig string
 	Token      string
 	Namespace  string
@@ -21,7 +34,12 @@ type cmdInstall struct {
 }
 
 func (cmd *cmdInstall) run(c *kingpin.ParseContext) error {
-	config, err := clientcmd.BuildConfigFromFlags("", cmd.KubeConfig)
+	kubeconfig, err := homedir.Expand(cmd.KubeConfig)
+	if err != nil {
+		return errors.Wrap(err, "failed to get kubeconfig")
+	}
+
+	config, err := clientcmd.BuildConfigFromFlags(cmd.APIServer, kubeconfig)
 	if err != nil {
 		return errors.Wrap(err, "failed to get clientcmd config")
 	}
@@ -46,9 +64,12 @@ func (cmd *cmdInstall) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to install M8s API")
 	}
 
-	fmt.Println("Deployed!")
-	fmt.Printf("Status: kubectl -n %s get pods\n", cmd.Namespace)
-	fmt.Printf("Entrypoints: kubectl -n %s get svc\n", cmd.Namespace)
+	t := template.Must(template.New("success").Parse(success))
+
+	err = t.Execute(os.Stdout, cmd.Namespace)
+	if err != nil {
+		return errors.Wrap(err, "failed to generate success message")
+	}
 
 	return nil
 }
@@ -58,7 +79,8 @@ func Install(app *kingpin.Application) {
 	c := new(cmdInstall)
 
 	cmd := app.Command("install", "Installs M8s server components").Action(c.run)
-	cmd.Flag("kubeconfig", "Path to users KubeConfig file").Default("$HOME/.kube/config").StringVar(&c.KubeConfig)
+	cmd.Flag("apiserver", "Kubernetes apiserver endpoint eg. http://localhost:8080").StringVar(&c.APIServer)
+	cmd.Flag("kubeconfig", "Path to users KubeConfig file").Default("~/.kube/config").StringVar(&c.KubeConfig)
 	cmd.Flag("namespace", "Namespace to deploy the M8s components into").Default("m8s").StringVar(&c.Namespace)
 	cmd.Flag("token", "Token which the API server will use for authentication").Required().StringVar(&c.Token)
 	cmd.Flag("domain", "Domain which the M8s api will respond on").Required().StringVar(&c.Domain)
