@@ -22,7 +22,8 @@ To get the status of the components:
 
 To get a list of IP address for setting up DNS:
 
-  kubectl -n {{ . }} get svc`
+  kubectl -n {{ . }} get svc
+`
 
 type cmdInstall struct {
 	APIServer  string
