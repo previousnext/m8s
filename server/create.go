@@ -61,7 +61,7 @@ func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return err
 	}
 
-	return stepPod(srv.client, in, stream, srv.Namespace)
+	return stepPod(srv.client, in, stream, srv.Namespace, srv.Cache.Directories)
 }
 
 // A step for provisioning caching storage.
@@ -173,12 +173,21 @@ func stepIngress(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 }
 
 // A step for creating a pod (our Docker Compose environment).
-func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, namespace string) error {
+func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, namespace string, caches []CacheDirectory) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Pod",
 	})
 	if err != nil {
 		return err
+	}
+
+	var inputCaches []env.PodInputCache
+
+	for _, cache := range caches {
+		inputCaches = append(inputCaches, env.PodInputCache{
+			Name: cache.Name,
+			Path: cache.Path,
+		})
 	}
 
 	pod, err := env.Pod(env.PodInput{
@@ -189,6 +198,7 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		Revision:    in.GitCheckout.Revision,
 		Retention:   in.Metadata.Retention,
 		Services:    in.Compose.Services,
+		Caches:      inputCaches,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to build pod")
