@@ -32,6 +32,11 @@ func PodExec(client *kubernetes.Clientset, config *rest.Config, w io.Writer, nam
 	url := req.URL()
 
 	exec, err := remotecommand.NewExecutor(config, "POST", url)
+	if err != nil {
+		return err
+	}
+
+	err = exec.Stream(opts)
 	// This is not the most ideal way to handle the error since its tied to a specfic string.
 	// This appears to be an error from Docker.
 	// https://github.com/docker/compose/issues/3379
@@ -40,5 +45,5 @@ func PodExec(client *kubernetes.Clientset, config *rest.Config, w io.Writer, nam
 		return err
 	}
 
-	return exec.Stream(opts)
+	return nil
 }
