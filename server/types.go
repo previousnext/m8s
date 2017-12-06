@@ -11,6 +11,7 @@ type Server struct {
 	config     *rest.Config
 	Token      string
 	Namespace  string
+	DockerCfg  string
 	SSHService string
 	Cache      Cache
 }
