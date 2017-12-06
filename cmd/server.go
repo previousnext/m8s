@@ -38,6 +38,8 @@ type cmdServer struct {
 
 	PrometheusPort string
 	PrometheusPath string
+
+	DockerCfg string
 }
 
 func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
@@ -70,6 +72,7 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		Config:    config,
 		Token:     cmd.Token,
 		Namespace: cmd.Namespace,
+		DockerCfg: cmd.DockerCfg,
 		Cache: server.InputCache{
 			Directories: cmd.CacheDirectories,
 			Type:        cmd.CacheType,
@@ -133,6 +136,9 @@ func Server(app *kingpin.Application) {
 	// Promtheus.
 	cmd.Flag("prometheus-port", "Prometheus metrics port").Default(":9000").OverrideDefaultFromEnvar("M8S_METRICS_PORT").StringVar(&c.PrometheusPort)
 	cmd.Flag("prometheus-path", "Prometheus metrics path").Default("/metrics").OverrideDefaultFromEnvar("M8S_METRICS_PATH").StringVar(&c.PrometheusPath)
+
+	// Docker Registry.
+	cmd.Flag("dockercfg", "https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry").Default("").Envar("M8S_DOCKERCFG").StringVar(&c.DockerCfg)
 }
 
 // Helper function for serving Prometheus metrics.

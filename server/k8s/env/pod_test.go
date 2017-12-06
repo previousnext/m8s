@@ -177,6 +177,11 @@ func TestPod(t *testing.T) {
 					},
 				},
 			},
+			ImagePullSecrets: []v1.LocalObjectReference{
+				{
+					Name: "super_secret",
+				},
+			},
 		},
 	}
 
@@ -184,11 +189,12 @@ func TestPod(t *testing.T) {
 	assert.Nil(t, err)
 
 	have, err := Pod(PodInput{
-		Namespace:   "test",
-		Name:        "pr1",
-		Annotations: annotations,
-		Repository:  "git@github.com:foo/bar.git",
-		Revision:    "123456789",
+		Namespace:       "test",
+		Name:            "pr1",
+		Annotations:     annotations,
+		Repository:      "git@github.com:foo/bar.git",
+		Revision:        "123456789",
+		ImagePullSecret: "super_secret",
 		Services: []*pb.ComposeService{
 			{
 				Name:  "app",

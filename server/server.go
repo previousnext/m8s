@@ -13,6 +13,7 @@ type Input struct {
 	Config    *rest.Config
 	Token     string
 	Namespace string
+	DockerCfg string
 	SSH       string
 	Cache     InputCache
 }
@@ -31,6 +32,7 @@ func New(input Input) (Server, error) {
 		config:    input.Config,
 		Token:     input.Token,
 		Namespace: input.Namespace,
+		DockerCfg: input.DockerCfg,
 		Cache: Cache{
 			Type: input.Cache.Type,
 			Size: input.Cache.Size,

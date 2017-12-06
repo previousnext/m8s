@@ -14,14 +14,15 @@ import (
 
 // PodInput provides the Pod function with information to produce a Kubernetes Pod.
 type PodInput struct {
-	Namespace   string
-	Name        string
-	Annotations []*pb.Annotation
-	Repository  string
-	Revision    string
-	Retention   string
-	Services    []*pb.ComposeService
-	Caches      []PodInputCache
+	Namespace       string
+	Name            string
+	Annotations     []*pb.Annotation
+	Repository      string
+	Revision        string
+	Retention       string
+	Services        []*pb.ComposeService
+	Caches          []PodInputCache
+	ImagePullSecret string
 }
 
 // PodInputCache is used for passing in cache configuration to generate a pod.
@@ -71,6 +72,14 @@ func Pod(input PodInput) (*v1.Pod, error) {
 				},
 			},
 		},
+	}
+
+	if input.ImagePullSecret != "" {
+		pod.Spec.ImagePullSecrets = []v1.LocalObjectReference{
+			{
+				Name: input.ImagePullSecret,
+			},
+		}
 	}
 
 	for _, cache := range input.Caches {
