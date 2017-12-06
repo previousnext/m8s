@@ -61,7 +61,7 @@ func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return err
 	}
 
-	return stepPod(srv.client, in, stream, srv.Namespace, srv.Cache.Directories)
+	return stepPod(srv.client, in, stream, srv.DockerCfg, srv.Namespace, srv.Cache.Directories)
 }
 
 // A step for provisioning caching storage.
@@ -173,7 +173,7 @@ func stepIngress(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 }
 
 // A step for creating a pod (our Docker Compose environment).
-func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, namespace string, caches []CacheDirectory) error {
+func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, dockercfg, namespace string, caches []CacheDirectory) error {
 	err := stream.Send(&pb.CreateResponse{
 		Message: "Creating K8s Pod",
 	})
@@ -191,14 +191,15 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 	}
 
 	pod, err := env.Pod(env.PodInput{
-		Namespace:   namespace,
-		Name:        in.Metadata.Name,
-		Annotations: in.Metadata.Annotations,
-		Repository:  in.GitCheckout.Repository,
-		Revision:    in.GitCheckout.Revision,
-		Retention:   in.Metadata.Retention,
-		Services:    in.Compose.Services,
-		Caches:      inputCaches,
+		Namespace:       namespace,
+		Name:            in.Metadata.Name,
+		Annotations:     in.Metadata.Annotations,
+		Repository:      in.GitCheckout.Repository,
+		Revision:        in.GitCheckout.Revision,
+		Retention:       in.Metadata.Retention,
+		Services:        in.Compose.Services,
+		Caches:          inputCaches,
+		ImagePullSecret: dockercfg,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to build pod")
