@@ -199,6 +199,7 @@ func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
 		resp.Services = append(resp.Services, &pb.ComposeService{
 			Name:         name,
 			Image:        service.Image,
+			Entrypoint:   service.Entrypoint,
 			Volumes:      service.Volumes,
 			Ports:        service.Ports,
 			Environment:  service.Environment,
