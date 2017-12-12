@@ -35,6 +35,10 @@ func TestPod(t *testing.T) {
 						Limits:   v1.ResourceList{},
 						Requests: v1.ResourceList{},
 					},
+					Command: []string{
+						"echo",
+						"1",
+					},
 					VolumeMounts: []v1.VolumeMount{
 						{
 							Name:      SecretSSH,
@@ -199,6 +203,10 @@ func TestPod(t *testing.T) {
 			{
 				Name:  "app",
 				Image: "foo/bar",
+				Entrypoint: []string{
+					"echo",
+					"1",
+				},
 				Volumes: []string{
 					".:/data",
 				},

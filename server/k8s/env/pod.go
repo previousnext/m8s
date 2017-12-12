@@ -120,6 +120,10 @@ func Pod(input PodInput) (*v1.Pod, error) {
 			},
 		}
 
+		if len(service.Entrypoint) > 0 {
+			container.Command = service.Entrypoint
+		}
+
 		resources, err := podResources(service.Reservations, service.Limits)
 		if err != nil {
 			return pod, err
