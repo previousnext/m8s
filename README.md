@@ -52,55 +52,99 @@ Built in partnership with:
 
 * Transport for NSW - https://www.transport.nsw.gov.au
 
-## Development
+## Developing m8s
 
 ### Roadmap
 
 Our product roadmap can be found [here](/issues)
 
-### Tools
+### Getting Started
+
+If you wish to work on m8s or any of its built-in systems, you will first need Go installed on your machine. Alternatively, you can use the [Vagrantfile](Vagrantfile) in the root of this repo to stand up a virtual machine with the appropriate dev tooling already set up for you.
+
+For local development of m8s, first make sure Go is properly installed and that a GOPATH has been set. You will also need to add $GOPATH/bin to your $PATH.
+
+Next, using Git, clone this repository into $GOPATH/src/github.com/previousnext/m8s. All the necessary dependencies are either vendored or automatically installed, so you just need to type `make test`. This will run the tests and compile the binary. If this exits with exit status 0, then everything is working!
+
+```bash
+$ cd "$GOPATH/src/github.com/previousnext/m8s"
+$ make test
+```
+
+To compile a development version of m8s, run `make build`. This will build everything using gox and put binaries in the bin and $GOPATH/bin folders:
+
+```bash
+$ make build
+...
+
+# Linux:
+$ bin/m8s_linux_amd64 --help
+
+# OSX:
+$ bin/m8s_darwin_amd64 --help
+```
+
+### Dependencies
+
+m8s stores its dependencies under `vendor/`, which [Go 1.6+ will automatically recognize and load](https://golang.org/cmd/go/#hdr-Vendor_Directories). We use [`dep`](https://github.com/golang/dep) to manage the vendored dependencies.
+
+If you're developing m8s, there are a few tasks you might need to perform.
+
+For details, see:
+
+* [Adding a dependency](#adding-a-dependency)
+* [Updating a dependency](#updating-a-dependency)
+
+### Tooling
 
 * **Dependency management** - https://github.com/golang/dep
 * **Build** - https://github.com/mitchellh/gox
 * **Linting** - https://github.com/golang/lint
 * **GitHub Releases** - https://github.com/tcnksm/ghr
 
-### Workflow
+### Common Tasks
 
-* Install Go: https://golang.org/doc/install
-* Fork this repository
-* Checkout the code under your GOPATH
+#### Adding a dependency
 
-```bash
-# Make sure the parent directories exist.
-mkdir -p $GOPATH/src/github.com/<your github>
+If you're adding a dependency, you'll need to vendor it in the same Pull Request as the code that depends on it. You should do this in a separate commit from your code, as makes PR review easier and Git history simpler to read in the future.
 
-# Checkout the codebase.
-git clone git@github.com:<your github>/m8s $GOPATH/src/github.com/<your github>/m8s
+To add a dependency:
 
-# Change into the project to run workflow commands.
-cd $GOPATH/src/github.com/<your github>/m8s
-```
+Assuming your work is on a branch called `my-feature-branch`, the steps look like this:
 
-**Installing a new dependency**
+1. Vendor the new dependency.
 
-```bash
-dep ensure -add github.com/foo/bar
-```
+    ```bash
+    dep ensure -add github.com/foo/bar
+    ```
 
-**Running quality checks**
+2. Review the changes in git and commit them.
+
+#### Updating a dependency
+
+To update a dependency:
+
+1. Update the dependency.
+
+    ```bash
+    dep ensure -update github.com/foo/bar
+    ```
+
+2. Review the changes in git and commit them.
+
+#### Running quality checks
 
 ```bash
 make lint test
 ```
 
-**Building binaries**
+#### Building binaries
 
 ```bash
 make build
 ```
 
-**Release**
+#### Release
 
 Release artifacts are pushed to the [github releases page](https://github.com/previousnext/m8s/releases) when tagged
 properly. Use [semantic versioning](http://semver.org/) prefixed with `v` for version scheme. Examples:
