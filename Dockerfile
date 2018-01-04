@@ -1,7 +1,6 @@
-FROM golang:1.8
+FROM previousnext/golang:1.8
 ADD . /go/src/github.com/previousnext/m8s
 WORKDIR /go/src/github.com/previousnext/m8s
-RUN go get github.com/mitchellh/gox
 RUN make build
 
 FROM alpine:latest
