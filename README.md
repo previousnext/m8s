@@ -60,7 +60,9 @@ Our product roadmap can be found [here](/issues)
 
 ### Getting Started
 
-If you wish to work on m8s or any of its built-in systems, you will first need Go installed on your machine. Alternatively, you can use the [Vagrantfile](Vagrantfile) in the root of this repo to stand up a virtual machine with the appropriate dev tooling already set up for you.
+If you wish to work on m8s or any of its built-in systems, you will first need Go installed on your machine.
+
+#### Manual Setup
 
 For local development of m8s, first make sure Go is properly installed and that a GOPATH has been set. You will also need to add $GOPATH/bin to your $PATH.
 
@@ -82,6 +84,26 @@ $ bin/m8s_linux_amd64 --help
 
 # OSX:
 $ bin/m8s_darwin_amd64 --help
+```
+
+#### Easy Setup
+
+Alternatively, you can use the [Docker Compose](docker-compose.yml) stack in the root of this repo to stand up a container with the appropriate dev tooling already set up for you.
+
+Using Git, clone this repo on your local machine. Run the test suite to ensure the tooling works.
+
+```bash
+$ docker-compose run --rm dev make test
+```
+
+To compile a development version of m8s, run `make build`. This will build everything using gox and put binaries in the bin and $GOPATH/bin folders:
+
+```bash
+$ docker-compose run --rm dev make build
+
+...
+
+$ docker-compose run --rm dev bin/m8s_linux_amd64 --help
 ```
 
 ### Dependencies
