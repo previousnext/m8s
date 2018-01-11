@@ -7,7 +7,7 @@ import (
 
 	"github.com/previousnext/m8s/api/types"
 	apiutils "github.com/previousnext/m8s/api/utils"
-	"github.com/previousnext/m8s/cmd/k8sclient"
+	"github.com/previousnext/m8s/k8sclient"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api/v1"
 )

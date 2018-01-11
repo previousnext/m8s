@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
-	"github.com/previousnext/m8s/cmd/k8sclient"
+	"github.com/previousnext/m8s/k8sclient"
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

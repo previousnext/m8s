@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	apiutils "github.com/previousnext/m8s/api/utils"
-	"github.com/previousnext/m8s/cmd/k8sclient"
+	"github.com/previousnext/m8s/k8sclient"
 	"github.com/previousnext/m8s/server/k8s/utils"
 	"golang.org/x/net/websocket"
 )
