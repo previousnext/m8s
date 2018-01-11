@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
+	"github.com/previousnext/m8s/cmd/k8sclient"
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -16,8 +17,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 )
 
 type cmdServer struct {
@@ -39,6 +38,9 @@ type cmdServer struct {
 	PrometheusPort string
 	PrometheusPath string
 
+	KubeMaster string
+	KubeConfig string
+
 	DockerCfg string
 }
 
@@ -54,14 +56,9 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to start listener")
 	}
 
-	config, err := rest.InClusterConfig()
+	client, config, err := k8sclient.New(cmd.KubeMaster, cmd.KubeConfig)
 	if err != nil {
-		return errors.Wrap(err, "failed to get cluster config")
-	}
-
-	client, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return errors.Wrap(err, "failed to get kubernetes client")
+		return errors.Wrap(err, "failed to get Kubernetes client")
 	}
 
 	promlog.Info("Configuring Server")
@@ -136,6 +133,10 @@ func Server(app *kingpin.Application) {
 	// Promtheus.
 	cmd.Flag("prometheus-port", "Prometheus metrics port").Default(":9000").OverrideDefaultFromEnvar("M8S_METRICS_PORT").StringVar(&c.PrometheusPort)
 	cmd.Flag("prometheus-path", "Prometheus metrics path").Default("/metrics").OverrideDefaultFromEnvar("M8S_METRICS_PATH").StringVar(&c.PrometheusPath)
+
+	// Kubernetes.
+	cmd.Flag("kube-master", "Address of the Kubernetes master.").Envar("M8S_UI_KUBE_MASTER").StringVar(&c.KubeMaster)
+	cmd.Flag("kube-config", "Path to the Kubernetes config file.").Envar("M8S_UI_KUBE_CONFIG").StringVar(&c.KubeConfig)
 
 	// Docker Registry.
 	cmd.Flag("dockercfg", "https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry").Default("").Envar("M8S_DOCKERCFG").StringVar(&c.DockerCfg)

@@ -49,7 +49,23 @@ func (srv Server) Step(in *pb.StepRequest, stream pb.M8S_StepServer) error {
 		return err
 	}
 
-	err = utils.PodExec(srv.client, srv.config, w, srv.Namespace, in.Name, in.Container, in.Command)
+	input := utils.PodExecInput{
+		Client:    srv.client,
+		Config:    srv.config,
+		Stdout:    true,
+		Stderr:    true,
+		Writer:    w,
+		Namespace: srv.Namespace,
+		Pod:       in.Name,
+		Container: in.Container,
+		Command: []string{
+			"/bin/bash",
+			"-c",
+			in.Command,
+		},
+	}
+
+	err = utils.PodExec(input)
 	if err != nil {
 		return fmt.Errorf("command failed: %s", err)
 	}

@@ -13,10 +13,16 @@ import (
 func main() {
 	app := kingpin.New("M8s", "Short lived environments")
 
-	cmd.Install(app)
+	// Core workflow.
 	cmd.Server(app)
 	cmd.Build(app)
 	cmd.Step(app)
+
+	// API for the M8s UI.
+	cmd.API(app)
+
+	// Utility for installing M8s components on a K8s stack.
+	cmd.Install(app)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }

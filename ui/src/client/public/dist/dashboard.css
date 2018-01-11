@@ -1,0 +1,10 @@
+.logo img {
+    height: 48px;
+}
+
+.console {
+    background: black;
+    color: white;
+    min-height: 640px;
+    padding: 10px;
+}
