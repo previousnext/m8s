@@ -1,0 +1,63 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: ui
+  name: ui
+  namespace: m8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ui
+  template:
+    metadata:
+      labels:
+        app: ui
+    spec:
+      containers:
+      - name: ui
+        image: previousnext/m8s-ui:latest
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 10m
+            memory: 25Mi
+          requests:
+            cpu: 10m
+            memory: 25Mi
+      - name: ui
+        image: previousnext/m8s:latest
+        imagePullPolicy: Always
+        command:
+          - m8s
+          - api
+        env:
+        - name:  M8S_UI_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          limits:
+            cpu: 10m
+            memory: 25Mi
+          requests:
+            cpu: 10m
+            memory: 25Mi
+---
+# Exposes our M8s UI to the world.
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ui
+  name: ui
+  namespace: m8s
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  selector:
+    app: ui
+  type: LoadBalancer
