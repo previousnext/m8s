@@ -11,8 +11,7 @@ services:
 
   api:
     build: .
-    ports:
-      - "8080:8080"
+    network_mode: service:ui
     command: ["api"]
     environment:
       - M8S_UI_MOCK=true

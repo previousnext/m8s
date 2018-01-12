@@ -12,3 +12,5 @@ ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ADD src/client/public /var/www/html
+
+CMD ["/entrypoint.sh"]
