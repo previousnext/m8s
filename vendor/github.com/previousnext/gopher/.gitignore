@@ -1,0 +1,4 @@
+/bin
+/.idea
+/.vscode
+version/version.go

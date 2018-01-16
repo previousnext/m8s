@@ -1,0 +1,75 @@
+---
+version: 2
+jobs:
+  lint_test:
+    docker:
+      - image: previousnext/golang:1.9
+    working_directory: /go/src/github.com/previousnext/gopher
+    environment:
+      TEST_RESULTS: /tmp/test-results
+    steps:
+      - checkout
+      - run: mkdir -p $TEST_RESULTS
+      - run:
+          name: Run linting
+          command: make lint
+      - run:
+          name: Run unit tests
+          command: |
+            trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
+            make test | tee ${TEST_RESULTS}/go-test.out
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+      - store_test_results:
+          path: /tmp/test-results
+  release_docker:
+    docker:
+      - image: previousnext/pnx-packager
+    working_directory: /go/src/github.com/previousnext/gopher
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.07.0-ce
+      - run:
+          name: Build container image and push to dockerhub.
+          command: |
+            docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+            make release-docker
+  release_github:
+    docker:
+      - image: previousnext/golang:1.9
+    working_directory: /go/src/github.com/previousnext/gopher
+    steps:
+      - checkout
+      - run:
+          name: Compile and push release binary to github
+          command: make release-github
+
+# YAML anchor used to centralise filtering of workflows to release tags.
+filters_release: &filters_release
+  tags:
+    only: /v[0-9]+(\.[0-9]+).*/
+  branches:
+    ignore: /.*/
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - lint_test
+  release:
+    jobs:
+      - lint_test:
+          filters:
+            <<: *filters_release
+      - release_github:
+          requires:
+            - lint_test
+          filters:
+            <<: *filters_release
+      - release_docker:
+          requires:
+            - lint_test
+          filters:
+            <<: *filters_release
