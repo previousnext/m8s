@@ -5,8 +5,8 @@ class Header extends React.Component {
     render() {
         return (
             <header className="header">
-                <a className="logo" href="/" title="m8s">
-                    <img src="/dist/logo.png"></img>
+                <a className="logo" href="/" alt="m8s User Interface">
+                    <img src="/dist/logo.svg"></img>
                 </a>
                 <nav className="nav">
                     <ul className="nav__level-1">
