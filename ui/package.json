@@ -1,0 +1,23 @@
+{
+  "name": "m8s",
+  "version": "0.0.1",
+  "description": "User interface for m8s",
+  "main": "index.html",
+  "license": "MIT",
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-react": "^6.24.1",
+    "css-loader": "^0.28.7",
+    "react": "^16.2.0",
+    "react-bootstrap": "^0.32.0",
+    "react-dom": "^16.2.0",
+    "react-router": "^4.2.0",
+    "react-router-dom": "^4.2.2",
+    "react-router-native": "^4.2.0",
+    "react-websocket": "^2.0.0",
+    "style-loader": "^0.19.1",
+    "webpack": "^3.10.0"
+  }
+}

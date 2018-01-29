@@ -42,6 +42,7 @@ Example implementations for applications.
 
 ## Documentation
 
+* [User Interface](/docs/ui/ui.md)
 * [Cache](/docs/cache.md)
 * [Solr](/docs/solr.md)
 * [Mailhog](/docs/mailhog.md)
