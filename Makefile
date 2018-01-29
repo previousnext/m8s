@@ -31,7 +31,8 @@ release-docker:
 	docker push ${IMAGE}:${VERSION}
 	docker push ${IMAGE}:latest
 	# Building M8s UI...
-	docker build -t ${IMAGE}:${VERSION}-ui -t ${IMAGE}-ui:latest ui
+	docker build -t ${IMAGE}-ui:${VERSION} -t ${IMAGE}-ui:latest ui
+	docker push ${IMAGE}-ui:${VERSION}
 	docker push ${IMAGE}-ui:latest
 
 release-github: build
