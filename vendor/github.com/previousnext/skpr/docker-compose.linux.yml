@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  apiserver:
+    image: previousnext/mockernetes:apiserver
+    ports:
+      - "8080:8080"
+
+  scheduler:
+    image: previousnext/mockernetes:scheduler
+    network_mode: service:apiserver
+
+  controller:
+    image: previousnext/mockernetes:controller
+    network_mode: service:apiserver
+
+  etcd:
+    image: previousnext/mockernetes:etcd
+    network_mode: service:apiserver
+
+  kubelet:
+    image: previousnext/mockernetes:kubelet
+    network_mode: service:apiserver
+
