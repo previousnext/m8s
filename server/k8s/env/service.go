@@ -5,7 +5,7 @@ import (
 
 	pb "github.com/previousnext/m8s/pb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 )
 
 // ServiceInput provides the Service function with information to produce a Kubernetes Service.

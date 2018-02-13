@@ -6,7 +6,7 @@ import (
 	pb "github.com/previousnext/m8s/pb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	extensions "k8s.io/client-go/pkg/apis/extensions/v1beta1"
+	extensions "k8s.io/api/extensions/v1beta1"
 )
 
 // IngressInput provides the Ingress function with information to produce a Kubernetes Ingress.

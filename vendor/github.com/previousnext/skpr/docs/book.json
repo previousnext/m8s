@@ -1,0 +1,11 @@
+{
+  "title": "Skipper",
+  "description": "Cloud native platform-as-a-service proudly built by PreviousNext.",
+  "author": "PreviousNext",
+  "language": "en",
+  "plugins": [
+    "styled-blockquotes",
+    "exec-filter"
+  ],
+  "variables": {}
+}

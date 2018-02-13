@@ -8,7 +8,7 @@ import (
 	"github.com/previousnext/m8s/api/types"
 	apiutils "github.com/previousnext/m8s/api/utils"
 	"github.com/previousnext/m8s/k8sclient"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 )
 
 // Logs returns a stream of logs from a container.

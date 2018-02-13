@@ -1,0 +1,87 @@
+version: 2
+jobs:
+  lint_test:
+    docker:
+      - image: previousnext/golang:1.9
+      - image: previousnext/mockernetes:apiserver
+      - image: previousnext/mockernetes:scheduler
+      - image: previousnext/mockernetes:controller
+      - image: previousnext/mockernetes:etcd
+      - image: previousnext/mockernetes:kubelet
+    working_directory: /go/src/github.com/previousnext/skpr
+    steps:
+      - checkout
+      - run: make lint
+      - setup_remote_docker:
+          version: 17.07.0-ce
+      - run: make test
+
+  release_github:
+    docker:
+      - image: previousnext/golang:1.9
+    working_directory: /go/src/github.com/previousnext/skpr
+    steps:
+      - checkout
+      - run:
+          name: Compile and push release binary to github
+          command: make release-github
+      - persist_to_workspace:
+          root: .
+          paths: bin
+
+  release_docs:
+    docker:
+      - image: nicksantamaria/gitbook:stretch
+    working_directory: /data
+    environment:
+      GITBOOK_SRC: /data/docs
+      GITBOOK_DST: /tmp/docs.skpr.io
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: cp ./bin/skpr_linux_amd64 /bin/skpr
+      - run:
+          name: Create gh-pages workspace
+          command: |
+            git worktree add ${GITBOOK_DST} origin/gh-pages
+            find ${GITBOOK_DST}/* -maxdepth 0 ! -name CNAME -exec rm -rf "{}" \;
+      - run:
+          name: Compile gitbook static site
+          command: make docs-build DOCS_SRC=${GITBOOK_SRC} DOCS_DST=${GITBOOK_DST}
+      - run:
+          name: Commit and push compiled docs
+          command: |
+            git config user.name "PNX Robot"
+            git config user.email "admin@previousnext.com.au"
+            git commit -a -m "Updated docs @ ${CIRCLE_SHA1}"
+            git push origin gh-pages
+          working_directory: ${GITBOOK_DST}
+
+# YAML anchor used to centralise filtering of workflows to release tags.
+filters_release: &filters_release
+  tags:
+    only: /v[0-9]+(\.[0-9]+).*/
+  branches:
+    ignore: /.*/
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - lint_test
+  release:
+    jobs:
+      - lint_test:
+          filters:
+            <<: *filters_release
+      - release_github:
+          requires:
+            - lint_test
+          filters:
+            <<: *filters_release
+      - release_docs:
+          requires:
+            - release_github
+          filters:
+            <<: *filters_release

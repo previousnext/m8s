@@ -7,7 +7,7 @@ import (
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server/k8s/env/htpasswd"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 )
 
 // SecretInput provides the Secret function with information to produce a Kubernetes Secret.
