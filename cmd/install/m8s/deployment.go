@@ -6,21 +6,21 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/apis/apps/v1beta1"
+	corev1 "k8s.io/api/core/v1"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 var replicas int32 = 1
 
 func installDeployment(client *kubernetes.Clientset, namespace, token, letsEncryptDomain, letsEncryptEmail string) error {
-	dply := &v1beta1.Deployment{
+	dply := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "m8s-api",
 			Namespace: namespace,
 		},
-		Spec: v1beta1.DeploymentSpec{
+		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
-			Template: v1.PodTemplateSpec{
+			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"app": "m8s-api",
@@ -30,12 +30,12 @@ func installDeployment(client *kubernetes.Clientset, namespace, token, letsEncry
 						"prometheus.io/scrape": "true",
 					},
 				},
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
 						{
 							Name:  "api",
 							Image: "previousnext/m8s:latest",
-							Env: []v1.EnvVar{
+							Env: []corev1.EnvVar{
 								{
 									Name:  "M8S_TOKEN",
 									Value: token,
@@ -58,14 +58,14 @@ func installDeployment(client *kubernetes.Clientset, namespace, token, letsEncry
 									Value: "",
 								},
 							},
-							Resources: v1.ResourceRequirements{
-								Requests: v1.ResourceList{
-									v1.ResourceCPU:    resource.MustParse("100m"),
-									v1.ResourceMemory: resource.MustParse("40Mi"),
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("100m"),
+									corev1.ResourceMemory: resource.MustParse("40Mi"),
 								},
-								Limits: v1.ResourceList{
-									v1.ResourceCPU:    resource.MustParse("100m"),
-									v1.ResourceMemory: resource.MustParse("40Mi"),
+								Limits: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("100m"),
+									corev1.ResourceMemory: resource.MustParse("40Mi"),
 								},
 							},
 						},

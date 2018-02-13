@@ -7,7 +7,7 @@ import (
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 )
 
 func TestPod(t *testing.T) {

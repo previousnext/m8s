@@ -9,7 +9,7 @@ import (
 	apiutils "github.com/previousnext/m8s/api/utils"
 	"github.com/previousnext/m8s/k8sclient"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 )
 
 // List returns a list of environments.

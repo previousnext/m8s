@@ -5,8 +5,8 @@ import (
 
 	apiutils "github.com/previousnext/m8s/api/utils"
 	"github.com/previousnext/m8s/k8sclient"
-	"github.com/previousnext/m8s/server/k8s/utils"
 	"golang.org/x/net/websocket"
+	"github.com/previousnext/skpr/utils/k8s/pods/exec"
 )
 
 // Exec bash (shell) inside a container.
@@ -30,7 +30,7 @@ func (s Server) Exec(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wws := websocket.Handler(func(ws *websocket.Conn) {
-		input := utils.PodExecInput{
+		input := exec.RunParams{
 			Client:    client,
 			Config:    config,
 			Stdin:     true,
@@ -46,7 +46,7 @@ func (s Server) Exec(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 
-		err := utils.PodExec(input)
+		err := exec.Run(input)
 		if err != nil {
 			apiutils.Fatal(w, err)
 			return

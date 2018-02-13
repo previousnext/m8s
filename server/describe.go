@@ -20,7 +20,7 @@ func (srv Server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 		return resp, fmt.Errorf("name is incorrect")
 	}
 
-	pod, err := srv.client.Pods(srv.Namespace).Get(in.Name, metav1.GetOptions{})
+	pod, err := srv.client.CoreV1().Pods(srv.Namespace).Get(in.Name, metav1.GetOptions{})
 	if err != nil {
 		return resp, err
 	}
@@ -30,7 +30,7 @@ func (srv Server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 		return resp, err
 	}
 
-	svc, err := srv.client.Services(srv.Namespace).Get(srv.SSHService, metav1.GetOptions{})
+	svc, err := srv.client.CoreV1().Services(srv.Namespace).Get(srv.SSHService, metav1.GetOptions{})
 	if err != nil {
 		return resp, err
 	}

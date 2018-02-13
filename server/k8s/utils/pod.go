@@ -6,18 +6,18 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // PodCreate is used for creating a Pod object.
-func PodCreate(client *kubernetes.Clientset, pod *v1.Pod) (*v1.Pod, error) {
-	_, err := client.Pods(pod.ObjectMeta.Namespace).Create(pod)
+func PodCreate(client *kubernetes.Clientset, pod *corev1.Pod) (*corev1.Pod, error) {
+	_, err := client.CoreV1().Pods(pod.ObjectMeta.Namespace).Create(pod)
 	if errors.IsAlreadyExists(err) {
 		// This will tell Kubernetes that we want this pod to be deleted immediately.
 		now := int64(0)
 
 		// Delete the Pod.
-		err = client.Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{
+		err = client.CoreV1().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{
 			GracePeriodSeconds: &now,
 		})
 		if err != nil {
@@ -25,7 +25,7 @@ func PodCreate(client *kubernetes.Clientset, pod *v1.Pod) (*v1.Pod, error) {
 		}
 
 		// Create the new pod.
-		_, err = client.Pods(pod.ObjectMeta.Namespace).Create(pod)
+		_, err = client.CoreV1().Pods(pod.ObjectMeta.Namespace).Create(pod)
 		if err != nil {
 			return pod, err
 		}
@@ -37,12 +37,12 @@ func PodCreate(client *kubernetes.Clientset, pod *v1.Pod) (*v1.Pod, error) {
 	limiter := time.Tick(time.Second / 10)
 
 	for {
-		pod, err = client.Pods(pod.ObjectMeta.Namespace).Get(pod.ObjectMeta.Name, metav1.GetOptions{})
+		pod, err = client.CoreV1().Pods(pod.ObjectMeta.Namespace).Get(pod.ObjectMeta.Name, metav1.GetOptions{})
 		if err != nil {
 			return pod, err
 		}
 
-		if pod.Status.Phase == v1.PodRunning {
+		if pod.Status.Phase == corev1.PodRunning {
 			break
 		}
 

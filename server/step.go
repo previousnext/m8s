@@ -6,7 +6,7 @@ import (
 	"io"
 
 	pb "github.com/previousnext/m8s/pb"
-	"github.com/previousnext/m8s/server/k8s/utils"
+	"github.com/previousnext/skpr/utils/k8s/pods/exec"
 )
 
 // Step is used for defining a single "command" step
@@ -49,7 +49,7 @@ func (srv Server) Step(in *pb.StepRequest, stream pb.M8S_StepServer) error {
 		return err
 	}
 
-	input := utils.PodExecInput{
+	params := exec.RunParams{
 		Client:    srv.client,
 		Config:    srv.config,
 		Stdout:    true,
@@ -65,7 +65,7 @@ func (srv Server) Step(in *pb.StepRequest, stream pb.M8S_StepServer) error {
 		},
 	}
 
-	err = utils.PodExec(input)
+	err = exec.Run(params)
 	if err != nil {
 		return fmt.Errorf("command failed: %s", err)
 	}
