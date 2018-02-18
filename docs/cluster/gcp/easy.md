@@ -78,10 +78,10 @@ m8s-api   LoadBalancer   10.19.243.152   35.202.127.242   443:30535/TCP   3m
 traefik   LoadBalancer   10.19.252.143   35.188.215.243   80:31475/TCP    3m
 ```
 
-Finally you will need to setup some DNS entries:
+Finally you will need to setup some DNS entries to the (external) IP addresses of the services:
 
-* _api.m8sdemo.com_ -> _10.19.243.152_
-* _*.m8sdemo.com_ -> _10.19.252.143_
+* _api.m8sdemo.com_ -> _35.202.127.242_
+* _*.m8sdemo.com_ -> _35.188.215.243_
 
 ## Congratulations
 
