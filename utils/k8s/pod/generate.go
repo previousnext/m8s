@@ -13,6 +13,7 @@ import (
 	"github.com/previousnext/m8s/utils"
 )
 
+// GenerateParams for generating an Pod object.
 type GenerateParams struct {
 	Namespace       string
 	Name            string
@@ -25,7 +26,7 @@ type GenerateParams struct {
 	SecretSSH       string
 }
 
-// Pod converts a Docker Compose file into a Kubernetes Deployment object.
+// Generate will generate a Pod object.
 func Generate(params GenerateParams) (*corev1.Pod, error) {
 	// Permissions value used by SSH id_rsa key.
 	// https://kubernetes.io/docs/user-guide/secrets/

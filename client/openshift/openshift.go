@@ -9,8 +9,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// Name of the client.
 const Name = "openshift"
 
+// New client implemented ontop of Openshift.
 func New(params types.ClientParams) (types.Client, error) {
 	var client Client
 

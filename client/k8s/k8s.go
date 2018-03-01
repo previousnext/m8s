@@ -8,8 +8,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// Name of the client.
 const Name = "k8s"
 
+// New client implemented on top of Kubernetes.
 func New(params types.ClientParams) (types.Client, error) {
 	var client Client
 

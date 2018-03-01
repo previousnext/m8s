@@ -2,8 +2,10 @@ package pod
 
 import "strings"
 
+// VolumeProjectRoot identifies if this is a "code checkout".
 const VolumeProjectRoot = "."
 
+// FindCodePath finds the "code checkout" path based on a list of mounts.
 func FindCodePath(mounts []string) (bool, string) {
 	// Adds the Docker Compose volumes to our Pod object.
 	for _, mount := range mounts {

@@ -20,6 +20,7 @@ import (
 	skprroute "github.com/previousnext/skpr/utils/openshift/route"
 )
 
+// Build the environment.
 func (c Client) Build(w io.Writer, params types.BuildParams) error {
 	for _, path := range params.Config.Cache.Paths {
 		fmt.Fprintf(w, "Creating: PersistentVolumeClaim: %s\n", path)
@@ -54,6 +55,7 @@ func (c Client) Build(w io.Writer, params types.BuildParams) error {
 	return nil
 }
 
+// Helper to create a PersistentVolumeClaim.
 func createClaim(client *kubernetes.Clientset, params types.BuildParams, path string) error {
 	claim, err := m8sclaim.Generate(m8sclaim.GenerateParams{
 		Namespace:    params.Config.Namespace,
@@ -68,6 +70,7 @@ func createClaim(client *kubernetes.Clientset, params types.BuildParams, path st
 	return skprclaim.Deploy(client, claim)
 }
 
+// Helper to create a Service.
 func createService(client *kubernetes.Clientset, params types.BuildParams) error {
 	svc, err := m8sservice.Generate(m8sservice.GenerateParams{
 		Namespace:   params.Config.Namespace,
@@ -81,6 +84,7 @@ func createService(client *kubernetes.Clientset, params types.BuildParams) error
 	return skprservice.Deploy(client, svc)
 }
 
+// Helper to create a Route.
 func createRoute(client *routev1.RouteV1Client, params types.BuildParams) error {
 	ing, err := m8sroute.Generate(m8sroute.GenerateParams{
 		Namespace:   params.Config.Namespace,
@@ -95,6 +99,7 @@ func createRoute(client *routev1.RouteV1Client, params types.BuildParams) error 
 	return skprroute.Deploy(client, ing)
 }
 
+// Helper to crate a Pod.
 func createPod(client *kubernetes.Clientset, params types.BuildParams) error {
 	pod, err := m8spod.Generate(m8spod.GenerateParams{
 		Namespace:       params.Config.Namespace,

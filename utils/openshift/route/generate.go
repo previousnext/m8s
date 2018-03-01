@@ -5,6 +5,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// GenerateParams for generating an Route object.
 type GenerateParams struct {
 	Namespace   string
 	Name        string
@@ -12,6 +13,7 @@ type GenerateParams struct {
 	Domain      string
 }
 
+// Generate will generate an Route object.
 func Generate(params GenerateParams) (*routev1.Route, error) {
 	route := &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{

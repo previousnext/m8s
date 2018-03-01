@@ -7,6 +7,7 @@ import (
 	"github.com/previousnext/skpr/utils/k8s/pods/exec"
 )
 
+// Step through the build.
 func (c Client) Step(w io.Writer, params types.StepParams) error {
 	return exec.Run(exec.RunParams{
 		Client:    c.client,

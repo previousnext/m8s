@@ -5,11 +5,15 @@ import (
 )
 
 const (
-	GitCloneImage  = "alpine/git:latest"
+	// GitCloneImage is the image used for cloning the repository.
+	GitCloneImage = "alpine/git:latest"
+	// GitCloneVolume is the name of the volume which code is cloned into.
 	GitCloneVolume = "code"
-	GitClonePath   = "/checkout"
+	// GitClonePath is the path which the init containers mount the GitCloneVolume.
+	GitClonePath = "/checkout"
 )
 
+// GitCloneInitContainers returns a list of init containers and volume which they clone a repository into.
 func GitCloneInitContainers(repository, revision string) ([]corev1.Container, corev1.Volume) {
 	return []corev1.Container{
 			{

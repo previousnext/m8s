@@ -6,6 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+// GenerateParams for generating an Ingress object.
 type GenerateParams struct {
 	Namespace   string
 	Name        string

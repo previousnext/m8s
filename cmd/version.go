@@ -10,7 +10,12 @@ import (
 	"github.com/previousnext/gopher/pkg/version"
 )
 
-var GitVersion, GitCommit string
+var (
+	// GitVersion is overridden at build time.
+	GitVersion string
+	// GitCommit is overridden at build time.
+	GitCommit string
+)
 
 type cmdVersion struct{}
 

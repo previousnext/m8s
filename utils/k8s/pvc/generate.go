@@ -6,6 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// GenerateParams for generating an PersistentVolumeClaim object.
 type GenerateParams struct {
 	Namespace    string
 	Name         string

@@ -19,6 +19,7 @@ import (
 	skprservice "github.com/previousnext/skpr/utils/k8s/service"
 )
 
+// Build the environment.
 func (c Client) Build(w io.Writer, params types.BuildParams) error {
 	for _, path := range params.Config.Cache.Paths {
 		fmt.Fprintf(w, "Creating: PersistentVolumeClaim: %s\n", path)
@@ -53,6 +54,7 @@ func (c Client) Build(w io.Writer, params types.BuildParams) error {
 	return nil
 }
 
+// Helper to create a PersistentVolumeClaim.
 func createClaim(client *kubernetes.Clientset, params types.BuildParams, path string) error {
 	claim, err := m8sclaim.Generate(m8sclaim.GenerateParams{
 		Namespace:    params.Config.Namespace,
@@ -67,6 +69,7 @@ func createClaim(client *kubernetes.Clientset, params types.BuildParams, path st
 	return skprclaim.Deploy(client, claim)
 }
 
+// Helper to create a Service.
 func createService(client *kubernetes.Clientset, params types.BuildParams) error {
 	svc, err := m8sservice.Generate(m8sservice.GenerateParams{
 		Namespace:   params.Config.Namespace,
@@ -80,6 +83,7 @@ func createService(client *kubernetes.Clientset, params types.BuildParams) error
 	return skprservice.Deploy(client, svc)
 }
 
+// Helper to create an Ingress.
 func createIngress(client *kubernetes.Clientset, params types.BuildParams) error {
 	ing, err := m8singress.Generate(m8singress.GenerateParams{
 		Namespace:   params.Config.Namespace,
@@ -94,6 +98,7 @@ func createIngress(client *kubernetes.Clientset, params types.BuildParams) error
 	return skpringress.Deploy(client, ing)
 }
 
+// Helper to create a Pod.
 func createPod(client *kubernetes.Clientset, params types.BuildParams) error {
 	pod, err := m8spod.Generate(m8spod.GenerateParams{
 		Namespace:       params.Config.Namespace,
