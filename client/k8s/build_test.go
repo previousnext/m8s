@@ -10,6 +10,7 @@ import (
 	"github.com/previousnext/skpr/k8stest/hash"
 	"github.com/stretchr/testify/assert"
 
+	"fmt"
 	"github.com/previousnext/m8s/client/types"
 	"github.com/previousnext/m8s/config"
 )
@@ -98,7 +99,9 @@ func TestBuild(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	assert.True(t, strings.Contains(buffer.String(), "Creating: PersistentVolumeClaim: rootcomposer"))
+	fmt.Println(buffer.String())
+
+	assert.True(t, strings.Contains(buffer.String(), "Creating: PersistentVolumeClaim: /root/.composer"))
 	assert.True(t, strings.Contains(buffer.String(), "Creating: Service"))
 	assert.True(t, strings.Contains(buffer.String(), "Creating: Ingress"))
 	assert.True(t, strings.Contains(buffer.String(), "Creating: Pod"))
