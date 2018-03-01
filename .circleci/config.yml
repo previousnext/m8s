@@ -8,7 +8,7 @@ jobs:
       - image: previousnext/mockernetes:scheduler
       - image: previousnext/mockernetes:controller
       - image: previousnext/mockernetes:etcd
-- image: previousnext/mockernetes:kubelet
+      - image: previousnext/mockernetes:kubelet
     working_directory: /go/src/github.com/previousnext/m8s
     environment:
       TEST_RESULTS: /tmp/test-results
