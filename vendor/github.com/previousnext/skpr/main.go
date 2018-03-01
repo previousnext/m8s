@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	app := kingpin.New("Skipper", "Production hosting")
+	app := kingpin.New("skpr", "Cloud-native production hosting proudly supported by PreviousNext.")
 
 	// Core workflow.
 	cmd.Package(app, nil)

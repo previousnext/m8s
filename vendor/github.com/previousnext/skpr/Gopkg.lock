@@ -230,6 +230,18 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/openshift/api"
+  packages = ["route/v1"]
+  revision = "0d921e363e951d89f583292c60d013c318df64dc"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/openshift/client-go"
+  packages = ["route/clientset/versioned/scheme","route/clientset/versioned/typed/route/v1"]
+  revision = "2984d09fd660358a074693faa5d2dc527088acd3"
+
+[[projects]]
+  branch = "master"
   name = "github.com/petar/GoLLRB"
   packages = ["llrb"]
   revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
@@ -339,6 +351,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "05e5cf397763d83c272eb953bd5a8ecf8ba437f6ea5e32af25498a40a73097fa"
+  inputs-digest = "f804cb1d82e1c77f7d468271565f5825243b898ec047d6db76cdf1b0538d95f2"
   solver-name = "gps-cdcl"
   solver-version = 1
