@@ -3,10 +3,11 @@ package k8s
 import (
 	"net/http"
 
-	apiutils "github.com/previousnext/m8s/api/utils"
-	"github.com/previousnext/m8s/k8sclient"
-	"golang.org/x/net/websocket"
+	apiutils "github.com/previousnext/m8s/ui/api/utils"
 	"github.com/previousnext/skpr/utils/k8s/pods/exec"
+	"golang.org/x/net/websocket"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // Exec bash (shell) inside a container.
@@ -23,7 +24,13 @@ func (s Server) Exec(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client, config, err := k8sclient.New(s.Master, s.Config)
+	config, err := clientcmd.BuildConfigFromFlags(s.Master, s.Config)
+	if err != nil {
+		apiutils.Fatal(w, err)
+		return
+	}
+
+	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		apiutils.Fatal(w, err)
 		return

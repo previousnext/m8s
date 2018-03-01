@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/previousnext/m8s/api/types"
-	"github.com/previousnext/m8s/api/utils"
+	"github.com/previousnext/m8s/ui/api/types"
+	"github.com/previousnext/m8s/ui/api/utils"
 )
 
 // List returns a list of environments.

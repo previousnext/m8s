@@ -1,8 +1,8 @@
 package api
 
 import (
-	k8sapi "github.com/previousnext/m8s/api/k8s"
-	mockapi "github.com/previousnext/m8s/api/mock"
+	k8sapi "github.com/previousnext/m8s/ui/api/k8s"
+	mockapi "github.com/previousnext/m8s/ui/api/mock"
 )
 
 // New returns a new API server.

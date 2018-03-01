@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/previousnext/m8s/api/types"
-	apiutils "github.com/previousnext/m8s/api/utils"
-	"github.com/previousnext/m8s/k8sclient"
+	"github.com/previousnext/m8s/ui/api/types"
+	apiutils "github.com/previousnext/m8s/ui/api/utils"
 	"k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // Logs returns a stream of logs from a container.
@@ -25,7 +26,13 @@ func (s Server) Logs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client, _, err := k8sclient.New(s.Master, s.Config)
+	config, err := clientcmd.BuildConfigFromFlags(s.Master, s.Config)
+	if err != nil {
+		apiutils.Fatal(w, err)
+		return
+	}
+
+	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		apiutils.Fatal(w, err)
 		return

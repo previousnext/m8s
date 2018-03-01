@@ -5,16 +5,23 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/previousnext/m8s/api/types"
-	apiutils "github.com/previousnext/m8s/api/utils"
-	"github.com/previousnext/m8s/k8sclient"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/previousnext/m8s/ui/api/types"
+	apiutils "github.com/previousnext/m8s/ui/api/utils"
 	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // List returns a list of environments.
 func (s Server) List(w http.ResponseWriter, r *http.Request) {
-	client, _, err := k8sclient.New(s.Master, s.Config)
+	config, err := clientcmd.BuildConfigFromFlags(s.Master, s.Config)
+	if err != nil {
+		apiutils.Fatal(w, err)
+		return
+	}
+
+	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		apiutils.Fatal(w, err)
 		return
