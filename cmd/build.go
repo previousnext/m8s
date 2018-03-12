@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -14,20 +15,20 @@ import (
 	"github.com/previousnext/m8s/config"
 	"github.com/previousnext/m8s/utils/environ"
 	"github.com/previousnext/m8s/utils/metadata"
-	"strings"
 )
 
 type cmdBuild struct {
-	Client        string
-	Config        string
-	Name          string
-	Domain        string
-	Retention     time.Duration
-	Repository    string
-	Revision      string
-	DockerCompose string
-	Master        string
-	KubeConfig    string
+	Client           string
+	Config           string
+	Name             string
+	Domain           string
+	Retention        time.Duration
+	Repository       string
+	Revision         string
+	DockerCompose    string
+	Master           string
+	KubeConfig       string
+	ExtraAnnotations string
 }
 
 func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
@@ -54,6 +55,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	annotations, err := getAnnotations(cfg.Retention)
 	if err != nil {
 		return errors.Wrap(err, "failed to build annotations")
+	}
+
+	for key, value := range getExtraAnnotations(cmd.ExtraAnnotations) {
+		annotations[key] = value
 	}
 
 	cli, err := client.New(cmd.Client, types.ClientParams{
@@ -106,6 +111,7 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").Envar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
 	cmd.Flag("master", "Kubernetes master URL").Default().StringVar(&c.Master)
 	cmd.Flag("kubeconfig", "Kubernetes config file").Default("~/.kube/config").StringVar(&c.KubeConfig)
+	cmd.Flag("extra-annotations", "Add extra annotations to the environment").StringVar(&c.ExtraAnnotations)
 }
 
 func getAnnotations(ret time.Duration) (map[string]string, error) {
@@ -124,4 +130,26 @@ func getAnnotations(ret time.Duration) (map[string]string, error) {
 	annotations["author"] = "m8s"
 
 	return annotations, nil
+}
+
+// Helper function to extra additional annotations from the cmd flag "ExtraAnnotations".
+func getExtraAnnotations(annotations string) map[string]string {
+	var list map[string]string
+
+	for _, value := range strings.Split(annotations, ",") {
+		sl := strings.Split(value, "=")
+
+		if len(sl) != 2 {
+			continue
+		}
+
+		var (
+			key = sl[0]
+			val = sl[1]
+		)
+
+		list[key] = val
+	}
+
+	return list
 }
