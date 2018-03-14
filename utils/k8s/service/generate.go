@@ -27,14 +27,6 @@ func Generate(params GenerateParams) (*corev1.Service, error) {
 					Name: "http",
 					Port: 80,
 				},
-				{
-					Name: "mailhog",
-					Port: 8025,
-				},
-				{
-					Name: "solr",
-					Port: 8983,
-				},
 			},
 			Selector: map[string]string{
 				"env": params.Name,

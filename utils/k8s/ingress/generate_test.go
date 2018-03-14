@@ -42,20 +42,6 @@ func TestGenerate(t *testing.T) {
 										ServicePort: intstr.FromInt(80),
 									},
 								},
-								{
-									Path: "/mailhog",
-									Backend: extensionsv1beta1.IngressBackend{
-										ServiceName: "test",
-										ServicePort: intstr.FromInt(8025),
-									},
-								},
-								{
-									Path: "/solr",
-									Backend: extensionsv1beta1.IngressBackend{
-										ServiceName: "test",
-										ServicePort: intstr.FromInt(8983),
-									},
-								},
 							},
 						},
 					},

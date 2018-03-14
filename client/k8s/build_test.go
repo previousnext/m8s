@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/previousnext/skpr/k8stest/hash"
 	"github.com/stretchr/testify/assert"
 
-	"fmt"
 	"github.com/previousnext/m8s/client/types"
 	"github.com/previousnext/m8s/config"
 )
@@ -37,10 +37,6 @@ func TestBuild(t *testing.T) {
 		Config: config.Config{
 			Namespace: hash.Generate(10),
 			Retention: retention,
-			Auth: config.Auth{
-				User: "nick",
-				Pass: "nick",
-			},
 			Build: config.Build{
 				Container: "",
 				Steps: []string{

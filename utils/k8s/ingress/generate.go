@@ -36,20 +36,6 @@ func Generate(params GenerateParams) (*extensionsv1beta1.Ingress, error) {
 										ServicePort: intstr.FromInt(80),
 									},
 								},
-								{
-									Path: "/mailhog",
-									Backend: extensionsv1beta1.IngressBackend{
-										ServiceName: params.Name,
-										ServicePort: intstr.FromInt(8025),
-									},
-								},
-								{
-									Path: "/solr",
-									Backend: extensionsv1beta1.IngressBackend{
-										ServiceName: params.Name,
-										ServicePort: intstr.FromInt(8983),
-									},
-								},
 							},
 						},
 					},

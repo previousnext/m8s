@@ -2,9 +2,9 @@ package config
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
-	"time"
 )
 
 func TestLoad(t *testing.T) {
@@ -17,10 +17,6 @@ func TestLoad(t *testing.T) {
 	want := Config{
 		Namespace: "test",
 		Retention: retention,
-		Auth: Auth{
-			User: "nick",
-			Pass: "rocks",
-		},
 		Build: Build{
 			Container: "app",
 			Steps: []string{

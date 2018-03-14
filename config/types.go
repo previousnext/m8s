@@ -6,16 +6,10 @@ import "time"
 type Config struct {
 	Namespace string        `yaml:"namespace" json:"namespace"`
 	Retention time.Duration `yaml:"retention" json:"retention"`
-	Auth      Auth          `yaml:"auth"      json:"auth"`
 	Build     Build         `yaml:"build"     json:"build"`
 	Cache     Cache         `yaml:"cache"     json:"cache"`
 	Secrets   Secrets       `yaml:"secrets"   json:"secrets"`
-}
-
-// Auth applied to the environment to restrict access.
-type Auth struct {
-	User string `yaml:"user" json:"user"`
-	Pass string `yaml:"pass" json:"pass"`
+	Port      int           `yaml:"port"      json:"port"`
 }
 
 // Build steps to be run after the environment is up.

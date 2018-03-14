@@ -90,6 +90,7 @@ func createRoute(client *routev1.RouteV1Client, params types.BuildParams) error 
 		Namespace:   params.Config.Namespace,
 		Name:        params.Name,
 		Domain:      params.Domain,
+		Port:        params.Config.Port,
 		Annotations: params.Annotations,
 	})
 	if err != nil {

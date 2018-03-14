@@ -2,10 +2,6 @@ namespace: test
 
 retention: 30m
 
-auth:
-  user: nick
-  pass: rocks
-
 build:
   container: app
   steps:

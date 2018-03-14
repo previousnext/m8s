@@ -37,7 +37,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to load Docker Compose file")
 	}
 
-	cfg, err := config.Load(cmd.Config)
+	cfg, err := config.LoadWithDefaults(cmd.Config)
 	if err != nil {
 		return errors.Wrap(err, "failed to load steps")
 	}
@@ -108,7 +108,7 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("revision", "Git revision to checkout during clone").Required().StringVar(&c.Revision)
 	cmd.Flag("client", "Client to use for building an environment").Default("k8s").Envar("M8S_CLIENT").StringVar(&c.Client)
 	cmd.Flag("config", "Build configuration").Default("m8s.yml").Envar("M8S_CONFIG").StringVar(&c.Config)
-	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").Envar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
+	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").Envar("M8S_DC_FILE").StringVar(&c.DockerCompose)
 	cmd.Flag("master", "Kubernetes master URL").Default().StringVar(&c.Master)
 	cmd.Flag("kubeconfig", "Kubernetes config file").Default("~/.kube/config").StringVar(&c.KubeConfig)
 	cmd.Flag("extra-annotations", "Add extra annotations to the environment").StringVar(&c.ExtraAnnotations)
@@ -134,7 +134,7 @@ func getAnnotations(ret time.Duration) (map[string]string, error) {
 
 // Helper function to extra additional annotations from the cmd flag "ExtraAnnotations".
 func getExtraAnnotations(annotations string) map[string]string {
-	var list map[string]string
+	list := make(map[string]string)
 
 	for _, value := range strings.Split(annotations, ",") {
 		sl := strings.Split(value, "=")
