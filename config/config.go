@@ -5,6 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
+
+	"github.com/previousnext/m8s/utils/k8s/pod/sidecar"
 )
 
 // Load the config file.
@@ -32,7 +34,7 @@ func LoadWithDefaults(file string) (Config, error) {
 	}
 
 	if cfg.Port == 0 {
-		cfg.Port = 80
+		cfg.Port = sidecar.DefaultPort
 	}
 
 	return cfg, nil

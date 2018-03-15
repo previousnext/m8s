@@ -9,6 +9,7 @@ import (
 type GenerateParams struct {
 	Namespace   string
 	Name        string
+	Port        int
 	Annotations map[string]string
 }
 
@@ -25,7 +26,7 @@ func Generate(params GenerateParams) (*corev1.Service, error) {
 			Ports: []corev1.ServicePort{
 				{
 					Name: "http",
-					Port: 80,
+					Port: int32(params.Port),
 				},
 			},
 			Selector: map[string]string{

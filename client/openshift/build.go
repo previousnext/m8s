@@ -11,6 +11,7 @@ import (
 	"github.com/previousnext/m8s/client/types"
 	"github.com/previousnext/m8s/utils"
 	m8spod "github.com/previousnext/m8s/utils/k8s/pod"
+	"github.com/previousnext/m8s/utils/k8s/pod/sidecar"
 	m8sclaim "github.com/previousnext/m8s/utils/k8s/pvc"
 	m8sservice "github.com/previousnext/m8s/utils/k8s/service"
 	m8sroute "github.com/previousnext/m8s/utils/openshift/route"
@@ -75,6 +76,7 @@ func createService(client *kubernetes.Clientset, params types.BuildParams) error
 	svc, err := m8sservice.Generate(m8sservice.GenerateParams{
 		Namespace:   params.Config.Namespace,
 		Name:        params.Name,
+		Port:        params.Config.Port,
 		Annotations: params.Annotations,
 	})
 	if err != nil {
@@ -112,6 +114,11 @@ func createPod(client *kubernetes.Clientset, params types.BuildParams) error {
 		Caches:          params.Config.Cache.Paths,
 		SecretDockerCfg: params.Config.Secrets.DockerCfg,
 		SecretSSH:       params.Config.Secrets.SSH,
+		Sidecar: sidecar.GenerateParams{
+			User: params.Config.Auth.User,
+			Pass: params.Config.Auth.Pass,
+			Port: params.Config.Port,
+		},
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to generate Pod")

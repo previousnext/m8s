@@ -108,7 +108,7 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("revision", "Git revision to checkout during clone").Required().StringVar(&c.Revision)
 	cmd.Flag("client", "Client to use for building an environment").Default("k8s").Envar("M8S_CLIENT").StringVar(&c.Client)
 	cmd.Flag("config", "Build configuration").Default("m8s.yml").Envar("M8S_CONFIG").StringVar(&c.Config)
-	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").Envar("M8S_DC_FILE").StringVar(&c.DockerCompose)
+	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").Envar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
 	cmd.Flag("master", "Kubernetes master URL").Default().StringVar(&c.Master)
 	cmd.Flag("kubeconfig", "Kubernetes config file").Default("~/.kube/config").StringVar(&c.KubeConfig)
 	cmd.Flag("extra-annotations", "Add extra annotations to the environment").StringVar(&c.ExtraAnnotations)

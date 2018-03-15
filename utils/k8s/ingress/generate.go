@@ -12,6 +12,7 @@ type GenerateParams struct {
 	Name        string
 	Annotations map[string]string
 	Domain      string
+	Port        int
 }
 
 // Generate will generate an Ingress object.
@@ -33,7 +34,7 @@ func Generate(params GenerateParams) (*extensionsv1beta1.Ingress, error) {
 									Path: "/",
 									Backend: extensionsv1beta1.IngressBackend{
 										ServiceName: params.Name,
-										ServicePort: intstr.FromInt(80),
+										ServicePort: intstr.FromInt(params.Port),
 									},
 								},
 							},

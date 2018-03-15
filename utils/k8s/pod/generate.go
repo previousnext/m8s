@@ -5,12 +5,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/previousnext/compose"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/previousnext/m8s/utils"
+	"github.com/previousnext/m8s/utils/k8s/pod/sidecar"
 )
 
 // GenerateParams for generating an Pod object.
@@ -24,6 +26,7 @@ type GenerateParams struct {
 	Caches          []string
 	SecretDockerCfg string
 	SecretSSH       string
+	Sidecar         sidecar.GenerateParams
 }
 
 // Generate will generate a Pod object.
@@ -57,9 +60,17 @@ func Generate(params GenerateParams) (*corev1.Pod, error) {
 		},
 	}
 
+	// These container will clone the code into an "emptyDir" volume.
 	cloneContainers, cloneVolume := GitCloneInitContainers(params.Repository, params.Revision)
 	pod.Spec.InitContainers = cloneContainers
 	pod.Spec.Volumes = append(pod.Spec.Volumes, cloneVolume)
+
+	// This container is used for routing.
+	s, err := sidecar.Generate(params.Sidecar)
+	if err != nil {
+		return pod, errors.Wrap(err, "failed to generate sidecar")
+	}
+	pod.Spec.Containers = append(pod.Spec.Containers, s)
 
 	if params.SecretDockerCfg != "" {
 		pod.Spec.ImagePullSecrets = []corev1.LocalObjectReference{
