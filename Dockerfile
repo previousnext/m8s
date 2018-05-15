@@ -1,4 +1,5 @@
-FROM previousnext/golang:1.8
+FROM golang:1.8
+RUN go get github.com/mitchellh/gox
 ADD . /go/src/github.com/previousnext/m8s
 WORKDIR /go/src/github.com/previousnext/m8s
 RUN make build
