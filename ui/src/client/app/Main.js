@@ -5,7 +5,7 @@ import Home from './Home';
 import Logs from './Logs';
 import Shell from './Shell';
 
-class Main extends React.Component {
+export default class Main extends React.Component {
 
     render() {
         return (
@@ -20,5 +20,3 @@ class Main extends React.Component {
     }
 
 }
-
-export default Main;

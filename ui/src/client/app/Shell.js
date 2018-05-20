@@ -1,6 +1,6 @@
 import React from 'react';
 
-class Shell extends React.Component {
+export default class Shell extends React.Component {
 
     ws(name, container) {
         let term, websocket;
@@ -59,5 +59,3 @@ class Shell extends React.Component {
     }
 
 }
-
-export default Shell;

@@ -3,7 +3,7 @@ import React from 'react';
 import Options from './Options';
 import UIs from './UIs';
 
-class Home extends React.Component {
+export default class Home extends React.Component {
 
     constructor(props) {
         super(props);
@@ -60,5 +60,3 @@ class Home extends React.Component {
     }
 
 }
-
-export default Home;

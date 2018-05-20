@@ -1,6 +1,6 @@
 import React from 'react';
 
-class Options extends React.Component {
+export default class Options extends React.Component {
 
     change(event) {
         document.location.href = event.target.value;
@@ -22,5 +22,3 @@ class Options extends React.Component {
     }
 
 }
-
-export default Options;

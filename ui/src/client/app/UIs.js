@@ -1,6 +1,6 @@
 import React from 'react';
 
-class UIs extends React.Component {
+export default class UIs extends React.Component {
 
     change(event) {
         document.location.href = event.target.value;
@@ -17,5 +17,3 @@ class UIs extends React.Component {
     }
 
 }
-
-export default UIs;
