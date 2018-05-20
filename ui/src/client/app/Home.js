@@ -1,7 +1,7 @@
 import React from 'react';
 
-import Options from './Options.jsx';
-import UIs from './UIs.jsx';
+import Options from './Options';
+import UIs from './UIs';
 
 class Home extends React.Component {
 

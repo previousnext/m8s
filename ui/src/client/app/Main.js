@@ -1,9 +1,9 @@
 import React from 'react';
 import { Switch, Route } from 'react-router-dom'
 
-import Home from './Home.jsx';
-import Logs from './Logs.jsx';
-import Shell from './Shell.jsx';
+import Home from './Home';
+import Logs from './Logs';
+import Shell from './Shell';
 
 class Main extends React.Component {
 
