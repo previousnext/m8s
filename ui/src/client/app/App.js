@@ -1,9 +1,9 @@
 import React from 'react';
-import {render} from 'react-dom';
+import { render } from 'react-dom';
 import { BrowserRouter } from 'react-router-dom'
 
-import Header from './Header.jsx';
-import Main from './Main.jsx';
+import Header from './Header';
+import Main from './Main';
 
 class App extends React.Component {
     render () {

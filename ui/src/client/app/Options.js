@@ -1,17 +1,17 @@
 import React from 'react';
 
-class Options extends React.Component {
+export default class Options extends React.Component {
 
     change(event) {
         document.location.href = event.target.value;
     }
 
     render() {
-        var items = this.props.containers.map(function(container) {
+        const items = this.props.containers.map((container) => {
             return (
-                <option key={container} value={"/e/"+this.props.name+"/"+container+"/"+this.props.operation}>{container}</option>
+                <option key={container} value={`/e/${this.props.name}/${container}/${this.props.operation}`}>{container}</option>
             )
-        }, this);
+        });
 
         return (
             <select key={this.props.name} onChange={this.change}>
@@ -22,5 +22,3 @@ class Options extends React.Component {
     }
 
 }
-
-export default Options;

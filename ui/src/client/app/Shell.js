@@ -1,13 +1,13 @@
 import React from 'react';
 
-class Shell extends React.Component {
+export default class Shell extends React.Component {
 
     ws(name, container) {
-        var term, websocket;
+        let term, websocket;
 
-        var proto = "ws"
+        let proto = "ws"
 
-        var loc = window.location;
+        let loc = window.location;
         if (loc.protocol === "https:") {
             proto = "wss";
         }
@@ -45,7 +45,7 @@ class Shell extends React.Component {
             }
 
             websocket.onerror = function(evt) {
-                if (typeof console.log == "function") {
+                if (typeof console.log !== "undefined") {
                     console.log(evt)
                 }
             }
@@ -54,10 +54,8 @@ class Shell extends React.Component {
 
     render() {
         return (
-            <pre id="shell" className="console" onLoad={this.ws(this.props.match.params.name,this.props.match.params.container)}></pre>
+            <pre id="shell" className="console" onLoad={this.ws(this.props.match.params.name, this.props.match.params.container)}></pre>
         );
     }
 
 }
-
-export default Shell;
