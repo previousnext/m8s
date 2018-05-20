@@ -7,11 +7,11 @@ class Options extends React.Component {
     }
 
     render() {
-        var items = this.props.containers.map(function(container) {
+        const items = this.props.containers.map((container) => {
             return (
-                <option key={container} value={"/e/"+this.props.name+"/"+container+"/"+this.props.operation}>{container}</option>
+                <option key={container} value={`/e/${this.props.name}/${container}/${this.props.operation}`}>{container}</option>
             )
-        }, this);
+        });
 
         return (
             <select key={this.props.name} onChange={this.change}>

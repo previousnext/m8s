@@ -22,10 +22,10 @@ class Home extends React.Component {
     }
 
     render() {
-        var tbody = this.state.envs.map(function(env) {
+        const tbody = this.state.envs.map(function(env) {
             return (
                 <tr key={env.name}>
-                    <td className="table--enlarged"><a href={"//"+env.domain}>{env.name}</a></td>
+                    <td className="table--enlarged"><a href={`//${env.domain}`}>{env.name}</a></td>
                     <td>
                         <Options operation="logs" name={env.name} containers={env.containers} />
                     </td>
@@ -34,7 +34,7 @@ class Home extends React.Component {
                     </td>
                     <td>
                         { /* @todo, Consolidate with the Options component. */ }
-                        <UIs name={env.name} base_url={"//"+env.domain} />
+                        <UIs name={env.name} base_url={`//${env.domain}`} />
                     </td>
                 </tr>
             )
