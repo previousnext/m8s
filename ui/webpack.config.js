@@ -15,7 +15,10 @@ var config = {
             {
                 test : /\.jsx?/,
                 include : APP_DIR,
-                loader : 'babel-loader'
+                loader : 'babel-loader',
+                query: {
+                    presets: ['react', 'env']
+                }
             }, {
                 // https://javascriptplayground.com/blog/2016/07/css-modules-webpack-react/
                 test: /\.css$/,
