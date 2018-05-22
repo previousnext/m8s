@@ -1,13 +1,16 @@
 import React from 'react';
 
-import Options from './Options';
-import UIs from './UIs';
+import EnvironmentTable from './EnvironmentTable'
 
 export default class Home extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {envs : []};
+        this.state = {
+          envs : [],
+          search: '',
+        };
+        this.updateInput = this.updateInput.bind(this)
     }
 
     componentDidMount() {
@@ -21,40 +24,25 @@ export default class Home extends React.Component {
         this.serverRequest.abort();
     }
 
-    render() {
-        const tbody = this.state.envs.map(function(env) {
-            return (
-                <tr key={env.name}>
-                    <td className="table--enlarged"><a href={`//${env.domain}`}>{env.name}</a></td>
-                    <td>
-                        <Options operation="logs" name={env.name} containers={env.containers} />
-                    </td>
-                    <td>
-                        <Options operation="shell" name={env.name} containers={env.containers} />
-                    </td>
-                    <td>
-                        { /* @todo, Consolidate with the Options component. */ }
-                        <UIs name={env.name} base_url={`//${env.domain}`} />
-                    </td>
-                </tr>
-            )
-        });
+    updateInput(e) {
+      this.setState({
+        search: e.target.value,
+      })
+    }
 
+    render() {
         return (
             <div className="table__stretch-wrapper">
-                <table className="js-table--responsive">
-                    <thead>
-                    <tr>
-                        <th>Domain</th>
-                        <th>Logs</th>
-                        <th>Console</th>
-                        <th>UIs</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        {tbody}
-                    </tbody>
-                </table>
+                <div className="form__item">
+                  <label htmlFor="search">Search</label>
+                  <input
+                    type="text"
+                    id="search"
+                    onChange={this.updateInput}
+                    value={this.state.search}
+                  />
+                </div>
+                <EnvironmentTable envs={this.state.envs} search={this.state.search}/>
             </div>
         );
     }
