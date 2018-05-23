@@ -1,14 +1,16 @@
 import React from 'react';
 
 import EnvironmentTable from './EnvironmentTable'
+import queryString from 'query-string'
 
 export default class Home extends React.Component {
 
     constructor(props) {
         super(props);
+        const params = queryString.parse(props.location.search);
         this.state = {
           envs : [],
-          search: '',
+          search: params.search ? params.search : '',
         };
         this.updateInput = this.updateInput.bind(this)
     }
@@ -25,6 +27,7 @@ export default class Home extends React.Component {
     }
 
     updateInput(e) {
+      this.props.history.push(`${this.props.match.url}?search=${e.target.value}`);
       this.setState({
         search: e.target.value,
       })
