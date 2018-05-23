@@ -10,6 +10,7 @@
     "babel-preset-env": "^1.6.0",
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.7",
+    "query-string": "^6.1.0",
     "react": "^16.2.0",
     "react-bootstrap": "^0.32.0",
     "react-dom": "^16.2.0",
