@@ -33,20 +33,29 @@ export default class Home extends React.Component {
       })
     }
 
+    handleSubmit(e) {
+        e.preventDefault();
+    }
+
     render() {
         return (
-            <div className="table__stretch-wrapper">
-                <div className="form__item">
-                  <label htmlFor="search">Search</label>
-                  <input
-                    type="text"
-                    id="search"
-                    onChange={this.updateInput}
-                    value={this.state.search}
-                  />
-                </div>
+            <main className="table__stretch-wrapper">
+                <h1 class="visually-hidden">Dashboard home</h1>
+                <form className="search" onSubmit={this.handleSubmit}>
+                    <div className="form__item">
+                        <label htmlFor="search" className="visually-hidden">Search</label>
+                        <input
+                            type="search"
+                            id="search"
+                            placeholder="Search environments"
+                            onChange={this.updateInput}
+                            value={this.state.search}
+                        />
+                    </div>
+                    <input type="submit" className="button--search" />
+                </form>
                 <EnvironmentTable envs={this.state.envs} search={this.state.search}/>
-            </div>
+            </main>
         );
     }
 
