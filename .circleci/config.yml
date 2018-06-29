@@ -3,7 +3,12 @@ version: 2
 jobs:
   lint_test:
     docker:
-      - image: previousnext/golang:1.8
+      - image: previousnext/golang:1.9
+      - image: previousnext/mockernetes:apiserver
+      - image: previousnext/mockernetes:scheduler
+      - image: previousnext/mockernetes:controller
+      - image: previousnext/mockernetes:etcd
+      - image: previousnext/mockernetes:kubelet
     working_directory: /go/src/github.com/previousnext/m8s
     environment:
       TEST_RESULTS: /tmp/test-results

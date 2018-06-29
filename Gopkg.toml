@@ -91,3 +91,11 @@
 [[override]]
   name = "github.com/ugorji/go"
   revision = "8c0409fcbb70099c748d71f714529204975f6c3f"
+
+[[override]]
+  name = "github.com/previousnext/k8s-black-death"
+  revision = "055950ab5930d7f393f48615e2b36dcc0ffbea3f"
+
+[[override]]
+  name = "github.com/previousnext/gopher"
+  revision = "9de7883755280ca31974294beb85618f719e127e"

@@ -2,12 +2,21 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 
-	"github.com/ryanuber/columnize"
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	"github.com/previousnext/gopher/version"
+	"github.com/previousnext/gopher/pkg/version"
+)
+
+var (
+	// GitVersion overridden at build time by:
+	//   -ldflags='-X github.com/previousnext/gopher/cmd.GitVersion=$(git describe --tags --always)'
+	GitVersion string
+	// GitCommit overridden at build time by:
+	//   -ldflags='-X github.com/previousnext/gopher/cmd.GitCommit=$(git rev-list -1 HEAD)'
+	GitCommit string
 )
 
 type cmdVersion struct {
@@ -19,31 +28,16 @@ type cmdVersion struct {
 }
 
 func (cmd *cmdVersion) run(c *kingpin.ParseContext) error {
-	fmt.Println(renderVersionOutput(cmd))
-	return nil
+	return version.Print(os.Stdin, version.PrintParams{
+		Version: GitVersion,
+		Commit: GitCommit,
+		OS: runtime.GOOS,
+		Arch: runtime.GOARCH,
+	})
 }
 
 // Version declares the "version" sub command.
-func Version(app *kingpin.Application, apiCompatibility int) {
-	cmd := cmdVersion{
-		APICompatibility: apiCompatibility,
-		BuildDate:        version.BuildDate,
-		BuildVersion:     version.BuildVersion,
-		GOARCH:           runtime.GOARCH,
-		GOOS:             runtime.GOOS,
-	}
-
+func Version(app *kingpin.Application) {
+	cmd := new(cmdVersion)
 	app.Command("version", fmt.Sprintf("Prints %s version", app.Name)).Action(cmd.run)
-}
-
-// RenderVersionOutput is responsible for producing the rendered version info string.
-func renderVersionOutput(cmd *cmdVersion) string {
-	output := []string{
-		fmt.Sprintf("Version | %s", cmd.BuildVersion),
-		fmt.Sprintf("Date | %s", cmd.BuildDate),
-		fmt.Sprintf("API | v%d", cmd.APICompatibility),
-		fmt.Sprintf("OS | %s", cmd.GOOS),
-		fmt.Sprintf("Arch | %s", cmd.GOARCH),
-	}
-	return columnize.SimpleFormat(output)
 }

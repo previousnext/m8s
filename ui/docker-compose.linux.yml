@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  ui:
+    build:
+      context: ui
+    network_mode: host
+    volumes:
+      - ./ui/src/client/public:/var/www/html
+
+  api:
+    build: .
+    network_mode: host
+    command: ["api"]
+    environment:
+      - M8S_UI_MOCK=true

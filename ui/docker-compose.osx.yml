@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  ui:
+    build:
+      context: ui
+    ports:
+      - "80:80"
+    volumes:
+      - ./ui/src/client/public:/var/www/html
+
+  api:
+    build: .
+    network_mode: service:ui
+    command: ["api"]
+    environment:
+      - M8S_UI_MOCK=true

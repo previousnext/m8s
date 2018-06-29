@@ -3,10 +3,17 @@
 export CGO_ENABLED=0
 
 PROJECT=github.com/previousnext/m8s
+VERSION=$(shell git describe --tags --always)
+COMMIT=$(shell git rev-list -1 HEAD)
+BUILD=$(shell date)
 
 # Builds the project
 build: generate
-	gox -os='linux darwin' -arch='amd64' -output='bin/m8s_{{.OS}}_{{.Arch}}' -ldflags='-extldflags "-static"' $(PROJECT)
+	gox -os='linux darwin' \
+	    -arch='amd64' \
+	    -output='bin/m8s_{{.OS}}_{{.Arch}}' \
+	    -ldflags='-extldflags "-static" -X github.com/previousnext/m8s/cmd.GitVersion=${VERSION} -X github.com/previousnext/m8s/cmd.GitCommit=${COMMIT}' \
+	    $(PROJECT)
 
 # Generate any necessary code.
 generate:
@@ -18,11 +25,9 @@ lint: generate
 
 # Run tests with coverage reporting
 test: generate
-	go test -cover ./server/...
-	go test -cover ./cmd/...
+	go test -cover ./...
 
 IMAGE=previousnext/m8s
-VERSION=$(shell git describe --tags --always)
 
 # Releases the project Docker Hub
 release-docker:
@@ -39,13 +44,3 @@ release-github: build
 	ghr -u previousnext "${VERSION}" ./bin/
 
 release: release-docker release-github
-
-PROTOBUF=$(PWD)/pb
-
-# Generates a new Protobuf Golang package
-protobuf:
-	rm -fR $(PROTOBUF)
-	mkdir -p $(PROTOBUF)
-	docker run -it -w $(PWD) -v $(PWD):$(PWD) nickschuch/grpc-go:latest /bin/bash -c 'protoc -I . m8s.proto --go_out=plugins=grpc:$(PROTOBUF)'
-
-.PHONY: build lint test release-docker release-github release protobuf

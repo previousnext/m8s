@@ -1,0 +1,18 @@
+namespace: test
+
+retention: 30m
+
+build:
+  container: app
+  steps:
+    - echo 1
+    - echo 2
+
+cache:
+  type: standard
+  paths:
+    - /root/.composer
+
+secrets:
+  dockercfg: test-dockercfg
+  ssh: test-ssh

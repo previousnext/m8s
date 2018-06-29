@@ -1,143 +1,96 @@
 package cmd
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/gosexy/to"
 	"github.com/pkg/errors"
 	"github.com/previousnext/compose"
-	"github.com/previousnext/m8s/cmd/environ"
-	"github.com/previousnext/m8s/cmd/metadata"
-	pb "github.com/previousnext/m8s/pb"
-	"github.com/smallfish/simpleyaml"
-	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
+
+	"github.com/previousnext/k8s-black-death/retention"
+	"github.com/previousnext/m8s/client"
+	"github.com/previousnext/m8s/client/types"
+	"github.com/previousnext/m8s/config"
+	"github.com/previousnext/m8s/utils/environ"
+	"github.com/previousnext/m8s/utils/metadata"
 )
 
 type cmdBuild struct {
-	API           string
-	Token         string
-	Name          string
-	Domains       string
-	BasicAuthUser string
-	BasicAuthPass string
-	Retention     time.Duration
-	GitRepository string
-	GitRevision   string
-	DockerCompose string
-	ExecFile      string
-	ExecStep      string
-	ExecInside    string
-	Timeout       time.Duration
+	Client           string
+	Config           string
+	Name             string
+	Domain           string
+	Retention        time.Duration
+	Repository       string
+	Revision         string
+	DockerCompose    string
+	Master           string
+	KubeConfig       string
+	ExtraAnnotations string
 }
 
 func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
-	// Load the Docker Compose file, we are going to use alot of its
-	// configuration for this build.
 	dc, err := compose.Load(cmd.DockerCompose)
 	if err != nil {
 		return errors.Wrap(err, "failed to load Docker Compose file")
 	}
 
-	// Load the steps required to run the build, these are bespoke steps used
-	// for bootstrapping and testing the application.
-	steps, err := loadSteps(cmd.ExecFile, cmd.ExecStep)
+	cfg, err := config.LoadWithDefaults(cmd.Config)
 	if err != nil {
 		return errors.Wrap(err, "failed to load steps")
-	}
-
-	client, err := buildClient(cmd.API)
-	if err != nil {
-		return errors.Wrap(err, "failed to connect")
 	}
 
 	// These are additional environment variables that have been provided outside of this build, with the intent
 	// for them to be injected into our running containers.
 	//   eg. M8S_ENV_FOO=bar, will inject FOO=bar into the containers.
-	extraEnvs := environ.Get()
+	envs := environ.Get()
 
 	for name, service := range dc.Services {
-		// Attach our addition environment variables to the service.
-		service.Environment = append(service.Environment, extraEnvs...)
+		service.Environment = append(service.Environment, envs...)
 		dc.Services[name] = service
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
-	defer cancel()
-
-	annotations, err := metadata.Annotations(os.Environ())
+	annotations, err := getAnnotations(cfg.Retention)
 	if err != nil {
-		return errors.Wrap(err, "failed to get annotations")
+		return errors.Wrap(err, "failed to build annotations")
 	}
 
-	// Start the build.
-	stream, err := client.Create(ctx, &pb.CreateRequest{
-		Credentials: &pb.Credentials{
-			Token: cmd.Token,
-		},
-		Metadata: &pb.Metadata{
-			Name:        strings.ToLower(cmd.Name),
-			Annotations: annotations,
-			Domains:     strings.Split(strings.ToLower(cmd.Domains), ","),
-			BasicAuth: &pb.BasicAuth{
-				User: cmd.BasicAuthUser,
-				Pass: cmd.BasicAuthPass,
-			},
-			Retention: cmd.Retention.String(),
-		},
-		GitCheckout: &pb.GitCheckout{
-			Repository: cmd.GitRepository,
-			Revision:   cmd.GitRevision,
-		},
-		Compose: composeToGRPC(dc),
+	for key, value := range getExtraAnnotations(cmd.ExtraAnnotations) {
+		annotations[key] = value
+	}
+
+	cli, err := client.New(cmd.Client, types.ClientParams{
+		Master:     cmd.Master,
+		KubeConfig: cmd.KubeConfig,
 	})
 	if err != nil {
-		return errors.Wrap(err, "the build has failed")
+		return errors.Wrap(err, "failed to create client")
 	}
 
-	for {
-		resp, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return errors.Wrap(err, "failed to read stream")
-		}
-
-		fmt.Println(string(resp.Message))
+	err = cli.Build(os.Stdout, types.BuildParams{
+		Name:          strings.ToLower(cmd.Name),
+		Domain:        strings.ToLower(cmd.Domain),
+		Annotations:   annotations,
+		Repository:    cmd.Repository,
+		Revision:      cmd.Revision,
+		Config:        cfg,
+		DockerCompose: dc,
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to build environment")
 	}
 
-	for _, step := range steps {
-		ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
-		defer cancel()
-
-		stream, err := client.Step(ctx, &pb.StepRequest{
-			Credentials: &pb.Credentials{
-				Token: cmd.Token,
-			},
+	for _, step := range cfg.Build.Steps {
+		err = cli.Step(os.Stdout, types.StepParams{
+			Namespace: cfg.Namespace,
 			Name:      strings.ToLower(cmd.Name),
-			Container: cmd.ExecInside,
+			Container: cfg.Build.Container,
 			Command:   step,
 		})
 		if err != nil {
-			return errors.Wrap(err, "the exec command has failed")
-		}
-
-		for {
-			resp, err := stream.Recv()
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				return errors.Wrap(err, "failed to read stream")
-			}
-
-			fmt.Println(string(resp.Message))
+			return errors.Wrap(err, "failed to run step")
 		}
 	}
 
@@ -149,72 +102,54 @@ func Build(app *kingpin.Application) {
 	c := new(cmdBuild)
 
 	cmd := app.Command("build", "Build the environment").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("M8S_API").StringVar(&c.API)
-	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
-	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)
-	cmd.Flag("basic-auth-user", "Basic auth user to assign to this environment").Default("").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_USER").StringVar(&c.BasicAuthUser)
-	cmd.Flag("basic-auth-pass", "Basic auth user to assign to this environment").Default("").OverrideDefaultFromEnvar("M8S_BASIC_AUTH_PASS").StringVar(&c.BasicAuthPass)
-	cmd.Flag("retention", "How long to keep an environment").Default("120h").OverrideDefaultFromEnvar("M8S_RETENTION").DurationVar(&c.Retention)
-	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("M8S_GIT_REPO").StringVar(&c.GitRepository)
-	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
-	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
-	cmd.Flag("exec-file", "Configuration file which contains execution steps").Default("m8s.yml").OverrideDefaultFromEnvar("M8S_EXEC_FILE").StringVar(&c.ExecFile)
-	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Default("build").OverrideDefaultFromEnvar("M8S_EXEC_STEP").StringVar(&c.ExecStep)
-	cmd.Flag("exec-inside", "Docker repository to push built images").Default("app").OverrideDefaultFromEnvar("M8S_EXEC_INSIDE").StringVar(&c.ExecInside)
-	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)
+	cmd.Flag("domain", "Domain for this environment").Required().StringVar(&c.Domain)
+	cmd.Flag("repository", "Git repository to clone from").Default("").Envar("M8S_REPOSITORY").StringVar(&c.Repository)
+	cmd.Flag("revision", "Git revision to checkout during clone").Required().StringVar(&c.Revision)
+	cmd.Flag("client", "Client to use for building an environment").Default("k8s").Envar("M8S_CLIENT").StringVar(&c.Client)
+	cmd.Flag("config", "Build configuration").Default("m8s.yml").Envar("M8S_CONFIG").StringVar(&c.Config)
+	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").Envar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
+	cmd.Flag("master", "Kubernetes master URL").Default().StringVar(&c.Master)
+	cmd.Flag("kubeconfig", "Kubernetes config file").Default("~/.kube/config").StringVar(&c.KubeConfig)
+	cmd.Flag("extra-annotations", "Add extra annotations to the environment").StringVar(&c.ExtraAnnotations)
 }
 
-// Helper function to load testing steps.
-func loadSteps(f, step string) ([]string, error) {
-	var steps []string
-
-	s, err := ioutil.ReadFile(f)
+func getAnnotations(ret time.Duration) (map[string]string, error) {
+	annotations, err := metadata.Annotations(os.Environ())
 	if err != nil {
-		return steps, err
+		return annotations, errors.Wrap(err, "failed to get annotations from metadata")
 	}
 
-	y, err := simpleyaml.NewYaml(s)
+	unix, err := retention.Unix(ret)
 	if err != nil {
-		return steps, err
+		return annotations, errors.Wrap(err, "failed to convert to unix timestamp")
 	}
+	annotations[retention.Annotation] = unix
 
-	raw, err := y.Get(step).Array()
-	if err != nil {
-		return steps, err
-	}
+	// This tells admins where the environment came from.
+	annotations["author"] = "m8s"
 
-	for _, val := range raw {
-		steps = append(steps, to.String(val))
-	}
-
-	return steps, nil
+	return annotations, nil
 }
 
-// Helper function used for marshalling a Docker Compose file into a M8s object.
-func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
-	resp := new(pb.Compose)
+// Helper function to extra additional annotations from the cmd flag "ExtraAnnotations".
+func getExtraAnnotations(annotations string) map[string]string {
+	list := make(map[string]string)
 
-	for name, service := range dc.Services {
-		resp.Services = append(resp.Services, &pb.ComposeService{
-			Name:         name,
-			Image:        service.Image,
-			Entrypoint:   service.Entrypoint,
-			Volumes:      service.Volumes,
-			Ports:        service.Ports,
-			Environment:  service.Environment,
-			Tmpfs:        service.Tmpfs,
-			Capabilities: service.CapAdd,
-			Limits: &pb.Resource{
-				CPU:    service.Deploy.Resources.Limits.CPUs,
-				Memory: service.Deploy.Resources.Limits.Memory,
-			},
-			Reservations: &pb.Resource{
-				CPU:    service.Deploy.Resources.Reservations.CPUs,
-				Memory: service.Deploy.Resources.Reservations.Memory,
-			},
-		})
+	for _, value := range strings.Split(annotations, ",") {
+		sl := strings.Split(value, "=")
+
+		if len(sl) != 2 {
+			continue
+		}
+
+		var (
+			key = sl[0]
+			val = sl[1]
+		)
+
+		list[key] = val
 	}
 
-	return resp
+	return list
 }

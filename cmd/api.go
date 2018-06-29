@@ -6,7 +6,7 @@ import (
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	dashboardapi "github.com/previousnext/m8s/api"
+	dashboardapi "github.com/previousnext/m8s/ui/api"
 )
 
 type cmdDashboardAPI struct {

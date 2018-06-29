@@ -1,60 +1,46 @@
 package cmd
 
 import (
-	"fmt"
-	"io"
-	"strings"
-	"time"
+	"os"
 
 	"github.com/pkg/errors"
-	pb "github.com/previousnext/m8s/pb"
-	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/previousnext/m8s/client"
+	"github.com/previousnext/m8s/config"
+	"github.com/previousnext/m8s/client/types"
+	"strings"
 )
 
 type cmdStep struct {
-	API     string
-	Token   string
-	Name    string
-	Inside  string
-	Command string
-	Timeout time.Duration
+	Client    string
+	Config    string
+	Name      string
+	Container string
+	Command   string
+	Master string
+	KubeConfig string
 }
 
 func (cmd *cmdStep) run(c *kingpin.ParseContext) error {
-	client, err := buildClient(cmd.API)
-	if err != nil {
-		return errors.Wrap(err, "failed to build client")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
-	defer cancel()
-
-	stream, err := client.Step(ctx, &pb.StepRequest{
-		Credentials: &pb.Credentials{
-			Token: cmd.Token,
-		},
-		Name:      strings.ToLower(cmd.Name),
-		Container: cmd.Inside,
-		Command:   cmd.Command,
+	cli, err := client.New(cmd.Client, types.ClientParams{
+		Master: cmd.Master,
+		KubeConfig: cmd.KubeConfig,
 	})
 	if err != nil {
-		return errors.Wrap(err, "the step has failed")
+		return errors.Wrap(err, "failed to create client")
 	}
 
-	for {
-		resp, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return errors.Wrap(err, "failed to read stream")
-		}
-
-		fmt.Println(string(resp.Message))
+	cfg, err := config.Load(cmd.Config)
+	if err != nil {
+		return errors.Wrap(err, "failed to load steps")
 	}
 
-	return nil
+	return cli.Step(os.Stdout, types.StepParams{
+		Namespace: cfg.Namespace,
+		Name: strings.ToLower(cmd.Name),
+		Container: cmd.Container,
+		Command: cmd.Command,
+	})
 }
 
 // Step declares the "step" sub command.
@@ -62,10 +48,11 @@ func Step(app *kingpin.Application) {
 	c := new(cmdStep)
 
 	cmd := app.Command("step", "Step to run against the environment").Action(c.run)
-	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("M8S_API").StringVar(&c.API)
-	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
-	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)
-	cmd.Arg("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
-	cmd.Arg("inside", "Unique identifier for the environment").Required().StringVar(&c.Inside)
-	cmd.Arg("command", "Unique identifier for the environment").Required().StringVar(&c.Command)
+	cmd.Flag("config", "Build configuration").Default("m8s.yml").Envar("M8S_CONFIG").StringVar(&c.Config)
+	cmd.Flag("client", "Client to use for building an environment").Default("k8s").Envar("M8S_CLIENT").StringVar(&c.Client)
+	cmd.Flag("master", "Kubernetes master URL").Default().StringVar(&c.Master)
+	cmd.Flag("kubeconfig", "Kubernetes config file").Default("~/.kube/config").StringVar(&c.KubeConfig)
+	cmd.Arg("name", "Name of the environment").Required().StringVar(&c.Name)
+	cmd.Arg("container", "Container to execute the step inside").Required().StringVar(&c.Container)
+	cmd.Arg("command", "Command to execute").Required().StringVar(&c.Command)
 }
