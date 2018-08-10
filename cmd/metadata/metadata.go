@@ -16,6 +16,31 @@ const (
 	// AnnotationBitbucketRepoName is an identifier for Bitbucket repository this environment was built from.
 	AnnotationBitbucketRepoName = "bitbucket.org/repo/name"
 
+	// AnnotationBitbucketBuildNumber is the unique identifier for a build. It increments with each build and can be
+	// used to create unique artifact names.
+	AnnotationBitbucketBuildNumber = "bitbucket.org/build_number"
+
+	// AnnotationBitbucketCommit is the commit hash of a commit that kicked off the build.
+	AnnotationBitbucketCommit = "bitbucket.org/commit"
+
+	// AnnotationBitbucketRepoOwnerUUID is the UUID of the account in which the repository lives.
+	AnnotationBitbucketRepoOwnerUUID = "bitbucket.org/repo_owner_uuid"
+
+	// AnnotationBitbucketRepoUUID is the UUID of the repository.
+	AnnotationBitbucketRepoUUID = "bitbucket.org/repo_uuid"
+
+	// AnnotationBitbucketTag is the tag of a commit that kicked off the build. This value is only available on tags.
+	AnnotationBitbucketTag = "bitbucket.org/tag"
+
+	// AnnotationBitbucketBookmark is for use with Mercurial projects.
+	AnnotationBitbucketBookmark = "bitbucket.org/bookmark"
+
+	// AnnotationBitbucketParallelStep is zero-based index of the current step in the group.
+	AnnotationBitbucketParallelStep = "bitbucket.org/parallel_step"
+
+	// AnnotationBitbucketParallelStepCount is Total number of steps in the group.
+	AnnotationBitbucketParallelStepCount = "bitbucket.org/parallel_step_count"
+
 	// AnnotationCircleCIRepositoryUsername is an identifier for CircleCI repository the environment was built from.
 	AnnotationCircleCIRepositoryUsername = "circleci.com/project/username"
 
@@ -83,6 +108,23 @@ func Annotations(envs []string) ([]*pb.Annotation, error) {
 			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketRepoOwner, Value: sl[1]})
 		case "BITBUCKET_REPO_SLUG":
 			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketRepoName, Value: sl[1]})
+		case "BITBUCKET_BUILD_NUMBER":
+			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketBuildNumber, Value: sl[1]})
+		case "BITBUCKET_COMMIT":
+			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketCommit, Value: sl[1]})
+		case "BITBUCKET_REPO_OWNER_UUID":
+			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketRepoOwnerUUID, Value: sl[1]})
+		case "BITBUCKET_REPO_UUID":
+			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketRepoUUID, Value: sl[1]})
+		case "BITBUCKET_TAG":
+			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketTag, Value: sl[1]})
+		case "BITBUCKET_BOOKMARK":
+			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketBookmark, Value: sl[1]})
+		case "BITBUCKET_PARALLEL_STEP":
+			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketParallelStep, Value: sl[1]})
+		case "BITBUCKET_PARALLEL_STEP_COUNT":
+			annotations = append(annotations, &pb.Annotation{Name: AnnotationBitbucketParallelStepCount, Value: sl[1]})
+
 		// Check if we have CircleCI environment variables.
 		// https://circleci.com/docs/2.0/env-vars/
 		case "CIRCLE_PR_NUMBER":

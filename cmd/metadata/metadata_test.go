@@ -22,6 +22,38 @@ func TestAnnotations(t *testing.T) {
 			Value: "bar",
 		},
 		{
+			Name: AnnotationBitbucketBuildNumber,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketCommit,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketRepoOwnerUUID,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketRepoUUID,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketTag,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketBookmark,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketParallelStep,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketParallelStepCount,
+			Value: "quiix",
+		},
+		{
 			Name:  AnnotationCircleCIRepositoryURL,
 			Value: "http://example.com",
 		},
@@ -87,6 +119,14 @@ func TestAnnotations(t *testing.T) {
 		"BITBUCKET_BRANCH=master",
 		"BITBUCKET_REPO_OWNER=nick",
 		"BITBUCKET_REPO_SLUG=bar",
+		"BITBUCKET_BUILD_NUMBER=quiix",
+		"BITBUCKET_COMMIT=quiix",
+		"BITBUCKET_REPO_OWNER_UUID=quiix",
+		"BITBUCKET_REPO_UUID=quiix",
+		"BITBUCKET_TAG=quiix",
+		"BITBUCKET_BOOKMARK=quiix",
+		"BITBUCKET_PARALLEL_STEP=quiix",
+		"BITBUCKET_PARALLEL_STEP_COUNT=quiix",
 		"CIRCLE_REPOSITORY_URL=http://example.com",
 		"CIRCLE_PR_NUMBER=1",
 		"CIRCLE_PR_USERNAME=nick",
