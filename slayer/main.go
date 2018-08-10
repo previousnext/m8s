@@ -68,7 +68,7 @@ func main() {
 
 // getPodsToSlay gathers any pods with closed PRs.
 func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Context) ([]v1.Pod, error) {
-	var podsToKill []v1.Pod
+	var podsToSlay []v1.Pod
 	for _, pod := range pods.Items {
 		if _, ok := pod.Annotations[KeyCircleProjectRepoName]; !ok {
 			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, KeyCircleProjectRepoName)
@@ -89,12 +89,12 @@ func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Co
 		}
 		for _, pr := range prs {
 			if pod.Annotations[KeyCircleBranch] == *pr.Head.Ref {
-				podsToKill = append(podsToKill, pod)
+				podsToSlay = append(podsToSlay, pod)
 			}
 		}
 	}
 
-	return podsToKill, nil
+	return podsToSlay, nil
 }
 
 // getClosedPrs gathers all closed PRs for an owner and repo.
