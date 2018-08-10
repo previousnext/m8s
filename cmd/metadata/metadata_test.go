@@ -22,6 +22,38 @@ func TestAnnotations(t *testing.T) {
 			Value: "bar",
 		},
 		{
+			Name: AnnotationBitbucketBuildNumber,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketCommit,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketRepoOwnerUUID,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketRepoUUID,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketTag,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketBookmark,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketParallelStep,
+			Value: "quiix",
+		},
+		{
+			Name: AnnotationBitbucketParallelStepCount,
+			Value: "quiix",
+		},
+		{
 			Name:  AnnotationCircleCIRepositoryURL,
 			Value: "http://example.com",
 		},
@@ -33,15 +65,83 @@ func TestAnnotations(t *testing.T) {
 			Name:  AnnotationCircleCIPRUsername,
 			Value: "nick",
 		},
+		{
+			Name: AnnotationCircleCIBuildNum,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIBuildURL,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCICompareURL,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCISHA1,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIRepositoryName,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIRepositoryUsername,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIUsername,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIBranch,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIJob,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIWorkflowID,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIWorkflowJobID,
+			Value: "xxx",
+		},
+		{
+			Name: AnnotationCircleCIWorkflowWorkspaceID,
+			Value: "xxx",
+		},
 	}
 
 	have, err := Annotations([]string{
 		"BITBUCKET_BRANCH=master",
 		"BITBUCKET_REPO_OWNER=nick",
 		"BITBUCKET_REPO_SLUG=bar",
+		"BITBUCKET_BUILD_NUMBER=quiix",
+		"BITBUCKET_COMMIT=quiix",
+		"BITBUCKET_REPO_OWNER_UUID=quiix",
+		"BITBUCKET_REPO_UUID=quiix",
+		"BITBUCKET_TAG=quiix",
+		"BITBUCKET_BOOKMARK=quiix",
+		"BITBUCKET_PARALLEL_STEP=quiix",
+		"BITBUCKET_PARALLEL_STEP_COUNT=quiix",
 		"CIRCLE_REPOSITORY_URL=http://example.com",
 		"CIRCLE_PR_NUMBER=1",
 		"CIRCLE_PR_USERNAME=nick",
+		"CIRCLE_BUILD_NUM=xxx",
+		"CIRCLE_BUILD_URL=xxx",
+		"CIRCLE_COMPARE_URL=xxx",
+		"CIRCLE_SHA1=xxx",
+		"CIRCLE_PROJECT_REPONAME=xxx",
+		"CIRCLE_PROJECT_USERNAME=xxx",
+		"CIRCLE_USERNAME=xxx",
+		"CIRCLE_BRANCH=xxx",
+		"CIRCLE_JOB=xxx",
+		"CIRCLE_WORKFLOW_ID=xxx",
+		"CIRCLE_WORKFLOW_JOB_ID=xxx",
+		"CIRCLE_WORKFLOW_WORKSPACE_ID=xxx",
 		"FOO=bar",
 	})
 	assert.Nil(t, err)
