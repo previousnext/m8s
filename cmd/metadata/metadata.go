@@ -11,23 +11,23 @@ const (
 	AnnotationBitbucketBranch = "bitbucket.org/branch"
 
 	// AnnotationBitbucketRepoOwner is an identifier for Bitbucket repository owner.
-	AnnotationBitbucketRepoOwner = "bitbucket.org/repo/owner"
+	AnnotationBitbucketRepoOwner = "bitbucket.org/repo-owner"
 
 	// AnnotationBitbucketRepoName is an identifier for Bitbucket repository this environment was built from.
-	AnnotationBitbucketRepoName = "bitbucket.org/repo/name"
+	AnnotationBitbucketRepoName = "bitbucket.org/repo-name"
 
 	// AnnotationBitbucketBuildNumber is the unique identifier for a build. It increments with each build and can be
 	// used to create unique artifact names.
-	AnnotationBitbucketBuildNumber = "bitbucket.org/build_number"
+	AnnotationBitbucketBuildNumber = "bitbucket.org/build-number"
 
 	// AnnotationBitbucketCommit is the commit hash of a commit that kicked off the build.
 	AnnotationBitbucketCommit = "bitbucket.org/commit"
 
 	// AnnotationBitbucketRepoOwnerUUID is the UUID of the account in which the repository lives.
-	AnnotationBitbucketRepoOwnerUUID = "bitbucket.org/repo_owner_uuid"
+	AnnotationBitbucketRepoOwnerUUID = "bitbucket.org/repo-owner-uuid"
 
 	// AnnotationBitbucketRepoUUID is the UUID of the repository.
-	AnnotationBitbucketRepoUUID = "bitbucket.org/repo_uuid"
+	AnnotationBitbucketRepoUUID = "bitbucket.org/repo-uuid"
 
 	// AnnotationBitbucketTag is the tag of a commit that kicked off the build. This value is only available on tags.
 	AnnotationBitbucketTag = "bitbucket.org/tag"
@@ -36,34 +36,34 @@ const (
 	AnnotationBitbucketBookmark = "bitbucket.org/bookmark"
 
 	// AnnotationBitbucketParallelStep is zero-based index of the current step in the group.
-	AnnotationBitbucketParallelStep = "bitbucket.org/parallel_step"
+	AnnotationBitbucketParallelStep = "bitbucket.org/parallel-step"
 
 	// AnnotationBitbucketParallelStepCount is Total number of steps in the group.
-	AnnotationBitbucketParallelStepCount = "bitbucket.org/parallel_step_count"
+	AnnotationBitbucketParallelStepCount = "bitbucket.org/parallel-step-count"
 
 	// AnnotationCircleCIRepositoryUsername is an identifier for CircleCI repository the environment was built from.
-	AnnotationCircleCIRepositoryUsername = "circleci.com/project/username"
+	AnnotationCircleCIRepositoryUsername = "circleci.com/project-username"
 
 	// AnnotationCircleCIRepositoryName is an identifier for CircleCI repository the environment was built from.
-	AnnotationCircleCIRepositoryName = "circleci.com/project/reponame"
+	AnnotationCircleCIRepositoryName = "circleci.com/project-reponame"
 
 	// AnnotationCircleCIRepositoryURL is an identifier for CircleCI repository the environment was built from.
-	AnnotationCircleCIRepositoryURL = "circleci.com/repository/url"
+	AnnotationCircleCIRepositoryURL = "circleci.com/repository-url"
 
 	// AnnotationCircleCIPRNumber is an identifier for CircleCI pull request the environment was built from.
-	AnnotationCircleCIPRNumber = "circleci.com/pr/number"
+	AnnotationCircleCIPRNumber = "circleci.com/pr-number"
 
 	// AnnotationCircleCIPRUsername is an identifier for CircleCI pull request submitted by a user.
-	AnnotationCircleCIPRUsername = "circleci.com/pr/username"
+	AnnotationCircleCIPRUsername = "circleci.com/pr-username"
 
 	// AnnotationCircleCIBuildNum is the number of the CircleCI build.
-	AnnotationCircleCIBuildNum = "circleci.com/build/num"
+	AnnotationCircleCIBuildNum = "circleci.com/build-num"
 
 	// AnnotationCircleCIBuildURL is the URL for the current build.
-	AnnotationCircleCIBuildURL = "circleci.com/build/url"
+	AnnotationCircleCIBuildURL = "circleci.com/build-url"
 
 	// AnnotationCircleCICompareURL is the GitHub or Bitbucket URL to compare commits of a build.
-	AnnotationCircleCICompareURL = "circleci.com/compare_url"
+	AnnotationCircleCICompareURL = "circleci.com/compare-url"
 
 	// AnnotationCircleCISHA1 is the SHA1 hash of the last commit of the current build.
 	AnnotationCircleCISHA1 = "circleci.com/sha1"
@@ -79,13 +79,13 @@ const (
 
 	// AnnotationCircleCIWorkflowID is a unique identifier for the workflow instance of the current job. This
 	// identifier is the same for every job in a given workflow instance.
-	AnnotationCircleCIWorkflowID = "circleci.com/workflow/id"
+	AnnotationCircleCIWorkflowID = "circleci.com/workflow-id"
 
 	// AnnotationCircleCIWorkflowJobID is the workflow job ID.
-	AnnotationCircleCIWorkflowJobID = "circleci.com/workflow/job_id"
+	AnnotationCircleCIWorkflowJobID = "circleci.com/workflow-job-id"
 
 	// AnnotationCircleCIWorkflowWorkspaceID is the workspace ID.
-	AnnotationCircleCIWorkflowWorkspaceID = "circleci.com/workflow/workspace_id"
+	AnnotationCircleCIWorkflowWorkspaceID = "circleci.com/workflow-workspace-id"
 )
 
 // Annotations are used for attaching metadata to a environment.
