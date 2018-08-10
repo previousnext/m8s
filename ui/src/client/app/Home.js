@@ -1,13 +1,18 @@
 import React from 'react';
 
-import Options from './Options';
-import UIs from './UIs';
+import EnvironmentTable from './EnvironmentTable'
+import queryString from 'query-string'
 
 export default class Home extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {envs : []};
+        const params = queryString.parse(props.location.search);
+        this.state = {
+          envs : [],
+          search: params.search ? params.search : '',
+        };
+        this.updateInput = this.updateInput.bind(this)
     }
 
     componentDidMount() {
@@ -21,41 +26,36 @@ export default class Home extends React.Component {
         this.serverRequest.abort();
     }
 
-    render() {
-        const tbody = this.state.envs.map(function(env) {
-            return (
-                <tr key={env.name}>
-                    <td className="table--enlarged"><a href={`//${env.domain}`}>{env.name}</a></td>
-                    <td>
-                        <Options operation="logs" name={env.name} containers={env.containers} />
-                    </td>
-                    <td>
-                        <Options operation="shell" name={env.name} containers={env.containers} />
-                    </td>
-                    <td>
-                        { /* @todo, Consolidate with the Options component. */ }
-                        <UIs name={env.name} base_url={`//${env.domain}`} />
-                    </td>
-                </tr>
-            )
-        });
+    updateInput(e) {
+      this.props.history.push(`${this.props.match.url}?search=${e.target.value}`);
+      this.setState({
+        search: e.target.value,
+      })
+    }
 
+    handleSubmit(e) {
+        e.preventDefault();
+    }
+
+    render() {
         return (
-            <div className="table__stretch-wrapper">
-                <table className="js-table--responsive">
-                    <thead>
-                    <tr>
-                        <th>Domain</th>
-                        <th>Logs</th>
-                        <th>Console</th>
-                        <th>UIs</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        {tbody}
-                    </tbody>
-                </table>
-            </div>
+            <main className="table__stretch-wrapper">
+                <h1 class="visually-hidden">Dashboard home</h1>
+                <form className="search" onSubmit={this.handleSubmit}>
+                    <div className="form__item">
+                        <label htmlFor="search" className="visually-hidden">Search</label>
+                        <input
+                            type="search"
+                            id="search"
+                            placeholder="Search environments"
+                            onChange={this.updateInput}
+                            value={this.state.search}
+                        />
+                    </div>
+                    <input type="submit" className="button--search" />
+                </form>
+                <EnvironmentTable envs={this.state.envs} search={this.state.search}/>
+            </main>
         );
     }
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import Breadcrumbs from './Breadcrumbs';
 
 export default class Logs extends React.Component {
 
@@ -20,7 +21,11 @@ export default class Logs extends React.Component {
 
     render() {
         return (
-            <pre id="logs" className="console">{this.state.logs}</pre>
+            <main>
+                <h1>Logs</h1>
+                <Breadcrumbs operation="logs" name={this.props.match.params.name} container={this.props.match.params.container} />
+                <pre id="logs" className="console">{this.state.logs}</pre>
+            </main>
         );
     }
 

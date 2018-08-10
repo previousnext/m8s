@@ -1,4 +1,5 @@
 import React from 'react';
+import Breadcrumbs from './Breadcrumbs';
 
 export default class Shell extends React.Component {
 
@@ -54,7 +55,11 @@ export default class Shell extends React.Component {
 
     render() {
         return (
-            <pre id="shell" className="console" onLoad={this.ws(this.props.match.params.name, this.props.match.params.container)}></pre>
+            <main>
+                <h1>Console</h1>
+                <Breadcrumbs operation="console" name={this.props.match.params.name} container={this.props.match.params.container} />
+                <pre id="shell" className="console" onLoad={this.ws(this.props.match.params.name, this.props.match.params.container)}></pre>
+            </main>
         );
     }
 
