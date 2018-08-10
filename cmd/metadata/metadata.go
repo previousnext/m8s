@@ -31,34 +31,35 @@ const (
 	// AnnotationCircleCIPRUsername is an identifier for CircleCI pull request submitted by a user.
 	AnnotationCircleCIPRUsername = "circleci.com/pr/username"
 
-	// AnnotationCircleCIBuildNum
+	// AnnotationCircleCIBuildNum is the number of the CircleCI build.
 	AnnotationCircleCIBuildNum = "circleci.com/build/num"
 
-	// AnnotationCircleCIBuildURL
+	// AnnotationCircleCIBuildURL is the URL for the current build.
 	AnnotationCircleCIBuildURL = "circleci.com/build/url"
 
-	// AnnotationCircleCICompareURL
+	// AnnotationCircleCICompareURL is the GitHub or Bitbucket URL to compare commits of a build.
 	AnnotationCircleCICompareURL = "circleci.com/compare_url"
 
-	// AnnotationCircleCISHA1
+	// AnnotationCircleCISHA1 is the SHA1 hash of the last commit of the current build.
 	AnnotationCircleCISHA1 = "circleci.com/sha1"
 
-	// AnnotationCircleCIUsername
+	// AnnotationCircleCIUsername is the GitHub or Bitbucket username of the user who triggered the build.
 	AnnotationCircleCIUsername = "circleci.com/username"
 
-	// AnnotationCircleCIBranch
+	// AnnotationCircleCIBranch is the name of the Git branch currently being built.
 	AnnotationCircleCIBranch = "circleci.com/branch"
 
-	// AnnotationCircleCIJob
+	// AnnotationCircleCIJob is the name of the current job.
 	AnnotationCircleCIJob = "circleci.com/job"
 
-	// AnnotationCircleCIWorkflowID
+	// AnnotationCircleCIWorkflowID is a unique identifier for the workflow instance of the current job. This
+	// identifier is the same for every job in a given workflow instance.
 	AnnotationCircleCIWorkflowID = "circleci.com/workflow/id"
 
-	// AnnotationCircleCIWorkflowJobID
+	// AnnotationCircleCIWorkflowJobID is the workflow job ID.
 	AnnotationCircleCIWorkflowJobID = "circleci.com/workflow/job_id"
 
-	// AnnotationCircleCIWorkflowWorkspaceID
+	// AnnotationCircleCIWorkflowWorkspaceID is the workspace ID.
 	AnnotationCircleCIWorkflowWorkspaceID = "circleci.com/workflow/workspace_id"
 )
 
