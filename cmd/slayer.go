@@ -133,5 +133,5 @@ func Slayer(app *kingpin.Application) {
 	c := new(cmdSlayer)
 
 	cmd := app.Command("slayer", "Slay environments against closed PRs.").Action(c.run)
-	cmd.Flag("token", "The Github access token.").Envar("GITHUB_TOKEN").Required().String()
+	cmd.Flag("token", "The Github access token.").Envar("GITHUB_TOKEN").Required().StringVar(&c.Token)
 }
