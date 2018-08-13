@@ -53,6 +53,7 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get pods to slay")
 	}
+
 	for _, pod := range slayEmAll {
 		fmt.Printf("Slaying pod %s in namespace %s\n", pod.ObjectMeta.Name, pod.ObjectMeta.Namespace)
 		err = clientset.CoreV1().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{})
@@ -67,6 +68,7 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 // getPodsToSlay gathers any pods with closed PRs.
 func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Context) ([]v1.Pod, error) {
 	var podsToSlay []v1.Pod
+
 	for _, pod := range pods.Items {
 		if _, ok := pod.Annotations[metadata.AnnotationCircleCIRepositoryName]; !ok {
 			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, metadata.AnnotationCircleCIRepositoryName)
@@ -85,6 +87,7 @@ func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Co
 		if err != nil {
 			return nil, err
 		}
+
 		for _, pr := range prs {
 			if pod.Annotations[metadata.AnnotationCircleCIBranch] == *pr.Head.Ref {
 				podsToSlay = append(podsToSlay, pod)
@@ -102,11 +105,13 @@ func getClosedPrs(client *github.Client, ctx context.Context, owner, repo string
 		fmt.Printf("Loading PRs from cache for owner %s and repo %s\n", owner, repo)
 		return val, nil
 	}
+
 	var allPrs []*github.PullRequest
 	opt := &github.PullRequestListOptions{
 		State:       "closed",
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
+
 	for {
 		prs, resp, err := client.PullRequests.List(ctx, owner, repo, opt)
 		if err != nil {
@@ -118,6 +123,7 @@ func getClosedPrs(client *github.Client, ctx context.Context, owner, repo string
 		}
 		opt.Page = resp.NextPage
 	}
+
 	slayCache[key] = allPrs
 	return allPrs, nil
 }

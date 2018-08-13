@@ -24,5 +24,8 @@ func main() {
 	// Utility for installing M8s components on a K8s stack.
 	cmd.Install(app)
 
+	// Utility for slaying environments against close PRs.
+	cmd.Slayer(app)
+
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }
