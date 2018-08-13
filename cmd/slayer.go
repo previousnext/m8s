@@ -49,7 +49,7 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 	tc := oauth2.NewClient(ctx, ts)
 
 	clientGithub := github.NewClient(tc)
-	slayEmAll, err := getPodsToSlay(pods, clientGithub, ctx)
+	slayEmAll, err := getPodsToSlay(ctx, pods, clientGithub)
 	if err != nil {
 		return errors.Wrap(err, "failed to get pods to slay")
 	}
@@ -66,7 +66,7 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 }
 
 // getPodsToSlay gathers any pods with closed PRs.
-func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Context) ([]v1.Pod, error) {
+func getPodsToSlay(ctx context.Context, pods *v1.PodList, clientGithub *github.Client) ([]v1.Pod, error) {
 	var podsToSlay []v1.Pod
 
 	for _, pod := range pods.Items {
@@ -83,7 +83,7 @@ func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Co
 			continue
 		}
 
-		prs, err := getClosedPrs(clientGithub, ctx, pod.Annotations[metadata.AnnotationCircleCIRepositoryUsername], pod.Annotations[metadata.AnnotationCircleCIRepositoryName])
+		prs, err := getClosedPrs(ctx, clientGithub, pod.Annotations[metadata.AnnotationCircleCIRepositoryUsername], pod.Annotations[metadata.AnnotationCircleCIRepositoryName])
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +99,7 @@ func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Co
 }
 
 // getClosedPrs gathers all closed PRs for an owner and repo.
-func getClosedPrs(client *github.Client, ctx context.Context, owner, repo string) ([]*github.PullRequest, error) {
+func getClosedPrs(ctx context.Context, client *github.Client, owner, repo string) ([]*github.PullRequest, error) {
 	key := fmt.Sprintf("%s.%s", owner, repo)
 	if val, ok := slayCache[key]; ok {
 		fmt.Printf("Loading PRs from cache for owner %s and repo %s\n", owner, repo)
