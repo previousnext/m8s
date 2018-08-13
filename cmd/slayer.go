@@ -1,94 +1,92 @@
-package main
+package cmd
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 
+	"github.com/google/go-github/github"
+	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
+	"gopkg.in/alecthomas/kingpin.v2"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
-	"gopkg.in/alecthomas/kingpin.v2"
-	"k8s.io/api/core/v1"
+	"github.com/previousnext/m8s/cmd/metadata"
 )
 
 var (
-	cliGithubToken = kingpin.Flag("githubToken", "The Github access token.").Required().String()
-	prCache        map[string][]*github.PullRequest
-)
-
-const (
-	KeyCircleProjectRepoName = "circleci.com/project/reponame"
-	KeyCircleProjectUserName = "circleci.com/project/username"
-	KeyCircleBranch          = "circleci.com/branch"
+	slayCache map[string][]*github.PullRequest
 )
 
 func init() {
-	prCache = make(map[string][]*github.PullRequest)
+	slayCache = make(map[string][]*github.PullRequest)
 }
 
-func main() {
-	kingpin.Parse()
-	// creates the in-cluster config.
+type cmdSlayer struct {
+	Token string
+}
+
+func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		panic(err.Error())
+		return errors.Wrap(err, "failed to create in-cluster config")
 	}
-	// creates the clientset.
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		return errors.Wrap(err, "failed to create clientset")
 	}
 
 	pods, err := clientset.CoreV1().Pods(v1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
-		panic(err.Error())
+		return errors.Wrap(err, "failed to list pods")
 	}
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: *cliGithubToken},
+		&oauth2.Token{AccessToken: cmd.Token},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 
 	clientGithub := github.NewClient(tc)
 	slayEmAll, err := getPodsToSlay(pods, clientGithub, ctx)
 	if err != nil {
-		panic(err.Error())
+		return errors.Wrap(err, "failed to get pods to slay")
 	}
 	for _, pod := range slayEmAll {
 		fmt.Printf("Slaying Pod %s in namespace %s\n", pod.ObjectMeta.Name, pod.ObjectMeta.Namespace)
 		err = clientset.CoreV1().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{})
 		if err != nil {
-			panic(err.Error())
+			return errors.Wrap(err, "failed to slay pod")
 		}
 	}
+
+	return nil
 }
 
 // getPodsToSlay gathers any pods with closed PRs.
 func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Context) ([]v1.Pod, error) {
 	var podsToSlay []v1.Pod
 	for _, pod := range pods.Items {
-		if _, ok := pod.Annotations[KeyCircleProjectRepoName]; !ok {
-			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, KeyCircleProjectRepoName)
+		if _, ok := pod.Annotations[metadata.AnnotationCircleCIRepositoryName]; !ok {
+			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, metadata.AnnotationCircleCIRepositoryName)
 			continue
 		}
-		if _, ok := pod.Annotations[KeyCircleProjectUserName]; !ok {
-			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, KeyCircleProjectUserName)
+		if _, ok := pod.Annotations[metadata.AnnotationCircleCIRepositoryUsername]; !ok {
+			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, metadata.AnnotationCircleCIRepositoryUsername)
 			continue
 		}
-		if _, ok := pod.Annotations[KeyCircleBranch]; !ok {
-			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, KeyCircleBranch)
+		if _, ok := pod.Annotations[metadata.AnnotationCircleCIBranch]; !ok {
+			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, metadata.AnnotationCircleCIBranch)
 			continue
 		}
 
-		prs, err := getClosedPrs(clientGithub, ctx, pod.Annotations[KeyCircleProjectUserName], pod.Annotations[KeyCircleProjectRepoName])
+		prs, err := getClosedPrs(clientGithub, ctx, pod.Annotations[metadata.AnnotationCircleCIRepositoryUsername], pod.Annotations[metadata.AnnotationCircleCIRepositoryName])
 		if err != nil {
 			return nil, err
 		}
 		for _, pr := range prs {
-			if pod.Annotations[KeyCircleBranch] == *pr.Head.Ref {
+			if pod.Annotations[metadata.AnnotationCircleCIBranch] == *pr.Head.Ref {
 				podsToSlay = append(podsToSlay, pod)
 			}
 		}
@@ -100,7 +98,7 @@ func getPodsToSlay(pods *v1.PodList, clientGithub *github.Client, ctx context.Co
 // getClosedPrs gathers all closed PRs for an owner and repo.
 func getClosedPrs(client *github.Client, ctx context.Context, owner, repo string) ([]*github.PullRequest, error) {
 	key := fmt.Sprintf("%s.%s", owner, repo)
-	if val, ok := prCache[key]; ok {
+	if val, ok := slayCache[key]; ok {
 		fmt.Printf("Loading PRs from cache for owner %s and repo %s\n", owner, repo)
 		return val, nil
 	}
@@ -120,6 +118,14 @@ func getClosedPrs(client *github.Client, ctx context.Context, owner, repo string
 		}
 		opt.Page = resp.NextPage
 	}
-	prCache[key] = allPrs
+	slayCache[key] = allPrs
 	return allPrs, nil
+}
+
+// Slayer declares the "slayer" sub command.
+func Slayer(app *kingpin.Application) {
+	c := new(cmdSlayer)
+
+	cmd := app.Command("slayer", "Slay environments against closed PRs.").Action(c.run)
+	cmd.Flag("token", "The Github access token.").Envar("GITHUB_TOKEN").Required().String()
 }
