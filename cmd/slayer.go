@@ -54,7 +54,7 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to get pods to slay")
 	}
 	for _, pod := range slayEmAll {
-		fmt.Printf("Slaying Pod %s in namespace %s\n", pod.ObjectMeta.Name, pod.ObjectMeta.Namespace)
+		fmt.Printf("Slaying pod %s in namespace %s\n", pod.ObjectMeta.Name, pod.ObjectMeta.Namespace)
 		err = clientset.CoreV1().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{})
 		if err != nil {
 			return errors.Wrap(err, "failed to slay pod")
