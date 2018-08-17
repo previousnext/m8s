@@ -82,6 +82,10 @@ func getPodsToSlay(ctx context.Context, pods *v1.PodList, clientGithub *github.C
 			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, metadata.AnnotationCircleCIBranch)
 			continue
 		}
+		if _, ok := pod.Annotations[metadata.AnnotationCircleCISHA1]; !ok {
+			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, metadata.AnnotationCircleCISHA1)
+			continue
+		}
 
 		prs, err := getClosedPrs(ctx, clientGithub, pod.Annotations[metadata.AnnotationCircleCIRepositoryUsername], pod.Annotations[metadata.AnnotationCircleCIRepositoryName])
 		if err != nil {
@@ -89,7 +93,7 @@ func getPodsToSlay(ctx context.Context, pods *v1.PodList, clientGithub *github.C
 		}
 
 		for _, pr := range prs {
-			if pod.Annotations[metadata.AnnotationCircleCIBranch] == *pr.Head.Ref {
+			if pod.Annotations[metadata.AnnotationCircleCIBranch] == *pr.Head.Ref && pod.Annotations[metadata.AnnotationCircleCISHA1] == *pr.Head.SHA {
 				podsToSlay = append(podsToSlay, pod)
 			}
 		}
