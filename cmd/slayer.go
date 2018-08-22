@@ -39,11 +39,7 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to create clientset")
 	}
 
-	namespace := cmd.Namespace
-	if len(namespace) == 0 {
-		namespace = v1.NamespaceAll
-	}
-	pods, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods(cmd.Namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to list pods")
 	}
@@ -143,5 +139,5 @@ func Slayer(app *kingpin.Application) {
 
 	cmd := app.Command("slayer", "Slay environments against closed PRs.").Action(c.run)
 	cmd.Flag("token", "The Github access token.").Envar("GITHUB_TOKEN").Required().StringVar(&c.Token)
-	cmd.Flag("namespace", "The Kubernetes namespace to slay pods in.").Envar("SLAYER_NAMESPACE").StringVar(&c.Namespace)
+	cmd.Flag("namespace", "The Kubernetes namespace to slay pods in.").Default(v1.NamespaceAll).Envar("SLAYER_NAMESPACE").StringVar(&c.Namespace)
 }
