@@ -1,12 +1,14 @@
 package k8s
 
 import (
+	"log"
 	"net/http"
 
 	apiutils "github.com/previousnext/m8s/api/utils"
 	"github.com/previousnext/m8s/k8sclient"
 	"golang.org/x/net/websocket"
-	"github.com/previousnext/skpr/utils/k8s/pods/exec"
+
+	"github.com/previousnext/m8s/internal/podutils"
 )
 
 // Exec bash (shell) inside a container.
@@ -17,11 +19,15 @@ func (s Server) Exec(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("Received request for pod:", pod)
+
 	container, err := apiutils.Param(r, "container")
 	if err != nil {
 		apiutils.Fatal(w, err)
 		return
 	}
+
+	log.Println("Received request for pod:", container)
 
 	client, config, err := k8sclient.New(s.Master, s.Config)
 	if err != nil {
@@ -29,29 +35,34 @@ func (s Server) Exec(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("Starting session")
+
 	wws := websocket.Handler(func(ws *websocket.Conn) {
-		input := exec.RunParams{
+		opts := podutils.ExecParams{
 			Client:    client,
 			Config:    config,
+			Namespace: s.Namespace,
+			Pod:       pod,
 			Stdin:     true,
 			Stdout:    true,
 			Stderr:    true,
-			Reader:    ws,
+			TTY:       true,
 			Writer:    ws,
-			Namespace: s.Namespace,
-			Pod:       pod,
+			Reader:    ws,
 			Container: container,
 			Command: []string{
 				"/bin/bash",
 			},
 		}
 
-		err := exec.Run(input)
+		err = podutils.Exec(opts)
 		if err != nil {
 			apiutils.Fatal(w, err)
 			return
 		}
 	})
+
+	log.Println("Session finished")
 
 	wws.ServeHTTP(w, r)
 }
