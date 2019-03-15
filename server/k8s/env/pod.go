@@ -136,7 +136,7 @@ func Pod(input PodInput) (*v1.Pod, error) {
 
 		// Add volumes and containers to the pod definition.
 		pod.Spec.Volumes = append(pod.Spec.Volumes, volumes...)
-		pod.Spec.InitContainers = append(pod.Spec.Containers, container)
+		pod.Spec.InitContainers = append(pod.Spec.InitContainers, container)
 	}
 
 	for _, service := range input.Services {
