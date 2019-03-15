@@ -19,6 +19,7 @@ message CreateRequest {
     Metadata Metadata = 2;
     Compose Compose = 3;
     GitCheckout GitCheckout = 4;
+    repeated Init Steps = 5;
 }
 
 // Metadata is high level information about the build.
@@ -111,4 +112,13 @@ message DescribeResponse {
 // DescribeRequest asks for all the Environments.
 message ListRequest {
     Credentials Credentials = 1;
+}
+
+message Init {
+    string Name = 1;
+    string Image = 2;
+    repeated string Steps = 3;
+    Resource Limits = 4;
+    Resource Reservations = 5;
+    repeated string Volumes = 6;
 }

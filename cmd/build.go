@@ -2,19 +2,17 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/previousnext/m8s/cmd/config"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/gosexy/to"
 	"github.com/pkg/errors"
 	"github.com/previousnext/compose"
 	"github.com/previousnext/m8s/cmd/environ"
 	"github.com/previousnext/m8s/cmd/metadata"
 	pb "github.com/previousnext/m8s/pb"
-	"github.com/smallfish/simpleyaml"
 	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -46,9 +44,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 
 	// Load the steps required to run the build, these are bespoke steps used
 	// for bootstrapping and testing the application.
-	steps, err := loadSteps(cmd.ExecFile, cmd.ExecStep)
+
+	cfg, err := config.Load(cmd.ExecFile)
 	if err != nil {
-		return errors.Wrap(err, "failed to load steps")
+		return errors.Wrap(err, "failed to load config")
 	}
 
 	client, err := buildClient(cmd.API)
@@ -76,7 +75,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	}
 
 	// Start the build.
-	stream, err := client.Create(ctx, &pb.CreateRequest{
+	createRequest := pb.CreateRequest{
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
@@ -95,7 +94,20 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Revision:   cmd.GitRevision,
 		},
 		Compose: composeToGRPC(dc),
-	})
+	}
+	for _, init := range cfg.Init {
+		createRequest.Steps = append(createRequest.Steps, &pb.Init{
+			Name:  init.Name,
+			Image: init.Image,
+			Reservations: &pb.Resource{
+				CPU:    init.Resources.Reservations.CPUs,
+				Memory: init.Resources.Reservations.Memory,
+			},
+			Steps:   init.Steps,
+			Volumes: init.Volumes,
+		})
+	}
+	stream, err := client.Create(ctx, &createRequest)
 	if err != nil {
 		return errors.Wrap(err, "the build has failed")
 	}
@@ -112,7 +124,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		fmt.Println(string(resp.Message))
 	}
 
-	for _, step := range steps {
+	for _, step := range cfg.Build {
 		ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
 		defer cancel()
 
@@ -163,32 +175,6 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Default("build").OverrideDefaultFromEnvar("M8S_EXEC_STEP").StringVar(&c.ExecStep)
 	cmd.Flag("exec-inside", "Docker repository to push built images").Default("app").OverrideDefaultFromEnvar("M8S_EXEC_INSIDE").StringVar(&c.ExecInside)
 	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)
-}
-
-// Helper function to load testing steps.
-func loadSteps(f, step string) ([]string, error) {
-	var steps []string
-
-	s, err := ioutil.ReadFile(f)
-	if err != nil {
-		return steps, err
-	}
-
-	y, err := simpleyaml.NewYaml(s)
-	if err != nil {
-		return steps, err
-	}
-
-	raw, err := y.Get(step).Array()
-	if err != nil {
-		return steps, err
-	}
-
-	for _, val := range raw {
-		steps = append(steps, to.String(val))
-	}
-
-	return steps, nil
 }
 
 // Helper function used for marshalling a Docker Compose file into a M8s object.

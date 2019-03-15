@@ -200,6 +200,7 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		Services:        in.Compose.Services,
 		Caches:          inputCaches,
 		ImagePullSecret: dockercfg,
+		Init:            in.Steps,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to build pod")

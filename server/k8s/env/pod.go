@@ -7,9 +7,9 @@ import (
 	"time"
 
 	pb "github.com/previousnext/m8s/pb"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/api/core/v1"
 )
 
 // PodInput provides the Pod function with information to produce a Kubernetes Pod.
@@ -23,6 +23,7 @@ type PodInput struct {
 	Services        []*pb.ComposeService
 	Caches          []PodInputCache
 	ImagePullSecret string
+	Init            []*pb.Init
 }
 
 // PodInputCache is used for passing in cache configuration to generate a pod.
@@ -104,6 +105,33 @@ func Pod(input PodInput) (*v1.Pod, error) {
 		}
 
 		pod.ObjectMeta.Annotations["black-death.skpr.io"] = unix
+	}
+
+	for _, init := range input.Init {
+		container := v1.Container{
+			Name: init.Name,
+			Image: init.Image,
+			ImagePullPolicy: v1.PullAlways,
+			VolumeMounts: []v1.VolumeMount{
+				{
+					Name:      SecretSSH,
+					ReadOnly:  true,
+					MountPath: "/root/.ssh",
+				},
+			},
+		}
+
+		resources, err := podResources(init.Reservations, init.Limits)
+		if err != nil {
+			return pod, err
+		}
+		mounts, volumes, err := podVolumes(init.Volumes, init.Tmpfs, input.Caches)
+		if err != nil {
+			return pod, err
+		}
+
+		container.Resources = resources
+
 	}
 
 	for _, service := range input.Services {
