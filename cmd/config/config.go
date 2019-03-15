@@ -6,11 +6,13 @@ import (
 	"io/ioutil"
 )
 
+// Config represents the values from the configuraiton file.
 type Config struct {
 	Init  []InitStep `yaml:"init"`
 	Build []string   `yaml:"build"`
 }
 
+// InitStep represents a task that should be done in an init container.
 type InitStep struct {
 	Name      string                         `yaml:"name"`
 	Image     string                         `yaml:"image"`
@@ -19,7 +21,7 @@ type InitStep struct {
 	Volumes   []string                       `yaml:"volumes"`
 }
 
-// Helper function to load testing steps.
+// Load unmarshalls a Config object from a file.
 func Load(f string) (Config, error) {
 	var config Config
 
