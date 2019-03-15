@@ -125,13 +125,18 @@ func Pod(input PodInput) (*v1.Pod, error) {
 		if err != nil {
 			return pod, err
 		}
-		mounts, volumes, err := podVolumes(init.Volumes, init.Tmpfs, input.Caches)
+		tmpfs := make([]string, 1)
+		mounts, volumes, err := podVolumes(init.Volumes, tmpfs, input.Caches)
 		if err != nil {
 			return pod, err
 		}
 
 		container.Resources = resources
+		container.VolumeMounts = append(container.VolumeMounts, mounts...)
 
+		// Add volumes and containers to the pod definition.
+		pod.Spec.Volumes = append(pod.Spec.Volumes, volumes...)
+		pod.Spec.InitContainers = append(pod.Spec.Containers, container)
 	}
 
 	for _, service := range input.Services {
