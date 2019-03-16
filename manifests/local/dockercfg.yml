@@ -1,0 +1,9 @@
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: dockercfg
+#type: kubernetes.io/dockerconfigjson
+#data:
+  # Use the following documentation to generate this object.
+  # https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  #.dockerconfigjson: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
