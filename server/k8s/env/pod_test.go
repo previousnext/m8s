@@ -3,11 +3,12 @@ package env
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/previousnext/m8s/cmd/metadata"
 	pb "github.com/previousnext/m8s/pb"
-	"github.com/stretchr/testify/assert"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/api/core/v1"
 )
 
 func TestPod(t *testing.T) {
@@ -21,7 +22,7 @@ func TestPod(t *testing.T) {
 				"env": "pr1",
 			},
 			Annotations: map[string]string{
-				"author": "m8s",
+				"author":                              "m8s",
 				metadata.AnnotationBitbucketRepoOwner: "nick",
 			},
 		},
@@ -155,12 +156,10 @@ func TestPod(t *testing.T) {
 					},
 				},
 				{
-					Name: "code",
+					Name: GitCloneVolume,
 					VolumeSource: v1.VolumeSource{
-						GitRepo: &v1.GitRepoVolumeSource{
-							Repository: "git@github.com:foo/bar.git",
-							Revision:   "123456789",
-							Directory:  ".",
+						EmptyDir: &v1.EmptyDirVolumeSource{
+							Medium: v1.StorageMediumDefault,
 						},
 					},
 				},
