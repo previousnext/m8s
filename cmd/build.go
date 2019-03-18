@@ -3,20 +3,26 @@ package cmd
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/gosexy/to"
+	"github.com/previousnext/m8s/cmd/config"
+
 	"github.com/pkg/errors"
 	"github.com/previousnext/compose"
 	"github.com/previousnext/m8s/cmd/environ"
 	"github.com/previousnext/m8s/cmd/metadata"
 	pb "github.com/previousnext/m8s/pb"
-	"github.com/smallfish/simpleyaml"
 	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+const (
+	// ServiceSkip will skip a service if the annotation is set.
+	ServiceSkip = "m8s.io/skip"
+	// ServiceType is used for indentifying the type of service for extra handling.
+	ServiceType = "m8s.io/type"
 )
 
 type cmdBuild struct {
@@ -47,9 +53,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 
 	// Load the steps required to run the build, these are bespoke steps used
 	// for bootstrapping and testing the application.
-	steps, err := loadSteps(cmd.ExecFile, cmd.ExecStep)
+
+	cfg, err := config.Load(cmd.ExecFile)
 	if err != nil {
-		return errors.Wrap(err, "failed to load steps")
+		return errors.Wrap(err, "failed to load config")
 	}
 
 	client, err := buildClient(cmd.API, cmd.Insecure)
@@ -77,7 +84,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 	}
 
 	// Start the build.
-	stream, err := client.Create(ctx, &pb.CreateRequest{
+	createRequest := pb.CreateRequest{
 		Credentials: &pb.Credentials{
 			Token: cmd.Token,
 		},
@@ -96,7 +103,24 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			Revision:   cmd.GitRevision,
 		},
 		Compose: composeToGRPC(dc),
-	})
+	}
+	for _, init := range cfg.Init {
+		createRequest.Steps = append(createRequest.Steps, &pb.Init{
+			Name:  init.Name,
+			Image: init.Image,
+			Reservations: &pb.Resource{
+				CPU:    init.Resources.Reservations.CPUs,
+				Memory: init.Resources.Reservations.Memory,
+			},
+			Limits: &pb.Resource{
+				CPU:    init.Resources.Limits.CPUs,
+				Memory: init.Resources.Limits.Memory,
+			},
+			Steps:   init.Steps,
+			Volumes: init.Volumes,
+		})
+	}
+	stream, err := client.Create(ctx, &createRequest)
 	if err != nil {
 		return errors.Wrap(err, "the build has failed")
 	}
@@ -110,10 +134,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			return errors.Wrap(err, "failed to read stream")
 		}
 
-		fmt.Printf(resp.Message)
+		fmt.Print(resp.Message)
 	}
 
-	for _, step := range steps {
+	for _, step := range cfg.Build {
 		ctx, cancel := context.WithTimeout(context.Background(), cmd.Timeout)
 		defer cancel()
 
@@ -138,7 +162,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 				return errors.Wrap(err, "failed to read stream")
 			}
 
-			fmt.Printf(resp.Message)
+			fmt.Print(resp.Message)
 		}
 	}
 
@@ -167,38 +191,17 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)
 }
 
-// Helper function to load testing steps.
-func loadSteps(f, step string) ([]string, error) {
-	var steps []string
-
-	s, err := ioutil.ReadFile(f)
-	if err != nil {
-		return steps, err
-	}
-
-	y, err := simpleyaml.NewYaml(s)
-	if err != nil {
-		return steps, err
-	}
-
-	raw, err := y.Get(step).Array()
-	if err != nil {
-		return steps, err
-	}
-
-	for _, val := range raw {
-		steps = append(steps, to.String(val))
-	}
-
-	return steps, nil
-}
-
 // Helper function used for marshalling a Docker Compose file into a M8s object.
 func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
 	resp := new(pb.Compose)
 
 	for name, service := range dc.Services {
-		resp.Services = append(resp.Services, &pb.ComposeService{
+		if _, ok := service.Labels[ServiceSkip]; ok {
+			fmt.Println("Skipping service:", name)
+			continue
+		}
+
+		newService := &pb.ComposeService{
 			Name:         name,
 			Image:        service.Image,
 			Entrypoint:   service.Entrypoint,
@@ -215,7 +218,13 @@ func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
 				CPU:    service.Deploy.Resources.Reservations.CPUs,
 				Memory: service.Deploy.Resources.Reservations.Memory,
 			},
-		})
+		}
+
+		if val, ok := service.Labels[ServiceType]; ok {
+			newService.Type = val
+		}
+
+		resp.Services = append(resp.Services, newService)
 	}
 
 	return resp

@@ -30,6 +30,11 @@ func GitCloneInitContainers(repository, revision string) ([]corev1.Container, co
 						Name:      GitCloneVolume,
 						MountPath: GitClonePath,
 					},
+					{
+						Name:      SecretSSH,
+						ReadOnly:  true,
+						MountPath: "/root/.ssh",
+					},
 				},
 			},
 			{
@@ -49,6 +54,11 @@ func GitCloneInitContainers(repository, revision string) ([]corev1.Container, co
 						Name:      GitCloneVolume,
 						MountPath: GitClonePath,
 					},
+					{
+						Name:      SecretSSH,
+						ReadOnly:  true,
+						MountPath: "/root/.ssh",
+					},
 				},
 			},
 			{
@@ -67,6 +77,11 @@ func GitCloneInitContainers(repository, revision string) ([]corev1.Container, co
 						Name:      GitCloneVolume,
 						MountPath: GitClonePath,
 					},
+					{
+						Name:      SecretSSH,
+						ReadOnly:  true,
+						MountPath: "/root/.ssh",
+					},
 				},
 			},
 			{
@@ -84,6 +99,11 @@ func GitCloneInitContainers(repository, revision string) ([]corev1.Container, co
 					{
 						Name:      GitCloneVolume,
 						MountPath: GitClonePath,
+					},
+					{
+						Name:      SecretSSH,
+						ReadOnly:  true,
+						MountPath: "/root/.ssh",
 					},
 				},
 			},
