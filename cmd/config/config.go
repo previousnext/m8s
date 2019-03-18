@@ -1,9 +1,10 @@
 package config
 
 import (
+	"io/ioutil"
+
 	"github.com/previousnext/compose"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 )
 
 // Config represents the values from the configuraiton file.

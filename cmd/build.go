@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/previousnext/m8s/cmd/config"
 	"io"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/previousnext/m8s/cmd/config"
 
 	"github.com/pkg/errors"
 	"github.com/previousnext/compose"
@@ -15,6 +16,13 @@ import (
 	pb "github.com/previousnext/m8s/pb"
 	"golang.org/x/net/context"
 	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+const (
+	// ServiceSkip will skip a service if the annotation is set.
+	ServiceSkip = "m8s.io/skip"
+	// ServiceType is used for indentifying the type of service for extra handling.
+	ServiceType = "m8s.io/type"
 )
 
 type cmdBuild struct {
@@ -104,6 +112,10 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 				CPU:    init.Resources.Reservations.CPUs,
 				Memory: init.Resources.Reservations.Memory,
 			},
+			Limits: &pb.Resource{
+				CPU:    init.Resources.Limits.CPUs,
+				Memory: init.Resources.Limits.Memory,
+			},
 			Steps:   init.Steps,
 			Volumes: init.Volumes,
 		})
@@ -122,7 +134,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			return errors.Wrap(err, "failed to read stream")
 		}
 
-		fmt.Printf(resp.Message)
+		fmt.Print(resp.Message)
 	}
 
 	for _, step := range cfg.Build {
@@ -150,7 +162,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 				return errors.Wrap(err, "failed to read stream")
 			}
 
-			fmt.Printf(resp.Message)
+			fmt.Print(resp.Message)
 		}
 	}
 
@@ -184,7 +196,12 @@ func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
 	resp := new(pb.Compose)
 
 	for name, service := range dc.Services {
-		resp.Services = append(resp.Services, &pb.ComposeService{
+		if _, ok := service.Labels[ServiceSkip]; ok {
+			fmt.Println("Skipping service:", name)
+			continue
+		}
+
+		newService := &pb.ComposeService{
 			Name:         name,
 			Image:        service.Image,
 			Entrypoint:   service.Entrypoint,
@@ -201,7 +218,13 @@ func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
 				CPU:    service.Deploy.Resources.Reservations.CPUs,
 				Memory: service.Deploy.Resources.Reservations.Memory,
 			},
-		})
+		}
+
+		if val, ok := service.Labels[ServiceType]; ok {
+			newService.Type = val
+		}
+
+		resp.Services = append(resp.Services, newService)
 	}
 
 	return resp

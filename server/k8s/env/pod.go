@@ -12,6 +12,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TypeMySQL is used of idenifying a MySQL container for readiness rules.
+const TypeMySQL = "mysql"
+
 // PodInput provides the Pod function with information to produce a Kubernetes Pod.
 type PodInput struct {
 	Namespace       string
@@ -104,10 +107,14 @@ func Pod(input PodInput) (*v1.Pod, error) {
 
 	for _, init := range input.Init {
 		container := v1.Container{
-			Name: init.Name,
-			Image: init.Image,
+			Image:           init.Image,
+			WorkingDir:      GitClonePath,
 			ImagePullPolicy: v1.PullAlways,
 			VolumeMounts: []v1.VolumeMount{
+				{
+					Name:      GitCloneVolume,
+					MountPath: GitClonePath,
+				},
 				{
 					Name:      SecretSSH,
 					ReadOnly:  true,
@@ -120,18 +127,21 @@ func Pod(input PodInput) (*v1.Pod, error) {
 		if err != nil {
 			return pod, err
 		}
-		tmpfs := make([]string, 1)
-		mounts, volumes, err := podVolumes(init.Volumes, tmpfs, input.Caches)
-		if err != nil {
-			return pod, err
+		container.Resources = resources
+
+		for _, cache := range input.Caches {
+			container.VolumeMounts = append(container.VolumeMounts, v1.VolumeMount{
+				Name:      cache.Name,
+				MountPath: cache.Path,
+			})
 		}
 
-		container.Resources = resources
-		container.VolumeMounts = append(container.VolumeMounts, mounts...)
+		for stepID, stepCommand := range init.Steps {
+			container.Name = fmt.Sprintf("%s-step%d", init.Name, stepID+1)
+			container.Command = strings.Split(stepCommand, " ")
 
-		// Add volumes and containers to the pod definition.
-		pod.Spec.Volumes = append(pod.Spec.Volumes, volumes...)
-		pod.Spec.InitContainers = append(pod.Spec.InitContainers, container)
+			pod.Spec.InitContainers = append(pod.Spec.InitContainers, container)
+		}
 	}
 
 	for _, service := range input.Services {
@@ -146,6 +156,23 @@ func Pod(input PodInput) (*v1.Pod, error) {
 					MountPath: "/root/.ssh",
 				},
 			},
+		}
+
+		if service.Type == TypeMySQL {
+			container.ReadinessProbe = &v1.Probe{
+				Handler: v1.Handler{
+					Exec: &v1.ExecAction{
+						Command: []string{
+							"mysqladmin", "ping", "-h", "127.0.0.1",
+						},
+					},
+				},
+				InitialDelaySeconds: 15,
+				TimeoutSeconds:      15,
+				PeriodSeconds:       15,
+				SuccessThreshold:    1,
+				FailureThreshold:    1,
+			}
 		}
 
 		if len(service.Entrypoint) > 0 {

@@ -68,7 +68,12 @@ func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return err
 	}
 
-	return podutils.Tail(context.Background(), stream, srv.client, srv.Namespace, in.Metadata.Name)
+	err = podutils.Tail(context.Background(), stream, srv.client, srv.Namespace, in.Metadata.Name)
+	if err != nil {
+		return err
+	}
+
+	return utils.PodWait(srv.client, srv.Namespace, in.Metadata.Name)
 }
 
 // A step for provisioning caching storage.
