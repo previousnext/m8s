@@ -21,6 +21,7 @@ import (
 
 type cmdBuild struct {
 	API           string
+	Insecure      bool
 	Token         string
 	Name          string
 	Domains       string
@@ -51,7 +52,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to load steps")
 	}
 
-	client, err := buildClient(cmd.API)
+	client, err := buildClient(cmd.API, cmd.Insecure)
 	if err != nil {
 		return errors.Wrap(err, "failed to connect")
 	}
@@ -109,7 +110,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 			return errors.Wrap(err, "failed to read stream")
 		}
 
-		fmt.Println(string(resp.Message))
+		fmt.Printf(resp.Message)
 	}
 
 	for _, step := range steps {
@@ -137,7 +138,7 @@ func (cmd *cmdBuild) run(c *kingpin.ParseContext) error {
 				return errors.Wrap(err, "failed to read stream")
 			}
 
-			fmt.Println(string(resp.Message))
+			fmt.Printf(resp.Message)
 		}
 	}
 
@@ -150,6 +151,7 @@ func Build(app *kingpin.Application) {
 
 	cmd := app.Command("build", "Build the environment").Action(c.run)
 	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("M8S_API").StringVar(&c.API)
+	cmd.Flag("insecure", "Use insecure connections for API interactions").BoolVar(&c.Insecure)
 	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("name", "Unique identifier for the environment").Required().StringVar(&c.Name)
 	cmd.Flag("domains", "Domains for this environment to run on").Required().StringVar(&c.Domains)

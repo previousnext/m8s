@@ -34,7 +34,7 @@ func (srv Server) Step(in *pb.StepRequest, stream pb.M8S_StepServer) error {
 		scanner := bufio.NewScanner(reader)
 		for scanner.Scan() {
 			err := stream.Send(&pb.StepResponse{
-				Message: scanner.Text(),
+				Message: fmt.Sprintln(scanner.Text()),
 			})
 			if err != nil {
 				fmt.Println("failed to send response:", err)
@@ -43,7 +43,7 @@ func (srv Server) Step(in *pb.StepRequest, stream pb.M8S_StepServer) error {
 	}(r, stream)
 
 	err := stream.Send(&pb.StepResponse{
-		Message: fmt.Sprintf("Running command: %s", in.Command),
+		Message: fmt.Sprintf("Running command: %s\n", in.Command),
 	})
 	if err != nil {
 		return err

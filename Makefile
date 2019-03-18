@@ -21,6 +21,11 @@ test: generate
 	go test -cover ./server/...
 	go test -cover ./cmd/...
 
+run: build
+	bin/m8s_linux_amd64 server --port=8443 \
+	                           --token=123456789 \
+			           --kubeconfig=.kube/config
+
 IMAGE=previousnext/m8s
 VERSION=$(shell git describe --tags --always)
 

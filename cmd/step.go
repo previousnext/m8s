@@ -13,16 +13,17 @@ import (
 )
 
 type cmdStep struct {
-	API     string
-	Token   string
-	Name    string
-	Inside  string
-	Command string
-	Timeout time.Duration
+	API      string
+	Insecure bool
+	Token    string
+	Name     string
+	Inside   string
+	Command  string
+	Timeout  time.Duration
 }
 
 func (cmd *cmdStep) run(c *kingpin.ParseContext) error {
-	client, err := buildClient(cmd.API)
+	client, err := buildClient(cmd.API, cmd.Insecure)
 	if err != nil {
 		return errors.Wrap(err, "failed to build client")
 	}
@@ -63,6 +64,7 @@ func Step(app *kingpin.Application) {
 
 	cmd := app.Command("step", "Step to run against the environment").Action(c.run)
 	cmd.Flag("api", "API endpoint which accepts our build requests").Default(defaultEndpoint).OverrideDefaultFromEnvar("M8S_API").StringVar(&c.API)
+	cmd.Flag("insecure", "Use insecure connections for API interactions").BoolVar(&c.Insecure)
 	cmd.Flag("token", "Token used for authenticating with the API service").Default("").OverrideDefaultFromEnvar("M8S_TOKEN").StringVar(&c.Token)
 	cmd.Flag("timeout", "How long to wait for a step to finish").Default("30m").OverrideDefaultFromEnvar("M8S_TIMEOUT").DurationVar(&c.Timeout)
 	cmd.Arg("name", "Unique identifier for the environment").Required().StringVar(&c.Name)

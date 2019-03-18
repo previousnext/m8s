@@ -1,9 +1,22 @@
----
-version: "3"
+version: '3'
+
 services:
-  dev:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+  k3s:
+    image: rancher/k3s:v0.2.0
+    command: server --node-name=k3s
+    ports:
+      - "6443:6443"
+    privileged: true
+    environment:
+      - KUBECONFIG=/output/config
+      - K3S_KUBECONFIG_OUTPUT=/output/config
+      - K3S_KUBECONFIG_MODE=666
     volumes:
-      - ".:/go/src/github.com/previousnext/m8s"
+      - ./.kube:/output
+      - ./manifests/local/storageclass.yml:/var/lib/rancher/k3s/server/manifests/storageclass.yml
+      - pvc:/pvc
+      - ./manifests/local/ssh.yml:/var/lib/rancher/k3s/server/manifests/ssh.yml
+      # - ./manifests/local/dockercfg.yml:/var/lib/rancher/k3s/server/manifests/dockercfg.yml
+
+volumes:
+  pvc: {}

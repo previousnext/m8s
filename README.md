@@ -63,49 +63,51 @@ Our product roadmap can be found [here](/issues)
 
 If you wish to work on m8s or any of its built-in systems, you will first need Go installed on your machine.
 
-#### Manual Setup
+#### Local Development
 
-For local development of m8s, first make sure Go is properly installed and that a GOPATH has been set. You will also need to add $GOPATH/bin to your $PATH.
+**Run Kubernetes**
 
-Next, using Git, clone this repository into $GOPATH/src/github.com/previousnext/m8s. All the necessary dependencies are either vendored or automatically installed, so you just need to type `make test`. This will run the tests and compile the binary. If this exits with exit status 0, then everything is working!
-
-```bash
-$ cd "$GOPATH/src/github.com/previousnext/m8s"
-$ make test
-```
-
-To compile a development version of m8s, run `make build`. This will build everything using gox and put binaries in the bin and $GOPATH/bin folders:
+To start Kubernetes, run:
 
 ```bash
-$ make build
-...
-
-# Linux:
-$ bin/m8s_linux_amd64 --help
-
-# OSX:
-$ bin/m8s_darwin_amd64 --help
+docker-compose up
 ```
 
-#### Easy Setup
+This environment is provided by [K3s](https://k3s.io)
 
-Alternatively, you can use the [Docker Compose](docker-compose.yml) stack in the root of this repo to stand up a container with the appropriate dev tooling already set up for you.
+**Start the M8s server**
 
-Using Git, clone this repo on your local machine. Run the test suite to ensure the tooling works.
+Now that the Kubernetes cluster is up, it's time to run the m8s server.
+
+The following command will start the m8s server and connect it to the Kubernetes cluster.
 
 ```bash
-$ docker-compose run --rm dev make test
+make run
 ```
 
-To compile a development version of m8s, run `make build`. This will build everything using gox and put binaries in the bin and $GOPATH/bin folders:
+**Run a test build**
 
-```bash
-$ docker-compose run --rm dev make build
+It is now time to run a build.
 
-...
+From the project of your choosing, here is an example command you can run:
 
-$ docker-compose run --rm dev bin/m8s_linux_amd64 --help
 ```
+$ m8s build --name=example \
+            --domains=www.example.com \
+            --token=123456789 \
+            --api=127.0.0.1:8443 \
+            --git-revision=xxxxxxxxxxxxxxxxxxxxxxxx \
+            --git-repository=https://github.com/org/example \
+            --insecure
+```
+
+Things which will need to be updated:
+
+* Name, give the build a better name
+* Git Revision
+* Git Repository. For private repositories you can include the `https://user:password@github.com/org/example` syntax.
+
+Also note the use of `--insecure` because we don't have certificates.
 
 ### Dependencies
 

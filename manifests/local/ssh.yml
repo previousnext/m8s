@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ssh
+type: Opaque
+data:
+  # For private checkouts eg. Composer
+  # To generate this you will need to:
+  #   * Base64 encode a SSH private key
+  #   * Remove '\n' characters
+  # id_rsa: OPTIONAL_CHANGE_ME
+  known_hosts: fDF8dzJZU1RJSGNQN3pWSnJMZWJUOXZWZWJNekNjPXx1VmFQT1ZxMXorcisyem1vblhmejhzWkNxRGM9IHNzaC1yc2EgQUFBQUIzTnphQzF5YzJFQUFBQUJJd0FBQVFFQXEyQTdoUkdtZG5tOXRVRGJPOUlEU3dCSzZUYlFhK1BYWVBDUHk2cmJUclR0dzdQSGtjY0tycHAweVZocDVIZEVJY0tyNnBMbFZEQmZPTFg5UVVzeUNPVjB3emZqSUpObEdFWXNkbExKaXpIaGJuMm1VanZTQUhRcVpFVFlQODFlRnpMUU5uUEh0NEVWVlVoN1ZmREVTVTg0S2V6bUQ1UWxXcFhMbXZVMzEveU1mK1NlOHhoSFR2S1NDWklGSW1Xd29HNm1iVW9XZjluenBJb2FTakIrd2VxcVVVbXBhYWFzWFZhbDcySitVWDJCKzJSUFczUmNUMGVPelFncWxKTDNSS3JUSnZkc2pFM0pFQXZHcTNsR0hTWlh5MjhHM3NrdWEyU21WaS93NHlDRTZnYk9EcW5UV2xnNyt3QzYwNHlkR1hBOFZKaVM1YXA0M0pYaVVGRkFhUT09Cg==
