@@ -61,19 +61,14 @@ func Pod(input PodInput) (*v1.Pod, error) {
 						},
 					},
 				},
-				{
-					Name: "code",
-					VolumeSource: v1.VolumeSource{
-						GitRepo: &v1.GitRepoVolumeSource{
-							Repository: input.Repository,
-							Revision:   input.Revision,
-							Directory:  ".",
-						},
-					},
-				},
 			},
 		},
 	}
+
+	// These container will clone the code into an "emptyDir" volume.
+	cloneContainers, cloneVolume := GitCloneInitContainers(input.Repository, input.Revision)
+	pod.Spec.InitContainers = cloneContainers
+	pod.Spec.Volumes = append(pod.Spec.Volumes, cloneVolume)
 
 	if input.ImagePullSecret != "" {
 		pod.Spec.ImagePullSecrets = []v1.LocalObjectReference{
@@ -273,7 +268,7 @@ func podVolumes(serviceVolumes []string, tmps []string, caches []PodInputCache) 
 		// @todo, Handle other mounts.
 		if sl[0] == "." {
 			mounts = append(mounts, v1.VolumeMount{
-				Name:      "code",
+				Name:      GitCloneVolume,
 				MountPath: sl[1],
 			})
 		}

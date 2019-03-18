@@ -93,7 +93,7 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		if err != nil {
 			return errors.Wrap(err, "failed to load tls from the filesystem")
 		}
-	} else {
+	} else if cmd.LetsEncryptEmail != "" && cmd.LetsEncryptDomain != "" {
 		promlog.Info("Generating TLS certificates from LetsEncrypt")
 
 		creds, err = getLetsEncrypt(cmd.LetsEncryptDomain, cmd.LetsEncryptEmail, cmd.LetsEncryptCache)
@@ -135,8 +135,8 @@ func Server(app *kingpin.Application) {
 	cmd.Flag("prometheus-path", "Prometheus metrics path").Default("/metrics").OverrideDefaultFromEnvar("M8S_METRICS_PATH").StringVar(&c.PrometheusPath)
 
 	// Kubernetes.
-	cmd.Flag("kube-master", "Address of the Kubernetes master.").Envar("M8S_UI_KUBE_MASTER").StringVar(&c.KubeMaster)
-	cmd.Flag("kube-config", "Path to the Kubernetes config file.").Envar("M8S_UI_KUBE_CONFIG").StringVar(&c.KubeConfig)
+	cmd.Flag("kube-master", "Address of the Kubernetes master.").Envar("M8S_KUBE_MASTER").StringVar(&c.KubeMaster)
+	cmd.Flag("kubeconfig", "Path to the Kubernetes config file.").Envar("KUBECONFIG").StringVar(&c.KubeConfig)
 
 	// Docker Registry.
 	cmd.Flag("dockercfg", "https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry").Default("").Envar("M8S_DOCKERCFG").StringVar(&c.DockerCfg)

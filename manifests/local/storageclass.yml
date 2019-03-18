@@ -1,0 +1,112 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: standard
+  annotations:
+    storageclass.beta.kubernetes.io/is-default-class: "true"
+provisioner: hostpath
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: local-hostpath
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: provisioner
+  namespace: local-hostpath
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: local-hostpath
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - update
+  - watch
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: provisioner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: local-hostpath
+subjects:
+  - kind: ServiceAccount
+    name: provisioner
+    namespace: local-hostpath
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: provisioner
+  namespace: local-hostpath
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: provisioner
+  template:
+    metadata:
+      labels:
+        app: provisioner
+    spec:
+      serviceAccountName: provisioner
+      containers:
+        - name: hostpath-provisioner
+          image: mazdermind/hostpath-provisioner:latest
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: PV_DIR
+              value: /pvc
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: storage
+              mountPath: /pvc
+      volumes:
+        - name: storage
+          hostPath:
+            path: /pvc
+type: Directory

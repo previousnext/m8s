@@ -1,9 +1,11 @@
 package server
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/previousnext/m8s/internal/podutils"
 	pb "github.com/previousnext/m8s/pb"
 	"github.com/previousnext/m8s/server/k8s/env"
 	"github.com/previousnext/m8s/server/k8s/utils"
@@ -61,13 +63,18 @@ func (srv Server) Create(in *pb.CreateRequest, stream pb.M8S_CreateServer) error
 		return err
 	}
 
-	return stepPod(srv.client, in, stream, srv.DockerCfg, srv.Namespace, srv.Cache.Directories)
+	err = stepPod(srv.client, in, stream, srv.DockerCfg, srv.Namespace, srv.Cache.Directories)
+	if err != nil {
+		return err
+	}
+
+	return podutils.Tail(context.Background(), stream, srv.client, srv.Namespace, in.Metadata.Name)
 }
 
 // A step for provisioning caching storage.
 func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namespace, name, cacheType, cacheSize string) error {
 	err := stream.Send(&pb.CreateResponse{
-		Message: fmt.Sprintf("Creating K8s PersistentVolumeClaim: %s", name),
+		Message: fmt.Sprintf("Creating K8s PersistentVolumeClaim: %s\n", name),
 	})
 	if err != nil {
 		return err
@@ -89,7 +96,7 @@ func stepClaims(client *kubernetes.Clientset, stream pb.M8S_CreateServer, namesp
 // A step to provision a Kubernetes service.
 func stepService(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, namespace string) error {
 	err := stream.Send(&pb.CreateResponse{
-		Message: "Creating K8s Service",
+		Message: "Creating K8s Service\n",
 	})
 	if err != nil {
 		return err
@@ -116,7 +123,7 @@ func stepService(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 // A step to create a secret which contains http auth details.
 func stepSecretBasicAuth(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, namespace, name string) error {
 	err := stream.Send(&pb.CreateResponse{
-		Message: "Creating K8s Secret: Basic Authentication",
+		Message: "Creating K8s Secret: Basic Authentication\n",
 	})
 	if err != nil {
 		return err
@@ -145,7 +152,7 @@ func stepSecretBasicAuth(client *kubernetes.Clientset, in *pb.CreateRequest, str
 // A step to create an ingress for incoming traffic.
 func stepIngress(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, namespace, secret string) error {
 	err := stream.Send(&pb.CreateResponse{
-		Message: "Creating K8s Ingress",
+		Message: "Creating K8s Ingress\n",
 	})
 	if err != nil {
 		return err
@@ -175,7 +182,7 @@ func stepIngress(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M
 // A step for creating a pod (our Docker Compose environment).
 func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_CreateServer, dockercfg, namespace string, caches []CacheDirectory) error {
 	err := stream.Send(&pb.CreateResponse{
-		Message: "Creating K8s Pod",
+		Message: "Creating K8s Pod\n",
 	})
 	if err != nil {
 		return err
