@@ -36,6 +36,7 @@ func PodCreate(client *kubernetes.Clientset, pod *corev1.Pod) (*corev1.Pod, erro
 	return pod, nil
 }
 
+// PodWait will wait for a Pod to start.
 func PodWait(client *kubernetes.Clientset, namespace, name string) error {
 	// Wait for the pod to become available.
 	limiter := time.Tick(time.Second / 10)
@@ -56,6 +57,7 @@ func PodWait(client *kubernetes.Clientset, namespace, name string) error {
 	return nil
 }
 
+// Helper function to check for a Pods status.
 func podIsReady(pod *corev1.Pod) bool {
 	for _, container := range pod.Status.ContainerStatuses {
 		if !container.Ready {
