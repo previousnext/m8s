@@ -10,6 +10,7 @@ import (
 func machine(name string) string {
 	n := strings.Replace(name, "_", "-", -1)
 	n = strings.Replace(n, "/", "", -1)
+	n = strings.Replace(n, ".", "", -1)
 	return n
 }
 
