@@ -21,8 +21,15 @@ test: generate
 	go test -cover ./server/...
 	go test -cover ./cmd/...
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    GOOS = linux
+endif
+ifeq ($(UNAME_S),Darwin)
+    GOOS = darwin
+endif
 run: build
-	bin/m8s_linux_amd64 server --port=8443 \
+	bin/m8s_$(GOOS)_amd64 server --port=8443 \
 	                           --token=123456789 \
 			           --kubeconfig=.kube/config
 
