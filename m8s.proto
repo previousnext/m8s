@@ -68,7 +68,8 @@ message ComposeService {
     repeated string Tmpfs = 8;
     repeated string Capabilities = 9;
     repeated string Entrypoint = 10;
-    string Type = 11;
+    repeated string Extrahosts = 11;
+    string Type = 12;
 }
 
 // Resource is used for setting CPU and Memory of the build.
