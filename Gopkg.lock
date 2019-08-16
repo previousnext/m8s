@@ -209,14 +209,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cf428d8872542a2648e38bf4c4281f73e12b69d1b2ee05854a7c28c984b17431"
-  name = "github.com/gosexy/to"
-  packages = ["."]
-  pruneopts = ""
-  revision = "c20e083e31230b84ffa23c5d2fb0bc55f5292681"
-
-[[projects]]
-  branch = "master"
   digest = "1:32691a653da0dd17135f37c441abcf965f34898fc99e052fd152587bf7786bd7"
   name = "github.com/gregjones/httpcache"
   packages = [
@@ -392,14 +384,6 @@
   ]
   pruneopts = ""
   revision = "e645f4e5aaa8506fc71d6edbc5c4ff02c04c46f2"
-
-[[projects]]
-  branch = "master"
-  digest = "1:137da5fcff7bc4f4d6502f969fc063d11dc9f2cfdb78067b9fca3a7ab5c75048"
-  name = "github.com/smallfish/simpleyaml"
-  packages = ["."]
-  pruneopts = ""
-  revision = "a32031077861b1fbdf988d2c0865e98ec832dd4c"
 
 [[projects]]
   digest = "1:261bc565833ef4f02121450d74eb88d5ae4bd74bfe5d0e862cddb8550ec35000"
@@ -735,7 +719,6 @@
   input-imports = [
     "github.com/golang/protobuf/proto",
     "github.com/google/go-github/github",
-    "github.com/gosexy/to",
     "github.com/kr/pty",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
@@ -744,7 +727,6 @@
     "github.com/previousnext/skpr/utils/k8s/pods/exec",
     "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/prometheus/common/log",
-    "github.com/smallfish/simpleyaml",
     "github.com/stretchr/testify/assert",
     "golang.org/x/crypto/acme/autocert",
     "golang.org/x/crypto/bcrypt",
@@ -762,8 +744,10 @@
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/api/resource",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
+    "k8s.io/apimachinery/pkg/fields",
     "k8s.io/apimachinery/pkg/util/intstr",
     "k8s.io/client-go/kubernetes",
+    "k8s.io/client-go/kubernetes/typed/core/v1",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
     "k8s.io/client-go/tools/clientcmd",
