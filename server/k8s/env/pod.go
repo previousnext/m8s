@@ -231,7 +231,7 @@ func Pod(input PodInput) (*v1.Pod, error) {
 	for ip, hostnames := range hostAliases {
 		pod.Spec.HostAliases = append(pod.Spec.HostAliases, v1.HostAlias{
 			IP:        ip,
-			Hostnames: hostnames,
+			Hostnames: unique(hostnames),
 		})
 	}
 
