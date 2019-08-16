@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 export CGO_ENABLED=0
-
+export GO111MODULE=off
 PROJECT=github.com/previousnext/m8s
 
 # Builds the project
