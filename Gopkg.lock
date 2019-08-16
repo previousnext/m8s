@@ -319,12 +319,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:3bdfae80d491904aab1ca265d6faa1d4a607d2e8286a7d285c57bb217e0d7a6f"
+  digest = "1:891dbcf29c3a47db48eed5b0d203eb6deafa28bae01d15bdb4d2f68f06c9a99c"
   name = "github.com/previousnext/compose"
   packages = ["."]
   pruneopts = ""
-  revision = "11c14665f1f5d98d892a872734205d44abf28fc4"
-  version = "v0.0.2"
+  revision = "96d9022e00bc7094ecea30a15c500609fa6fa44a"
+  version = "v0.0.4"
 
 [[projects]]
   branch = "master"
