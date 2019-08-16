@@ -210,6 +210,7 @@ func composeToGRPC(dc compose.DockerCompose) *pb.Compose {
 			Environment:  service.Environment,
 			Tmpfs:        service.Tmpfs,
 			Capabilities: service.CapAdd,
+			Extrahosts:	  service.ExtraHosts,
 			Limits: &pb.Resource{
 				CPU:    service.Deploy.Resources.Limits.CPUs,
 				Memory: service.Deploy.Resources.Limits.Memory,
