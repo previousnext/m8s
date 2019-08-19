@@ -21,7 +21,7 @@ test: generate
 	go test -cover ./server/...
 	go test -cover ./cmd/...
 
-OS := $(shell uname | tr A-Z a-z)
+OS := $(shell uname | tr "[:upper:]" "[:lower:]")
 run: build
 	bin/m8s_$(OS)_amd64 server --port=8443 \
 	                           --token=123456789 \
@@ -35,11 +35,11 @@ release-docker:
 	# Building M8s...
 	docker build -t ${IMAGE}:${VERSION} -t ${IMAGE}:latest .
 	docker push ${IMAGE}:${VERSION}
-	docker push ${IMAGE}:latest
+# 	docker push ${IMAGE}:latest
 	# Building M8s UI...
 	docker build -t ${IMAGE}-ui:${VERSION} -t ${IMAGE}-ui:latest ui
 	docker push ${IMAGE}-ui:${VERSION}
-	docker push ${IMAGE}-ui:latest
+# 	docker push ${IMAGE}-ui:latest
 
 release-github: build
 	ghr -u previousnext "${VERSION}" ./bin/
