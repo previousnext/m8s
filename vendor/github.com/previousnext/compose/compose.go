@@ -13,7 +13,6 @@ type DockerCompose struct {
 
 // Service a service declared in a Docker Compose file.
 type Service struct {
-	Labels      map[string]string `yaml:"labels"`
 	Image       string            `yaml:"image"`
 	Build       string            `yaml:"build"`
 	Volumes     []string          `yaml:"volumes"`
@@ -23,6 +22,8 @@ type Service struct {
 	CapAdd      []string          `yaml:"cap_add"`
 	Tmpfs       []string          `yaml:"tmpfs"`
 	Deploy      ServiceDeploy     `yaml:"deploy"`
+	ExtraHosts  []string          `yaml:"extra_hosts"`
+	Labels      map[string]string `yaml:"labels"`
 }
 
 // ServiceDeploy provides deployment information for a service.

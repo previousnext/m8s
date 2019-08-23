@@ -144,6 +144,8 @@ func Pod(input PodInput) (*v1.Pod, error) {
 		}
 	}
 
+	hostAliases := make(map[string][]string)
+
 	for _, service := range input.Services {
 		container := v1.Container{
 			Name:            service.Name,
@@ -216,6 +218,21 @@ func Pod(input PodInput) (*v1.Pod, error) {
 		// Add volumes and containers to the pod definition.
 		pod.Spec.Volumes = append(pod.Spec.Volumes, volumes...)
 		pod.Spec.Containers = append(pod.Spec.Containers, container)
+
+
+		if len(service.Extrahosts) > 0 {
+			for _, value := range service.Extrahosts {
+				parts := strings.Split(value, ":")
+				hostAliases[parts[1]] = append(hostAliases[parts[1]], parts[0])
+			}
+		}
+	}
+
+	for ip, hostnames := range hostAliases {
+		pod.Spec.HostAliases = append(pod.Spec.HostAliases, v1.HostAlias{
+			IP:        ip,
+			Hostnames: unique(hostnames),
+		})
 	}
 
 	return pod, nil
@@ -379,4 +396,17 @@ func podSecurity(adds []string) (*v1.SecurityContext, error) {
 	return &v1.SecurityContext{
 		Capabilities: caps,
 	}, nil
+}
+
+// Helper function to return a slice of unique values.
+func unique(slice []string) []string {
+	keys := make(map[string]bool)
+	var list []string
+	for _, entry := range slice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }
