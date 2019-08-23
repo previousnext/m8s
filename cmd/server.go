@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
@@ -13,9 +12,7 @@ import (
 	"github.com/previousnext/m8s/server"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	promlog "github.com/prometheus/common/log"
-	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -80,31 +77,9 @@ func (cmd *cmdServer) run(c *kingpin.ParseContext) error {
 		return errors.Wrap(err, "failed to start server")
 	}
 
-	promlog.Info("Configuring TLS")
-
-	var creds credentials.TransportCredentials
-
-	// Attempt to load user provided certificates.
-	// If no certificates are provided, fallback to Lets Encrypt.
-	if cmd.TLSCert != "" && cmd.TLSKey != "" {
-		promlog.Info("Loading TLS certificates from the filesystem")
-
-		creds, err = credentials.NewServerTLSFromFile(cmd.TLSCert, cmd.TLSKey)
-		if err != nil {
-			return errors.Wrap(err, "failed to load tls from the filesystem")
-		}
-	} else if cmd.LetsEncryptEmail != "" && cmd.LetsEncryptDomain != "" {
-		promlog.Info("Generating TLS certificates from LetsEncrypt")
-
-		creds, err = getLetsEncrypt(cmd.LetsEncryptDomain, cmd.LetsEncryptEmail, cmd.LetsEncryptCache)
-		if err != nil {
-			return errors.Wrap(err, "failed to load tls from lets encrypt")
-		}
-	}
-
 	promlog.Info("Booting Server")
 
-	grpcServer := grpc.NewServer(grpc.Creds(creds))
+	grpcServer := grpc.NewServer()
 	pb.RegisterM8SServer(grpcServer, srv)
 	return grpcServer.Serve(listen)
 }
@@ -125,11 +100,6 @@ func Server(app *kingpin.Application) {
 	cmd.Flag("cache-size", "Size of the filesystem for persistent cache storage").Default("100Gi").OverrideDefaultFromEnvar("M8S_CACHE_SIZE").StringVar(&c.CacheSize)
 	cmd.Flag("cache-type", "StorageClass which you wish to use to provision the cache storage").Default("standard").OverrideDefaultFromEnvar("M8S_CACHE_TYPE").StringVar(&c.CacheType)
 
-	// Lets Encrypt.
-	cmd.Flag("lets-encrypt-email", "Email address to register with Lets Encrypt certificate").Default("admin@previousnext.com.au").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_EMAIL").StringVar(&c.LetsEncryptEmail)
-	cmd.Flag("lets-encrypt-domain", "Domain to use for Lets Encrypt certificate").Default("").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_DOMAIN").StringVar(&c.LetsEncryptDomain)
-	cmd.Flag("lets-encrypt-cache", "Cache directory to use for Lets Encrypt").Default("/tmp").OverrideDefaultFromEnvar("M8S_LETS_ENCRYPT_CACHE").StringVar(&c.LetsEncryptCache)
-
 	// Promtheus.
 	cmd.Flag("prometheus-port", "Prometheus metrics port").Default(":9000").OverrideDefaultFromEnvar("M8S_METRICS_PORT").StringVar(&c.PrometheusPort)
 	cmd.Flag("prometheus-path", "Prometheus metrics path").Default("/metrics").OverrideDefaultFromEnvar("M8S_METRICS_PATH").StringVar(&c.PrometheusPath)
@@ -146,16 +116,4 @@ func Server(app *kingpin.Application) {
 func metrics(port, path string) {
 	http.Handle(path, promhttp.Handler())
 	log.Fatal(http.ListenAndServe(port, nil))
-}
-
-// Helper function for adding Lets Encrypt certificates.
-func getLetsEncrypt(domain, email, cache string) (credentials.TransportCredentials, error) {
-	manager := autocert.Manager{
-		Prompt:     autocert.AcceptTOS,
-		Cache:      autocert.DirCache(cache),
-		HostPolicy: autocert.HostWhitelist(domain),
-		Email:      email,
-	}
-
-	return credentials.NewTLS(&tls.Config{GetCertificate: manager.GetCertificate}), nil
 }
