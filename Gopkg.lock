@@ -319,12 +319,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:891dbcf29c3a47db48eed5b0d203eb6deafa28bae01d15bdb4d2f68f06c9a99c"
+  branch = "master"
+  digest = "1:d87a5cf7bc7f1a9f2232825a9a17275a84a5746c00a64c21a103e1857a5a8beb"
   name = "github.com/previousnext/compose"
   packages = ["."]
   pruneopts = ""
-  revision = "96d9022e00bc7094ecea30a15c500609fa6fa44a"
-  version = "v0.0.4"
+  revision = "9a4a8994037ec38f49c1bd77762ef24a30c9bc9f"
 
 [[projects]]
   branch = "master"
@@ -406,8 +406,6 @@
   digest = "1:23603929c559ebf5fa44cc2ed4a72ae729292e2b7e0295ab0e743641f0a47535"
   name = "golang.org/x/crypto"
   packages = [
-    "acme",
-    "acme/autocert",
     "bcrypt",
     "blowfish",
     "ssh/terminal",
@@ -728,7 +726,6 @@
     "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/prometheus/common/log",
     "github.com/stretchr/testify/assert",
-    "golang.org/x/crypto/acme/autocert",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/net/context",
     "golang.org/x/net/websocket",

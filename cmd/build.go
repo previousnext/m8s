@@ -36,7 +36,7 @@ type cmdBuild struct {
 	Retention     time.Duration
 	GitRepository string
 	GitRevision   string
-	DockerCompose string
+	DockerCompose []string
 	ExecFile      string
 	ExecStep      string
 	ExecInside    string
@@ -184,7 +184,7 @@ func Build(app *kingpin.Application) {
 	cmd.Flag("retention", "How long to keep an environment").Default("120h").OverrideDefaultFromEnvar("M8S_RETENTION").DurationVar(&c.Retention)
 	cmd.Flag("git-repository", "Git repository to clone from").Default("").OverrideDefaultFromEnvar("M8S_GIT_REPO").StringVar(&c.GitRepository)
 	cmd.Flag("git-revision", "Git revision to checkout during clone").Required().StringVar(&c.GitRevision)
-	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("M8S_DOCKER_COMPOSE").StringVar(&c.DockerCompose)
+	cmd.Flag("docker-compose", "Docker Compose file").Default("docker-compose.yml").OverrideDefaultFromEnvar("M8S_DOCKER_COMPOSE").StringsVar(&c.DockerCompose)
 	cmd.Flag("exec-file", "Configuration file which contains execution steps").Default("m8s.yml").OverrideDefaultFromEnvar("M8S_EXEC_FILE").StringVar(&c.ExecFile)
 	cmd.Flag("exec-step", "Step from the configuration file to use for execution").Default("build").OverrideDefaultFromEnvar("M8S_EXEC_STEP").StringVar(&c.ExecStep)
 	cmd.Flag("exec-inside", "Docker repository to push built images").Default("app").OverrideDefaultFromEnvar("M8S_EXEC_INSIDE").StringVar(&c.ExecInside)
