@@ -170,10 +170,10 @@ func Pod(input PodInput) (*v1.Pod, error) {
 					},
 				},
 				InitialDelaySeconds: 15,
-				TimeoutSeconds:      15,
+				TimeoutSeconds:      30,
 				PeriodSeconds:       15,
 				SuccessThreshold:    1,
-				FailureThreshold:    1,
+				FailureThreshold:    10,
 			}
 		}
 
