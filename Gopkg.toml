@@ -21,7 +21,7 @@
 #  version = "2.4.0"
 
 [[constraint]]
-  version = "v0.0.2"
+  branch = "master"
   name = "github.com/previousnext/compose"
 
 [[constraint]]

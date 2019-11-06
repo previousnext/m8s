@@ -43,18 +43,20 @@ type ServiceDeployResource struct {
 	Memory string `yaml:"memory"`
 }
 
-// Load the Docker Compose file.
-func Load(path string) (DockerCompose, error) {
+// Load the Docker Compose files.
+func Load(paths []string) (DockerCompose, error) {
 	var dc DockerCompose
 
-	file, err := ioutil.ReadFile(path)
-	if err != nil {
-		return dc, err
-	}
+	for _, path := range paths {
+		file, err := ioutil.ReadFile(path)
+		if err != nil {
+			return dc, err
+		}
 
-	err = yaml.Unmarshal(file, &dc)
-	if err != nil {
-		return dc, err
+		err = yaml.Unmarshal(file, &dc)
+		if err != nil {
+			return dc, err
+		}
 	}
 
 	return dc, nil

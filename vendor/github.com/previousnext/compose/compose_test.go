@@ -7,8 +7,8 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	file := "./test-data/test.yaml"
-	compose, err := Load(file)
+	files := []string{"./test-data/test.yaml"}
+	compose, err := Load(files)
 	assert.Nil(t, err)
 
 	assert.Equal(t, compose.Services["a"].Image, "hostname.io/org/repo:version")
@@ -24,4 +24,13 @@ func TestLoad(t *testing.T) {
 	assert.Equal(t, compose.Services["a"].Deploy.Resources.Limits.Memory, "2048Mi")
 	assert.Equal(t, compose.Services["a"].ExtraHosts, []string{"some.hostname:1.2.3.4"})
 	assert.Equal(t, compose.Services["a"].Labels, map[string]string{ "m8s.io/skip": "true"})
+
+	files := []string{
+		"./test-data/test.yaml",
+		"./test-data/test-extra.yaml",
+	}
+	compose, err := Load(files)
+        assert.Nil(t, err)
+
+        assert.Equal(t, compose.Services["a"].Image, "hostname.io/org/repo:version-2")
 }

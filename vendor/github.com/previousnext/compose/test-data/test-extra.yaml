@@ -1,0 +1,4 @@
+version: "3"
+services:
+  a:
+    image: hostname.io/org/repo:version-2
