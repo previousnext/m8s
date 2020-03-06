@@ -114,7 +114,11 @@ func (w *podWatcher) start(ctx context.Context) error {
 				return
 			case evt, ok := <-watcher.ResultChan():
 				if !ok {
-					// TODO: reconnect watch
+					continue
+				}
+
+				if evt.Object == nil {
+					continue
 				}
 
 				w.versions <- evt.Object.(*v1.Pod)
