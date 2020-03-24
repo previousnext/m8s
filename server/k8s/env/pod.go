@@ -27,6 +27,7 @@ type PodInput struct {
 	Caches          []PodInputCache
 	ImagePullSecret string
 	Init            []*pb.Init
+	Domain string
 }
 
 // PodInputCache is used for passing in cache configuration to generate a pod.
@@ -51,6 +52,7 @@ func Pod(input PodInput) (*v1.Pod, error) {
 			},
 			Annotations: map[string]string{
 				"author": "m8s",
+				"rig.io/domain": input.Domain,
 			},
 		},
 		Spec: v1.PodSpec{

@@ -213,6 +213,7 @@ func stepPod(client *kubernetes.Clientset, in *pb.CreateRequest, stream pb.M8S_C
 		Caches:          inputCaches,
 		ImagePullSecret: dockercfg,
 		Init:            in.Steps,
+		Domain: in.Metadata.Domains[0],
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to build pod")
