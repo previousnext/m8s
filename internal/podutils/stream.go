@@ -64,6 +64,11 @@ func Tail(ctx context.Context, stream pb.M8S_CreateServer, client *kubernetes.Cl
 		}
 
 		pod, err = watcher.waitForPod(ctx, func(p *v1.Pod) bool {
+			// Ensure that our container status exists.
+			if len(p.Status.InitContainerStatuses) < i {
+				return false
+			}
+
 			return p.Status.InitContainerStatuses[i].State.Terminated != nil
 		})
 		if err != nil {
