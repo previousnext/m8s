@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
 
 export CGO_ENABLED=0
-export GO111MODULE=off
 PROJECT=github.com/previousnext/m8s
 
 # Builds the project
@@ -32,14 +31,9 @@ VERSION=$(shell git describe --tags --always)
 
 # Releases the project Docker Hub
 release-docker:
-	# Building M8s...
 	docker build -t ${IMAGE}:${VERSION} -t ${IMAGE}:latest .
 	docker push ${IMAGE}:${VERSION}
- 	docker push ${IMAGE}:latest
-	# Building M8s UI...
-	docker build -t ${IMAGE}-ui:${VERSION} -t ${IMAGE}-ui:latest ui
-	docker push ${IMAGE}-ui:${VERSION}
- 	docker push ${IMAGE}-ui:latest
+	docker push ${IMAGE}:latest
 
 release-github: build
 	ghr -u previousnext "${VERSION}" ./bin/

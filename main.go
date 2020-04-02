@@ -8,8 +8,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
-//go:generate go run scripts/generate-version.go
-
 func main() {
 	app := kingpin.New("M8s", "Short lived environments")
 

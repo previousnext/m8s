@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v30/github"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -25,7 +25,7 @@ func init() {
 }
 
 type cmdSlayer struct {
-	Token string
+	Token     string
 	Namespace string
 }
 

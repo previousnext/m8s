@@ -8,7 +8,7 @@ import (
 
 // DeploymentCreate is a wrapper which will attempt to create and/or up a deployment.
 func DeploymentCreate(client *kubernetes.Clientset, new *appsv1.Deployment) (*appsv1.Deployment, error) {
-	dply, err := client.Apps().Deployments(new.ObjectMeta.Namespace).Create(new)
+	dply, err := client.AppsV1().Deployments(new.ObjectMeta.Namespace).Create(new)
 	if errors.IsAlreadyExists(err) {
 		return client.AppsV1().Deployments(new.ObjectMeta.Namespace).Update(new)
 	}

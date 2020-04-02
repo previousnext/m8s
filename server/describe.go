@@ -25,7 +25,7 @@ func (srv Server) Describe(ctx context.Context, in *pb.DescribeRequest) (*pb.Des
 		return resp, err
 	}
 
-	ing, err := srv.client.Extensions().Ingresses(srv.Namespace).Get(in.Name, metav1.GetOptions{})
+	ing, err := srv.client.ExtensionsV1beta1().Ingresses(srv.Namespace).Get(in.Name, metav1.GetOptions{})
 	if err != nil {
 		return resp, err
 	}

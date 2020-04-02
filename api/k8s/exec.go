@@ -38,7 +38,7 @@ func (s Server) Exec(w http.ResponseWriter, r *http.Request) {
 	log.Println("Starting session")
 
 	wws := websocket.Handler(func(ws *websocket.Conn) {
-		opts := podutils.ExecParams{
+		opts := podutils.RunParams{
 			Client:    client,
 			Config:    config,
 			Namespace: s.Namespace,
@@ -55,7 +55,7 @@ func (s Server) Exec(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 
-		err = podutils.Exec(opts)
+		err = podutils.Run(opts)
 		if err != nil {
 			apiutils.Fatal(w, err)
 			return
