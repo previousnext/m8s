@@ -6,7 +6,7 @@ import (
 )
 
 // New returns a new API server.
-func New(master, config, namespace string, mock bool) API {
+func New(master, config, namespace, prefix string, mock bool) API {
 	if mock {
 		return mockapi.Server{}
 	}
@@ -15,5 +15,6 @@ func New(master, config, namespace string, mock bool) API {
 		Namespace: namespace,
 		Master:    master,
 		Config:    config,
+		Prefix:    prefix,
 	}
 }

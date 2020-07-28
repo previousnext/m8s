@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/previousnext/m8s/api/types"
 	apiutils "github.com/previousnext/m8s/api/utils"
@@ -35,6 +36,10 @@ func (s Server) List(w http.ResponseWriter, r *http.Request) {
 	var list []types.Environment
 
 	for _, ingress := range ingresses.Items {
+		if s.Prefix != "" && !strings.HasPrefix(ingress.ObjectMeta.Name, s.Prefix) {
+			continue
+		}
+
 		for _, rule := range ingress.Spec.Rules {
 			for _, path := range rule.HTTP.Paths {
 				if path.Path == "/" {

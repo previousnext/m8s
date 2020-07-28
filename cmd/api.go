@@ -14,13 +14,14 @@ type cmdDashboardAPI struct {
 	Namespace  string
 	KubeMaster string
 	KubeConfig string
+	Prefix     string
 	Mock       bool
 }
 
 func (cmd *cmdDashboardAPI) run(c *kingpin.ParseContext) error {
 	var (
 		mux = http.NewServeMux()
-		srv = dashboardapi.New(cmd.KubeMaster, cmd.KubeConfig, cmd.Namespace, cmd.Mock)
+		srv = dashboardapi.New(cmd.KubeMaster, cmd.KubeConfig, cmd.Namespace, cmd.Prefix, cmd.Mock)
 	)
 
 	mux.HandleFunc("/api/v1/list", srv.List)
@@ -44,5 +45,6 @@ func API(app *kingpin.Application) {
 	cmd.Flag("namespace", "Namespace to query resources.").Default("m8s").Envar("M8S_UI_NAMESPACE").StringVar(&c.Namespace)
 	cmd.Flag("kube-master", "Address of the Kubernetes master.").Envar("M8S_UI_KUBE_MASTER").StringVar(&c.KubeMaster)
 	cmd.Flag("kube-config", "Path to the Kubernetes config file.").Envar("M8S_UI_KUBE_CONFIG").StringVar(&c.KubeConfig)
+	cmd.Flag("prefix", "Lock down the API to resources with a specific prefix.").Envar("M8S_UI_PREFIX").StringVar(&c.Prefix)
 	cmd.Flag("mock", "Run this API server with the mock data backend.").Envar("M8S_UI_MOCK").BoolVar(&c.Mock)
 }

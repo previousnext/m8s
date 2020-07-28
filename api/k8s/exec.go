@@ -3,12 +3,13 @@ package k8s
 import (
 	"log"
 	"net/http"
+	"strings"
 
-	apiutils "github.com/previousnext/m8s/api/utils"
-	"github.com/previousnext/m8s/k8sclient"
 	"golang.org/x/net/websocket"
 
+	apiutils "github.com/previousnext/m8s/api/utils"
 	"github.com/previousnext/m8s/internal/podutils"
+	"github.com/previousnext/m8s/k8sclient"
 )
 
 // Exec bash (shell) inside a container.
@@ -16,6 +17,10 @@ func (s Server) Exec(w http.ResponseWriter, r *http.Request) {
 	pod, err := apiutils.Param(r, "pod")
 	if err != nil {
 		apiutils.Fatal(w, err)
+		return
+	}
+
+	if s.Prefix != "" && !strings.HasPrefix(pod, s.Prefix) {
 		return
 	}
 

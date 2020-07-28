@@ -5,4 +5,5 @@ type Server struct {
 	Namespace string
 	Master    string
 	Config    string
+	Prefix    string
 }

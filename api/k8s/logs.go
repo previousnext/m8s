@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/previousnext/m8s/api/types"
 	apiutils "github.com/previousnext/m8s/api/utils"
@@ -16,6 +17,10 @@ func (s Server) Logs(w http.ResponseWriter, r *http.Request) {
 	pod, err := apiutils.Param(r, "pod")
 	if err != nil {
 		apiutils.Fatal(w, err)
+		return
+	}
+
+	if s.Prefix != "" && !strings.HasPrefix(pod, s.Prefix) {
 		return
 	}
 
