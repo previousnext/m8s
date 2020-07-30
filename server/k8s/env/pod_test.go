@@ -24,6 +24,7 @@ func TestPod(t *testing.T) {
 			Annotations: map[string]string{
 				"author":                              "m8s",
 				metadata.AnnotationBitbucketRepoOwner: "nick",
+				"rig.io/domain": "",
 			},
 		},
 		Spec: v1.PodSpec{
