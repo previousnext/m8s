@@ -3452,10 +3452,10 @@ react-transition-group@^2.0.0, react-transition-group@^2.2.0:
     prop-types "^15.6.2"
     react-lifecycles-compat "^3.0.4"
 
-react-websocket@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/react-websocket/-/react-websocket-2.0.1.tgz#38df1d9b57825a0ec7c9cf8f8f461d17a0150b7e"
-  integrity sha512-urKyhzYIEMaU9oeJqAN75B5KaZvTJ7lhx05ODSg8jyHA/9ym8tOvD7YE00cxTpb0irrE1eXWCUm7Xyi3RW07cg==
+react-websocket@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/react-websocket/-/react-websocket-2.1.0.tgz#1150ce55aaa38e845f5711684266a823781ee2e4"
+  integrity sha512-VstINrNXmp08aol9TQt1LZQgtzmad6CjTvEX8TYAFxU7K0ByMtDP7T2WMtgNEttWtPThVA7TDhHNu+fGTaAExQ==
 
 react@^16.2.0:
   version "16.9.0"
