@@ -1,7 +1,8 @@
----
-version: 2
+
+version: 2.1
+
 jobs:
-  lint_test:
+  build_go:
     docker:
       - image: previousnext/golang:1.13
     working_directory: /go/src/github.com/previousnext/m8s
@@ -23,6 +24,20 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: /tmp/test-results
+
+  build_frontend:
+    docker:
+      - image: skpr/node:10
+    working_directory: /go/src/github.com/previousnext/m8s
+    steps:
+      - checkout
+      - run:
+          name: Install deps
+          command: yarn install
+      - run:
+          name: Build
+          command: make build
+
   release_docker:
     docker:
       - image: previousnext/pnx-packager
@@ -36,6 +51,7 @@ jobs:
           command: |
             docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
             make release-docker
+
   release_github:
     docker:
       - image: previousnext/golang:1.13
@@ -55,21 +71,22 @@ filters_release: &filters_release
 
 workflows:
   version: 2
-  main:
+  build:
     jobs:
-      - lint_test
+      - build_go
+      - build_frontend
   release:
     jobs:
-      - lint_test:
+      - build_go:
           filters:
             <<: *filters_release
       - release_github:
           requires:
-            - lint_test
+            - build_go
           filters:
             <<: *filters_release
       - release_docker:
           requires:
-            - lint_test
+            - build_go
           filters:
             <<: *filters_release
