@@ -3,9 +3,9 @@ module github.com/previousnext/m8s
 go 1.13
 
 require (
+	github.com/creack/pty v1.1.11
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github/v32 v32.1.0
-	github.com/kr/pty v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/previousnext/compose v0.0.4
