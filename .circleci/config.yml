@@ -33,10 +33,14 @@ jobs:
       - checkout
       - run:
           name: Install deps
-          command: yarn install
+          command: |
+            cd ui
+            yarn install
       - run:
           name: Build
-          command: make build
+          command: |
+            cd ui
+            make build
 
   release_docker:
     docker:
