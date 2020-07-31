@@ -28,7 +28,7 @@ jobs:
   build_frontend:
     docker:
       - image: skpr/node:12-1.x
-    working_directory: /go/src/github.com/previousnext/m8s
+    working_directory: /data
     steps:
       - checkout
       - run:
