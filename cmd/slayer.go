@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/go-github/v30/github"
+	"github.com/google/go-github/v32/github"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"gopkg.in/alecthomas/kingpin.v2"
