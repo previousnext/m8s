@@ -6,7 +6,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"time"
 
-	"github.com/google/go-github/v30/github"
+	"github.com/google/go-github/v32/github"
 	"github.com/pkg/errors"
 	"github.com/previousnext/m8s/cmd/metadata"
 	"golang.org/x/oauth2"
