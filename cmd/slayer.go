@@ -3,17 +3,17 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"k8s.io/client-go/tools/clientcmd"
+	"time"
 
 	"github.com/google/go-github/v30/github"
 	"github.com/pkg/errors"
+	"github.com/previousnext/m8s/cmd/metadata"
 	"golang.org/x/oauth2"
 	"gopkg.in/alecthomas/kingpin.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-
-	"github.com/previousnext/m8s/cmd/metadata"
 )
 
 var (
@@ -25,41 +25,50 @@ func init() {
 }
 
 type cmdSlayer struct {
+	MasterURL string
+	Kubeconfig string
+
 	Token     string
 	Namespace string
+
+	Grace int64
 }
 
 func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
-	config, err := rest.InClusterConfig()
+	ctx := context.Background()
+
+	config, err := clientcmd.BuildConfigFromFlags(cmd.MasterURL, cmd.Kubeconfig)
 	if err != nil {
-		return errors.Wrap(err, "failed to create in-cluster config")
+		return fmt.Errorf("failed to get config: %w", err)
 	}
+
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return errors.Wrap(err, "failed to create clientset")
+		return fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	pods, err := clientset.CoreV1().Pods(cmd.Namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to list pods")
 	}
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: cmd.Token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
 
-	clientGithub := github.NewClient(tc)
+	clientGithub := github.NewClient(oauth2.NewClient(ctx, oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: cmd.Token},
+	)))
+
 	slayEmAll, err := getPodsToSlay(ctx, pods, clientGithub)
 	if err != nil {
-		return errors.Wrap(err, "failed to get pods to slay")
+		return fmt.Errorf("failed to get Pods: %w", err)
 	}
 
 	for _, pod := range slayEmAll {
-		fmt.Printf("Slaying pod %s in namespace %s\n", pod.ObjectMeta.Name, pod.ObjectMeta.Namespace)
-		err = clientset.CoreV1().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{})
+		fmt.Printf("Slaying pod: %s/%s\n", pod.ObjectMeta.Namespace, pod.ObjectMeta.Name)
+
+		err = clientset.CoreV1().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{
+			GracePeriodSeconds: &cmd.Grace,
+		})
 		if err != nil {
-			return errors.Wrap(err, "failed to slay pod")
+			return fmt.Errorf("failed to slay Pods (it got away!): %w", err)
 		}
 	}
 
@@ -70,7 +79,14 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 func getPodsToSlay(ctx context.Context, pods *v1.PodList, clientGithub *github.Client) ([]v1.Pod, error) {
 	var podsToSlay []v1.Pod
 
+	createdGracePeriod := time.Now().UTC().Add(time.Hour)
+
 	for _, pod := range pods.Items {
+		if pod.ObjectMeta.CreationTimestamp.After(createdGracePeriod) {
+			fmt.Printf("Pod %s was only just created and might not have a pull request yet, skipping\n", pod.ObjectMeta.Name)
+			continue
+		}
+
 		if _, ok := pod.Annotations[metadata.AnnotationCircleCIRepositoryName]; !ok {
 			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, metadata.AnnotationCircleCIRepositoryName)
 			continue
@@ -88,23 +104,35 @@ func getPodsToSlay(ctx context.Context, pods *v1.PodList, clientGithub *github.C
 			continue
 		}
 
-		prs, err := getClosedPrs(ctx, clientGithub, pod.Annotations[metadata.AnnotationCircleCIRepositoryUsername], pod.Annotations[metadata.AnnotationCircleCIRepositoryName])
+		prs, err := getOpenPRs(ctx, clientGithub, pod.Annotations[metadata.AnnotationCircleCIRepositoryUsername], pod.Annotations[metadata.AnnotationCircleCIRepositoryName])
 		if err != nil {
 			return nil, err
 		}
 
-		for _, pr := range prs {
-			if pod.Annotations[metadata.AnnotationCircleCIBranch] == *pr.Head.Ref && pod.Annotations[metadata.AnnotationCircleCISHA1] == *pr.Head.SHA {
-				podsToSlay = append(podsToSlay, pod)
-			}
+		if isOpenPR(prs, pod.Annotations[metadata.AnnotationCircleCIBranch], pod.Annotations[metadata.AnnotationCircleCISHA1]) {
+			fmt.Printf("Pod %s has an open pull request, skipping\n", pod.ObjectMeta.Name)
+			continue
 		}
+
+		podsToSlay = append(podsToSlay, pod)
 	}
 
 	return podsToSlay, nil
 }
 
-// getClosedPrs gathers all closed PRs for an owner and repo.
-func getClosedPrs(ctx context.Context, client *github.Client, owner, repo string) ([]*github.PullRequest, error) {
+// Helper function to check if a branch is on the list.
+func isOpenPR(list []*github.PullRequest, branch, sha string) bool {
+	for _, item := range list {
+		if branch == *item.Head.Ref && sha == *item.Head.SHA {
+			return true
+		}
+	}
+
+	return false
+}
+
+// getOpenPRs gathers all open PRs for an owner and repo.
+func getOpenPRs(ctx context.Context, client *github.Client, owner, repo string) ([]*github.PullRequest, error) {
 	key := fmt.Sprintf("%s.%s", owner, repo)
 	if val, ok := slayCache[key]; ok {
 		fmt.Printf("Loading PRs from cache for owner %s and repo %s\n", owner, repo)
@@ -113,7 +141,7 @@ func getClosedPrs(ctx context.Context, client *github.Client, owner, repo string
 
 	var allPrs []*github.PullRequest
 	opt := &github.PullRequestListOptions{
-		State:       "closed",
+		State:       "open",
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
 
@@ -122,14 +150,18 @@ func getClosedPrs(ctx context.Context, client *github.Client, owner, repo string
 		if err != nil {
 			return nil, err
 		}
+
 		allPrs = append(allPrs, prs...)
+
 		if resp.NextPage == 0 {
 			break
 		}
+
 		opt.Page = resp.NextPage
 	}
 
 	slayCache[key] = allPrs
+
 	return allPrs, nil
 }
 
@@ -138,6 +170,12 @@ func Slayer(app *kingpin.Application) {
 	c := new(cmdSlayer)
 
 	cmd := app.Command("slayer", "Slay environments against closed PRs.").Action(c.run)
+
+	cmd.Flag("master", "Location of the Kubernetes master.").Envar("SLAYER_MASTER").StringVar(&c.MasterURL)
+	cmd.Flag("kubeconfig", "Location of the Kubernetes Kubeconfig.").Envar("SLAYER_KUBECONFIG").StringVar(&c.Kubeconfig)
+
 	cmd.Flag("token", "The Github access token.").Envar("GITHUB_TOKEN").Required().StringVar(&c.Token)
 	cmd.Flag("namespace", "The Kubernetes namespace to slay pods in.").Default(v1.NamespaceAll).Envar("SLAYER_NAMESPACE").StringVar(&c.Namespace)
+
+	cmd.Flag("grace", "How long a Pod should be allowed to shutdown").Envar("SLAYER_GRACE").Int64Var(&c.Grace)
 }
