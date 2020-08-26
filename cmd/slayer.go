@@ -32,6 +32,8 @@ type cmdSlayer struct {
 	Namespace string
 
 	Grace int64
+
+	Debug bool
 }
 
 func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
@@ -64,6 +66,10 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 	for _, pod := range slayEmAll {
 		fmt.Printf("Slaying pod: %s/%s\n", pod.ObjectMeta.Namespace, pod.ObjectMeta.Name)
 
+		if cmd.Debug {
+			continue
+		}
+
 		err = clientset.CoreV1().Pods(pod.ObjectMeta.Namespace).Delete(pod.ObjectMeta.Name, &metav1.DeleteOptions{
 			GracePeriodSeconds: &cmd.Grace,
 		})
@@ -79,14 +85,9 @@ func (cmd *cmdSlayer) run(c *kingpin.ParseContext) error {
 func getPodsToSlay(ctx context.Context, pods *v1.PodList, clientGithub *github.Client) ([]v1.Pod, error) {
 	var podsToSlay []v1.Pod
 
-	createdGracePeriod := time.Now().UTC().Add(time.Hour)
+	createdGracePeriod := time.Now().Add(time.Duration(-12) * time.Hour)
 
 	for _, pod := range pods.Items {
-		if pod.ObjectMeta.CreationTimestamp.After(createdGracePeriod) {
-			fmt.Printf("Pod %s was only just created and might not have a pull request yet, skipping\n", pod.ObjectMeta.Name)
-			continue
-		}
-
 		if _, ok := pod.Annotations[metadata.AnnotationCircleCIRepositoryName]; !ok {
 			fmt.Printf("Pod %s missing the %s annotation, skipping\n", pod.ObjectMeta.Name, metadata.AnnotationCircleCIRepositoryName)
 			continue
@@ -111,6 +112,13 @@ func getPodsToSlay(ctx context.Context, pods *v1.PodList, clientGithub *github.C
 
 		if isOpenPR(prs, pod.Annotations[metadata.AnnotationCircleCIBranch], pod.Annotations[metadata.AnnotationCircleCISHA1]) {
 			fmt.Printf("Pod %s has an open pull request, skipping\n", pod.ObjectMeta.Name)
+			continue
+		}
+
+		fmt.Printf("Comparing Pod %s/%s with created time %s to grace period %s\n", pod.ObjectMeta.Namespace, pod.ObjectMeta.Name, pod.ObjectMeta.CreationTimestamp.String(), createdGracePeriod.String())
+
+		if pod.ObjectMeta.CreationTimestamp.After(createdGracePeriod) {
+			fmt.Printf("Pod %s was only just created and might not have a pull request yet, skipping\n", pod.ObjectMeta.Name)
 			continue
 		}
 
@@ -178,4 +186,6 @@ func Slayer(app *kingpin.Application) {
 	cmd.Flag("namespace", "The Kubernetes namespace to slay pods in.").Default(v1.NamespaceAll).Envar("SLAYER_NAMESPACE").StringVar(&c.Namespace)
 
 	cmd.Flag("grace", "How long a Pod should be allowed to shutdown").Envar("SLAYER_GRACE").Int64Var(&c.Grace)
+
+	cmd.Flag("debug", "Pods will not be terminated").Envar("SLAYER_DEBUG").BoolVar(&c.Debug)
 }
