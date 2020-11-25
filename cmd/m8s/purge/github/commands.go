@@ -3,6 +3,7 @@ package github
 import (
 	"gopkg.in/alecthomas/kingpin.v2"
 
+	"github.com/previousnext/m8s/cmd/m8s/purge/github/closed"
 	"github.com/previousnext/m8s/cmd/m8s/purge/github/drafts"
 )
 
@@ -10,4 +11,5 @@ import (
 func Commands(app *kingpin.CmdClause) {
 	cmd := app.Command("github", "Purge environments using Github as metadata")
 	drafts.Command(cmd)
+	closed.Command(cmd)
 }
