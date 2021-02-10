@@ -18,7 +18,7 @@
     "react-router-dom": "^4.2.2",
     "react-router-native": "^4.2.0",
     "react-websocket": "^2.0.0",
-    "style-loader": "^0.19.1",
+    "style-loader": "^0.23.1",
     "webpack": "^3.10.0"
   }
 }
