@@ -19,6 +19,7 @@
     "react-router-native": "^4.2.0",
     "react-websocket": "^2.0.0",
     "style-loader": "^0.19.1",
-    "webpack": "^4.46.0"
+    "webpack": "^4.46.0",
+    "webpack-cli": "^4.5.0"
   }
 }
